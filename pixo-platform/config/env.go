@@ -7,11 +7,10 @@ import (
 	"path/filepath"
 )
 
-func LoadEnvVars() {
-	envPath := filepath.Join(GetProjectRoot(), ".env")
-	err := godotenv.Load(envPath)
+func LoadEnvVars(differential ...string) {
+	envPath := filepath.Join(GetProjectRoot(differential...), ".env")
 
-	if err != nil {
+	if err := godotenv.Load(envPath); err != nil {
 		log.Warn().Msgf("No .env file loaded: %s", err)
 	}
 }

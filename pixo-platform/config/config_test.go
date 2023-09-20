@@ -21,7 +21,7 @@ var _ = Describe("Config", func() {
 
 	// WARNING: This test assumes you are running from the root of the pixo-golang-server-utilities repo
 	It("can determine the project root directory", func() {
-		root := config.GetProjectRoot()
+		root := config.GetProjectRoot("../..")
 		Expect(root).NotTo(BeNil())
 		Expect(root).To(ContainSubstring("pixo-golang-server-utilities"))
 		Expect(root).NotTo(ContainSubstring("pixo-platform"))
