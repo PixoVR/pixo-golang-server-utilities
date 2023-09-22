@@ -82,8 +82,8 @@ func ParseJWT(tokenString string) (RawToken, error) {
 		rawToken.Email = email
 	}
 
-	if orgID, ok := extractClaim(claims, "orgId").(int); ok {
-		rawToken.OrgID = orgID
+	if orgID, ok := extractClaim(claims, "orgId").(float64); ok {
+		rawToken.OrgID = int(orgID)
 	}
 
 	if orgType, ok := extractClaim(claims, "orgType").(string); ok {
