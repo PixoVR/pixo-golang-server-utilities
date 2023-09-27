@@ -7,6 +7,10 @@ import (
 	"path/filepath"
 )
 
+func init() {
+	LoadEnvVars()
+}
+
 func LoadEnvVars(differential ...string) {
 	envPath := filepath.Join(GetProjectRoot(differential...), ".env")
 
