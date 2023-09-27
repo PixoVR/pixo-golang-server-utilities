@@ -15,11 +15,17 @@ func LoadEnvVars(differential ...string) {
 	}
 }
 
-func GetLifecycle() string {
-	lifecycle, ok := os.LookupEnv("LIFECYCLE")
-	if !ok {
-		lifecycle = "dev"
+func GetEnvOrReturn(key string, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
 	}
+	return fallback
+}
 
-	return lifecycle
+func GetLifecycle() string {
+	return GetEnvOrReturn("LIFECYCLE", "dev")
+}
+
+func GetDomain() string {
+	return GetEnvOrReturn("DOMAIN", "localhost")
 }
