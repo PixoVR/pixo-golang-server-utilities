@@ -5,6 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func init() {
@@ -27,7 +28,7 @@ func GetEnvOrReturn(key string, fallback string) string {
 }
 
 func GetLifecycle() string {
-	return GetEnvOrReturn("LIFECYCLE", "dev")
+	return strings.ToLower(GetEnvOrReturn("LIFECYCLE", "dev"))
 }
 
 func GetDomain() string {
