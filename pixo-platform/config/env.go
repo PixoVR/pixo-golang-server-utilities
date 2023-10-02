@@ -5,7 +5,12 @@ import (
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+func init() {
+	LoadEnvVars()
+}
 
 func LoadEnvVars(differential ...string) {
 	envPath := filepath.Join(GetProjectRoot(differential...), ".env")
@@ -15,11 +20,17 @@ func LoadEnvVars(differential ...string) {
 	}
 }
 
-func GetLifecycle() string {
-	lifecycle, ok := os.LookupEnv("LIFECYCLE")
-	if !ok {
-		lifecycle = "dev"
+func GetEnvOrReturn(key string, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
 	}
+	return fallback
+}
 
-	return lifecycle
+func GetLifecycle() string {
+	return strings.ToLower(GetEnvOrReturn("LIFECYCLE", "dev"))
+}
+
+func GetDomain() string {
+	return GetEnvOrReturn("DOMAIN", "localhost")
 }
