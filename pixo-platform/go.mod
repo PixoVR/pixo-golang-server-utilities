@@ -10,7 +10,7 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/joho/godotenv v1.5.1
-	github.com/onsi/ginkgo/v2 v2.12.1
+	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.28.0
 	github.com/rs/zerolog v1.31.0
 	k8s.io/api v0.28.2
