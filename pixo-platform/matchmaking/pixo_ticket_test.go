@@ -37,7 +37,7 @@ var _ = Describe("PixoTicket", func() {
 		pixoTicket.SetMatchmakingAttemptCount(2)
 
 		var val wrappers.Int32Value
-		err := ptypes.UnmarshalAny(pixoTicket.Extensions[matchmaking.TicketMatchAttemptExtensionKey], &val)
+		err := ptypes.UnmarshalAny(pixoTicket.PersistentField[matchmaking.TicketMatchAttemptExtensionKey], &val)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(int(val.Value)).To(Equal(2))
