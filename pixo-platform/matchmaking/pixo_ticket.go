@@ -23,8 +23,8 @@ func NewPixoTicket(ticket *pb.Ticket) *PixoTicket {
 }
 
 func (p *PixoTicket) SetMatchmakingAttemptCount(inputVal int32) error {
-	if p.Extensions == nil {
-		p.Extensions = make(map[string]*any.Any)
+	if p.PersistentField == nil {
+		p.PersistentField = make(map[string]*any.Any)
 	}
 
 	val, err := ptypes.MarshalAny(&wrappers.Int32Value{Value: inputVal})
@@ -33,7 +33,7 @@ func (p *PixoTicket) SetMatchmakingAttemptCount(inputVal int32) error {
 		return err
 	}
 
-	p.Extensions[TicketMatchAttemptExtensionKey] = val
+	p.PersistentField[TicketMatchAttemptExtensionKey] = val
 
 	log.Debug().Msgf("Attempt count set to %v", inputVal)
 	return nil
@@ -45,8 +45,8 @@ func (p *PixoTicket) GetMatchmakingAttemptCount() (int32, error) {
 		return 0, err
 	}
 
-	if p.Extensions != nil {
-		if rawVal, ok := p.Extensions[TicketMatchAttemptExtensionKey]; ok {
+	if p.PersistentField != nil {
+		if rawVal, ok := p.PersistentField[TicketMatchAttemptExtensionKey]; ok {
 			var val wrappers.Int32Value
 			if err := ptypes.UnmarshalAny(rawVal, &val); err != nil {
 				log.Error().Err(err).Msg("Unable to unmarshal open slots")
