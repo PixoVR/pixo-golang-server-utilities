@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+
 	jwt2 "github.com/go-jose/go-jose/v3/jwt"
 )
 
@@ -25,7 +26,6 @@ type RawToken struct {
 }
 
 func ParseJWT(tokenString string) (RawToken, error) {
-
 	var claims map[string]interface{}
 
 	var token *jwt2.JSONWebToken
@@ -82,8 +82,8 @@ func ParseJWT(tokenString string) (RawToken, error) {
 		rawToken.Email = email
 	}
 
-	if orgID, ok := extractClaim(claims, "orgId").(int); ok {
-		rawToken.OrgID = orgID
+	if orgID, ok := extractClaim(claims, "orgId").(float64); ok {
+		rawToken.OrgID = int(orgID)
 	}
 
 	if orgType, ok := extractClaim(claims, "orgType").(string); ok {
