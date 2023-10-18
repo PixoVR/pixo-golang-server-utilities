@@ -12,19 +12,31 @@ type Client struct {
 	Namespace string
 }
 
-func NewArgoClient(namespace string) *Client {
-	kubeconfig := base.GetKubeConfig()
-	return &Client{
-		Clientset: getArgoClientsetFromConfig(kubeconfig),
-		Namespace: namespace,
+func NewArgoClient(namespace string) (*Client, error) {
+	kubeconfig, err := base.GetConfig()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to create argo client")
+		return nil, err
 	}
+
+	clientset, err := getArgoClientsetFromConfig(kubeconfig)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to create argo client")
+		return nil, err
+	}
+
+	return &Client{
+		Clientset: clientset,
+		Namespace: namespace,
+	}, nil
 }
 
-func getArgoClientsetFromConfig(config *rest.Config) *versioned.Clientset {
+func getArgoClientsetFromConfig(config *rest.Config) (*versioned.Clientset, error) {
 	clientset, err := versioned.NewForConfig(config)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to create argo client")
+		log.Error().Err(err).Msg("Failed to create argo client")
+		return nil, err
 	}
 
-	return clientset
+	return clientset, nil
 }

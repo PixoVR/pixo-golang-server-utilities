@@ -16,7 +16,9 @@ var _ = Describe("Agones", func() {
 	)
 
 	BeforeEach(func() {
-		agonesClient = agones.NewAgonesClient("dev-multiplayer")
+		var err error
+		agonesClient, err = agones.NewAgonesClient("dev-multiplayer")
+		Expect(err).NotTo(HaveOccurred())
 		Expect(agonesClient).To(Not(BeNil()))
 	})
 

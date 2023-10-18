@@ -17,7 +17,9 @@ var _ = Describe("Argo", func() {
 	)
 
 	BeforeEach(func() {
-		clientset = argo.NewArgoClient("dev-multiplayer")
+		var err error
+		clientset, err = argo.NewArgoClient("dev-multiplayer")
+		Expect(err).NotTo(HaveOccurred())
 		Expect(clientset).To(Not(BeNil()))
 	})
 

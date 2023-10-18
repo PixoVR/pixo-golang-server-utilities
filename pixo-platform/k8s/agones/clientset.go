@@ -12,19 +12,29 @@ type Client struct {
 	Namespace string
 }
 
-func NewAgonesClient(namespace string) *Client {
-	kubeconfig := base.GetKubeConfig()
-	return &Client{
-		Clientset: getAgonesClientsetFromConfig(kubeconfig),
-		Namespace: namespace,
+func NewAgonesClient(namespace string) (*Client, error) {
+	kubeconfig, err := base.GetConfig()
+	if err != nil {
+		return nil, err
 	}
+
+	clientset, err := getAgonesClientsetFromConfig(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{
+		Clientset: clientset,
+		Namespace: namespace,
+	}, nil
 }
 
-func getAgonesClientsetFromConfig(config *rest.Config) *versioned.Clientset {
+func getAgonesClientsetFromConfig(config *rest.Config) (*versioned.Clientset, error) {
 	clientset, err := versioned.NewForConfig(config)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to create agones client")
+		log.Error().Err(err).Msg("Failed to create agones client")
+		return nil, err
 	}
 
-	return clientset
+	return clientset, nil
 }
