@@ -6,17 +6,17 @@ import (
 	log "github.com/rs/zerolog/log"
 )
 
-func GetGameServerLogs(gs agonesv1.GameServer) (string, string, error) {
+func (c Client) GetGameServerLogs(baseClient base.Client, namespace string, gs agonesv1.GameServer) (string, string, error) {
 
 	podName := gs.ObjectMeta.Name
 
-	logs, err := base.GetPodLogs(podName, "gameserver")
+	logs, err := baseClient.GetPodLogs(namespace, podName, "gameserver")
 	if err != nil {
 		log.Err(err).Msgf("error getting pod logs for pod %v", podName)
 		return "", "", err
 	}
 
-	sidecarLogs, err := base.GetPodLogs(podName, "agones-gameserver-sidecar")
+	sidecarLogs, err := baseClient.GetPodLogs(namespace, podName, "agones-gameserver-sidecar")
 	if err != nil {
 		log.Err(err).Msgf("error getting pod logs for pod %v", podName)
 		return "", "", err

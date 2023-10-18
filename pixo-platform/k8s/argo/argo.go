@@ -7,8 +7,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (c Client) ListWorkflows() (*v1alpha1.WorkflowList, error) {
-	workflows, err := c.Clientset.ArgoprojV1alpha1().Workflows(c.Namespace).List(context.Background(), metav1.ListOptions{})
+func (c Client) ListWorkflows(namespace string) (*v1alpha1.WorkflowList, error) {
+	workflows, err := c.Clientset.ArgoprojV1alpha1().Workflows(namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		log.Err(err).Msg("Error fetching workflows")
 		return nil, err
@@ -17,8 +17,8 @@ func (c Client) ListWorkflows() (*v1alpha1.WorkflowList, error) {
 	return workflows, nil
 }
 
-func (c Client) GetWorkflow(name string) (*v1alpha1.Workflow, error) {
-	workflow, err := c.Clientset.ArgoprojV1alpha1().Workflows(c.Namespace).Get(context.Background(), name, metav1.GetOptions{})
+func (c Client) GetWorkflow(namespace, name string) (*v1alpha1.Workflow, error) {
+	workflow, err := c.Clientset.ArgoprojV1alpha1().Workflows(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		log.Err(err).Msg("Error fetching workflows")
 		return nil, err
@@ -27,8 +27,8 @@ func (c Client) GetWorkflow(name string) (*v1alpha1.Workflow, error) {
 	return workflow, nil
 }
 
-func (c Client) CreateWorkflow(workflow *v1alpha1.Workflow) (*v1alpha1.Workflow, error) {
-	workflow, err := c.Clientset.ArgoprojV1alpha1().Workflows(c.Namespace).Create(context.Background(), workflow, metav1.CreateOptions{})
+func (c Client) CreateWorkflow(namespace string, workflow *v1alpha1.Workflow) (*v1alpha1.Workflow, error) {
+	workflow, err := c.Clientset.ArgoprojV1alpha1().Workflows(namespace).Create(context.Background(), workflow, metav1.CreateOptions{})
 	if err != nil {
 		log.Err(err).Msg("Error creating workflow")
 		return nil, err
@@ -37,8 +37,8 @@ func (c Client) CreateWorkflow(workflow *v1alpha1.Workflow) (*v1alpha1.Workflow,
 	return workflow, nil
 }
 
-func (c Client) DeleteWorkflow(name string) error {
-	err := c.Clientset.ArgoprojV1alpha1().Workflows(c.Namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+func (c Client) DeleteWorkflow(namespace, name string) error {
+	err := c.Clientset.ArgoprojV1alpha1().Workflows(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 	if err != nil {
 		log.Err(err).Msg("Error deleting workflow")
 		return err

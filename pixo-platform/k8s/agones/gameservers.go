@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (a *Client) GetGameServers(labelSelectors *metav1.LabelSelector) (*v1.GameServerList, error) {
+func (c Client) GetGameServers(namespace string, labelSelectors *metav1.LabelSelector) (*v1.GameServerList, error) {
 	log.Debug().Msg("Fetching game servers")
 
 	var options metav1.ListOptions
@@ -18,7 +18,7 @@ func (a *Client) GetGameServers(labelSelectors *metav1.LabelSelector) (*v1.GameS
 		options = metav1.ListOptions{LabelSelector: labelSelectors.String()}
 	}
 
-	gameservers, err := a.Clientset.AgonesV1().GameServers(a.Namespace).List(context.Background(), options)
+	gameservers, err := c.Clientset.AgonesV1().GameServers(namespace).List(context.Background(), options)
 
 	if err != nil {
 		log.Error().Err(err).Msg("Error fetching label information")
@@ -28,12 +28,12 @@ func (a *Client) GetGameServers(labelSelectors *metav1.LabelSelector) (*v1.GameS
 	return gameservers, err
 }
 
-func (a *Client) GetGameServer(name string) (*v1.GameServer, error) {
+func (c Client) GetGameServer(namespace, name string) (*v1.GameServer, error) {
 	log.Debug().Msgf("Fetching game server %s", name)
 
-	gameserver, err := a.Clientset.
+	gameserver, err := c.Clientset.
 		AgonesV1().
-		GameServers(a.Namespace).
+		GameServers(namespace).
 		Get(context.Background(), name, metav1.GetOptions{})
 
 	if err != nil {
@@ -44,12 +44,12 @@ func (a *Client) GetGameServer(name string) (*v1.GameServer, error) {
 	return gameserver, err
 }
 
-func (a *Client) CreateGameServer(gameserver *v1.GameServer) (*v1.GameServer, error) {
+func (c Client) CreateGameServer(namespace string, gameserver *v1.GameServer) (*v1.GameServer, error) {
 	log.Debug().Msg("Creating game server")
 
-	newGameServer, err := a.Clientset.
+	newGameServer, err := c.Clientset.
 		AgonesV1().
-		GameServers(a.Namespace).
+		GameServers(namespace).
 		Create(context.TODO(), gameserver, metav1.CreateOptions{})
 
 	if err != nil {
@@ -60,12 +60,12 @@ func (a *Client) CreateGameServer(gameserver *v1.GameServer) (*v1.GameServer, er
 	return newGameServer, err
 }
 
-func (a *Client) DeleteGameServer(name string) error {
+func (c Client) DeleteGameServer(namespace, name string) error {
 	log.Debug().Msgf("Deleting game server %s", name)
 
-	err := a.Clientset.
+	err := c.Clientset.
 		AgonesV1().
-		GameServers(a.Namespace).
+		GameServers(namespace).
 		Delete(context.Background(), name, metav1.DeleteOptions{})
 
 	if err != nil {

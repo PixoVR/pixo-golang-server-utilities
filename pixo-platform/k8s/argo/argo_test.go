@@ -14,17 +14,18 @@ var _ = Describe("Argo", func() {
 
 	var (
 		clientset *argo.Client
+		namespace = "dev-multiplayer"
 	)
 
 	BeforeEach(func() {
 		var err error
-		clientset, err = argo.NewArgoClient("dev-multiplayer")
+		clientset, err = argo.NewLocalArgoClient()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(clientset).To(Not(BeNil()))
 	})
 
 	It("can get the list of workflows ", func() {
-		workflows, err := clientset.ListWorkflows()
+		workflows, err := clientset.ListWorkflows(namespace)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(workflows).NotTo(BeNil())
@@ -50,21 +51,21 @@ var _ = Describe("Argo", func() {
 			},
 		}
 
-		workflow, err := clientset.CreateWorkflow(spec)
+		workflow, err := clientset.CreateWorkflow(namespace, spec)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(workflow).NotTo(BeNil())
 
-		retrieved, err := clientset.GetWorkflow(name)
+		retrieved, err := clientset.GetWorkflow(namespace, name)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(retrieved).NotTo(BeNil())
 		Expect(retrieved.Name).To(Equal(name))
 
 		time.Sleep(10 * time.Second)
 
-		err = clientset.DeleteWorkflow(name)
+		err = clientset.DeleteWorkflow(namespace, name)
 		Expect(err).NotTo(HaveOccurred())
 
-		retrieved, err = clientset.GetWorkflow(name)
+		retrieved, err = clientset.GetWorkflow(namespace, name)
 		Expect(err).To(HaveOccurred())
 		Expect(retrieved).To(BeNil())
 	})

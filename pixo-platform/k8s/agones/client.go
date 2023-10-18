@@ -9,11 +9,10 @@ import (
 
 type Client struct {
 	*versioned.Clientset
-	Namespace string
 }
 
-func NewAgonesClient(namespace string) (*Client, error) {
-	kubeconfig, err := base.GetConfig()
+func NewInClusterAgonesClient(namespace string) (*Client, error) {
+	kubeconfig, err := base.GetConfigUsingInCluster()
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +24,22 @@ func NewAgonesClient(namespace string) (*Client, error) {
 
 	return &Client{
 		Clientset: clientset,
-		Namespace: namespace,
+	}, nil
+}
+
+func NewLocalAgonesClient() (*Client, error) {
+	kubeconfig, err := base.GetConfigUsingKubeconfig()
+	if err != nil {
+		return nil, err
+	}
+
+	clientset, err := getAgonesClientsetFromConfig(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{
+		Clientset: clientset,
 	}, nil
 }
 

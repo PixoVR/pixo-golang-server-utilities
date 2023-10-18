@@ -13,17 +13,18 @@ var _ = Describe("Agones", func() {
 
 	var (
 		agonesClient *agones.Client
+		namespace    = "dev-multiplayer"
 	)
 
 	BeforeEach(func() {
 		var err error
-		agonesClient, err = agones.NewAgonesClient("dev-multiplayer")
+		agonesClient, err = agones.NewLocalAgonesClient()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(agonesClient).To(Not(BeNil()))
 	})
 
 	It("can get the list of gameservers", func() {
-		gameservers, err := agonesClient.GetGameServers(nil)
+		gameservers, err := agonesClient.GetGameServers(namespace, nil)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gameservers).NotTo(BeNil())
 	})
@@ -59,16 +60,16 @@ var _ = Describe("Agones", func() {
 			},
 		}
 
-		gameserver, err := agonesClient.CreateGameServer(sampleGameServer)
+		gameserver, err := agonesClient.CreateGameServer(namespace, sampleGameServer)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gameserver).NotTo(BeNil())
 
-		newGameserver, err := agonesClient.GetGameServer(gameserver.Name)
+		newGameserver, err := agonesClient.GetGameServer(namespace, gameserver.Name)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(newGameserver).NotTo(BeNil())
 
-		err = agonesClient.DeleteGameServer(gameserver.Name)
+		err = agonesClient.DeleteGameServer(namespace, gameserver.Name)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

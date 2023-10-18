@@ -9,25 +9,37 @@ import (
 
 type Client struct {
 	*versioned.Clientset
-	Namespace string
 }
 
-func NewArgoClient(namespace string) (*Client, error) {
-	kubeconfig, err := base.GetConfig()
+func NewInClusterArgoClient() (*Client, error) {
+	kubeconfig, err := base.GetConfigUsingInCluster()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to create argo client")
 		return nil, err
 	}
 
 	clientset, err := getArgoClientsetFromConfig(kubeconfig)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to create argo client")
 		return nil, err
 	}
 
 	return &Client{
 		Clientset: clientset,
-		Namespace: namespace,
+	}, nil
+}
+
+func NewLocalArgoClient() (*Client, error) {
+	kubeconfig, err := base.GetConfigUsingKubeconfig()
+	if err != nil {
+		return nil, err
+	}
+
+	clientset, err := getArgoClientsetFromConfig(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{
+		Clientset: clientset,
 	}, nil
 }
 

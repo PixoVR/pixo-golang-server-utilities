@@ -8,14 +8,14 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func GetPodLogs(podName string, containerName string) (string, error) {
+func (c Client) GetPodLogs(namespace, podName, containerName string) (string, error) {
 
 	podLogOpts := corev1.PodLogOptions{
 		Container: containerName,
 		TailLines: &[]int64{100}[0],
 	}
 
-	req := K8sClient.CoreV1().Pods(Namespace).GetLogs(podName, &podLogOpts)
+	req := c.Clientset.CoreV1().Pods(namespace).GetLogs(podName, &podLogOpts)
 
 	podLogs, err := req.Stream(context.Background())
 	if err != nil {

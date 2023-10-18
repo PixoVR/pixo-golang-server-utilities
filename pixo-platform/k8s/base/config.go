@@ -1,23 +1,12 @@
 package base
 
 import (
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/rs/zerolog/log"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
 )
-
-func GetConfig() (*rest.Config, error) {
-	isLocal := config.GetEnvOrReturn("IS_LOCAL", "false") == "true"
-
-	if isLocal {
-		return GetConfigUsingKubeconfig()
-	} else {
-		return GetConfigUsingInCluster()
-	}
-}
 
 func GetConfigUsingKubeconfig() (*rest.Config, error) {
 	home, exists := os.LookupEnv("HOME")
