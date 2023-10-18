@@ -11,7 +11,7 @@ type Client struct {
 	*versioned.Clientset
 }
 
-func NewInClusterAgonesClient(namespace string) (*Client, error) {
+func NewInClusterAgonesClient() (*Client, error) {
 	kubeconfig, err := base.GetConfigUsingInCluster()
 	if err != nil {
 		return nil, err
