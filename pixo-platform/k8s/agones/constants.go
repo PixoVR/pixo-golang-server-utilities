@@ -3,10 +3,11 @@ package agones
 import corev1 "k8s.io/api/core/v1"
 
 const (
-	DefaultGameServerContainerName = "gameserver"
-	DefaultGameServerPortName      = "udp"
-	DefaultGameServerPort          = 7777
-	SimpleGameServerImage          = "us-docker.pkg.dev/agones-images/examples/simple-game-server:0.14"
+	DefaultGameServerContainerName        = "gameserver"
+	DefaultGameServerSidecarContainerName = "agones-gameserver-sidecar"
+	DefaultGameServerPortName             = "udp"
+	DefaultGameServerPort                 = 7777
+	SimpleGameServerImage                 = "us-docker.pkg.dev/agones-images/examples/simple-game-server:0.14"
 )
 
 var (
