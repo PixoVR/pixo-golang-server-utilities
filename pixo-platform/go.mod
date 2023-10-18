@@ -7,7 +7,7 @@ toolchain go1.21.1
 require (
 	agones.dev/agones v1.35.0
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20230919223034-f42ae50afb62
-	github.com/alicebob/miniredis/v2 v2.30.5
+	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/argoproj/argo-workflows/v3 v3.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-jose/go-jose/v3 v3.0.0
