@@ -18,9 +18,9 @@ require (
 	github.com/onsi/gomega v1.28.0
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/rs/zerolog v1.31.0
-	k8s.io/api v0.28.2
+	k8s.io/api v0.28.3
 	k8s.io/apimachinery v0.28.3
-	k8s.io/client-go v0.28.2
+	k8s.io/client-go v0.28.3
 	open-match.dev/open-match v1.8.0
 )
 
