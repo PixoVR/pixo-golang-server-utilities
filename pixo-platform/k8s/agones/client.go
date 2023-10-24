@@ -12,7 +12,7 @@ type Client struct {
 	BaseClient base.Client
 }
 
-func NewInClusterAgonesClient() (*Client, error) {
+func NewInClusterAgonesClient(baseClient base.Client) (*Client, error) {
 	kubeconfig, err := base.GetConfigUsingInCluster()
 	if err != nil {
 		return nil, err
