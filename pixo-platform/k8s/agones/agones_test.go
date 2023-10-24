@@ -3,6 +3,7 @@ package agones_test
 import (
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/agones"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -17,8 +18,11 @@ var _ = Describe("Agones", func() {
 	)
 
 	BeforeEach(func() {
-		var err error
-		agonesClient, err = agones.NewLocalAgonesClient()
+		baseClient, err := base.NewLocalClient()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(baseClient).To(Not(BeNil()))
+
+		agonesClient, err = agones.NewLocalAgonesClient(*baseClient)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(agonesClient).To(Not(BeNil()))
 	})

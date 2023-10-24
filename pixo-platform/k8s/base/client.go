@@ -24,7 +24,7 @@ func NewInClusterK8sClient() (*Client, error) {
 	return &Client{clientset}, nil
 }
 
-func NewLocalK8sClient() (*Client, error) {
+func NewLocalClient() (*Client, error) {
 	kubeconfig, err := GetConfigUsingKubeconfig()
 	if err != nil {
 		return nil, err
