@@ -11,12 +11,12 @@ import (
 	"path"
 )
 
-func (c Client) loadChart(repoURL, chartName, chartVersion string) (*chart.Chart, error) {
+func (c Client) LoadChart(chart Chart) (*chart.Chart, error) {
 	getterProviders := getter.Providers{
 		{Schemes: []string{"http", "https"}, New: getter.NewHTTPGetter},
 	}
 
-	chartURL, err := repo.FindChartInRepoURL(repoURL, chartName, chartVersion, "", "", "", getterProviders)
+	chartURL, err := repo.FindChartInRepoURL(chart.RepoURL, chart.Name, chart.Version, "", "", "", getterProviders)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to find chart in repo")
 		return nil, err

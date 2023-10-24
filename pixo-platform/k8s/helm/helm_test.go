@@ -39,6 +39,13 @@ var _ = Describe("Helm", Ordered, func() {
 		Expect(filepath).To(ContainSubstring("multiplayer-build-trigger-0.0.2.tgz"))
 	})
 
+	It("can load a chart", func() {
+		chart, err := helmClient.LoadChart(chart)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(chart).NotTo(BeNil())
+		Expect(chart.Name()).To(Equal("multiplayer-module"))
+	})
+
 	It("can install a chart", func() {
 		values := map[string]interface{}{
 			"app_project_id": "pixo-dev",

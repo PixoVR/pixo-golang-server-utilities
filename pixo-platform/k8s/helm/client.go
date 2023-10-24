@@ -42,7 +42,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 }
 
 func (c Client) Install(chart Chart, values map[string]interface{}) error {
-	helmChart, err := c.loadChart(chart.RepoURL, chart.Name, chart.Version)
+	helmChart, err := c.LoadChart(chart)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (c Client) Install(chart Chart, values map[string]interface{}) error {
 }
 
 func (c Client) Upgrade(chart Chart, values map[string]interface{}) error {
-	helmChart, err := c.loadChart(chart.RepoURL, chart.Name, chart.Version)
+	helmChart, err := c.LoadChart(chart)
 	if err != nil {
 		return err
 	}
