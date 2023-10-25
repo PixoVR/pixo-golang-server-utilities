@@ -9,13 +9,3 @@ updates:
     directory: "/pixo-platform"
     schedule:
       interval: "daily"
-
-  - package-ecosystem: "docker"
-    directory: "/pixo-platform/cmd/platform-cli"
-    schedule:
-      interval: "weekly"
-
-  - package-ecosystem: "gomod"
-    directory: "/vertex-ai"
-    schedule:
-      interval: "daily"
