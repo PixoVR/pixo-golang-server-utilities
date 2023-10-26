@@ -11,9 +11,9 @@ import (
 
 var ValidTicketRequest = matchmaking.TicketRequestParams{
 	MatchRequestParams: matchmaking.MatchRequestParams{
-		OrgID:           1,
-		ModuleID:        1,
-		SemanticVersion: "1.00.00",
+		OrgID:         1,
+		ModuleID:      1,
+		ServerVersion: "1.00.00",
 	},
 	Engine:        "engine",
 	ImageRegistry: "imageRegistry",
@@ -49,14 +49,14 @@ var _ = Describe("ProfileRepository", Ordered, func() {
 		Expect(err).To(BeNil())
 	})
 
-	It("saves org id, module id, semantic version", func() {
+	It("saves org id, module id, server version", func() {
 		Expect(profileRepository).ToNot(BeNil())
 		err := profileRepository.SaveProfile(ValidTicketRequest)
 		Expect(err).To(BeNil())
 		Expect(len(redis.Keys())).Should(BeNumerically(">", 0))
 	})
 
-	It("uses org id, module id, semantic version in the key", func() {
+	It("uses org id, module id, server version in the key", func() {
 		Expect(profileRepository).ToNot(BeNil())
 		err := profileRepository.SaveProfile(ValidTicketRequest)
 		Expect(err).To(BeNil())
@@ -64,7 +64,7 @@ var _ = Describe("ProfileRepository", Ordered, func() {
 		formattedKey := fmt.Sprintf("profile:%d%d%s",
 			ValidTicketRequest.OrgID,
 			ValidTicketRequest.ModuleID,
-			ValidTicketRequest.SemanticVersion,
+			ValidTicketRequest.ServerVersion,
 		)
 		key := redis.Keys()[0]
 		Expect(key).To(ContainSubstring(formattedKey))

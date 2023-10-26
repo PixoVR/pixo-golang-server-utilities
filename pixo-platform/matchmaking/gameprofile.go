@@ -10,9 +10,9 @@ import (
 )
 
 type MatchRequestParams struct {
-	ModuleID        int    `json:"moduleId"`
-	OrgID           int    `json:"orgId"`
-	SemanticVersion string `json:"semanticVersion"`
+	ModuleID      int    `json:"moduleId"`
+	OrgID         int    `json:"orgId"`
+	ServerVersion string `json:"serverVersion"`
 }
 
 type TicketRequestParams struct {
@@ -29,7 +29,7 @@ type GameProfileRepository struct {
 }
 
 func getProfileKey(ticketRequest TicketRequestParams) string {
-	return fmt.Sprintf("profile:%d%d%s", ticketRequest.OrgID, ticketRequest.ModuleID, ticketRequest.SemanticVersion)
+	return fmt.Sprintf("profile:%d%d%s", ticketRequest.OrgID, ticketRequest.ModuleID, ticketRequest.ServerVersion)
 }
 
 func getDuration() time.Duration {
