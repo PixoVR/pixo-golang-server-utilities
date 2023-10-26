@@ -12,13 +12,12 @@ import (
 type MatchRequestParams struct {
 	ModuleID      int    `json:"moduleId"`
 	OrgID         int    `json:"orgId"`
-	ClientVersion string `json:"clientVersion"`
+	ServerVersion string `json:"serverVersion"`
 }
 
 type TicketRequestParams struct {
 	MatchRequestParams
 	Engine        string `json:"engine"`
-	ServerVersion string `json:"serverVersion"`
 	ImageRegistry string `json:"imageRegistry"`
 	Status        string `json:"status"`
 	Capacity      int    `json:"capacity"`
@@ -30,7 +29,7 @@ type GameProfileRepository struct {
 }
 
 func getProfileKey(ticketRequest TicketRequestParams) string {
-	return fmt.Sprintf("profile:%d%d%s", ticketRequest.OrgID, ticketRequest.ModuleID, ticketRequest.ClientVersion)
+	return fmt.Sprintf("profile:%d%d%s", ticketRequest.OrgID, ticketRequest.ModuleID, ticketRequest.ServerVersion)
 }
 
 func getDuration() time.Duration {

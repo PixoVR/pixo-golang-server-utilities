@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+
 	jwt2 "github.com/go-jose/go-jose/v3/jwt"
 )
 
@@ -25,7 +26,6 @@ type RawToken struct {
 }
 
 func ParseJWT(tokenString string) (RawToken, error) {
-
 	var claims map[string]interface{}
 
 	var token *jwt2.JSONWebToken

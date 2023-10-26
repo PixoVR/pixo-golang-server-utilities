@@ -9,9 +9,10 @@ import (
 
 type Client struct {
 	*versioned.Clientset
+	BaseClient base.Client
 }
 
-func NewInClusterAgonesClient() (*Client, error) {
+func NewInClusterAgonesClient(baseClient base.Client) (*Client, error) {
 	kubeconfig, err := base.GetConfigUsingInCluster()
 	if err != nil {
 		return nil, err
@@ -27,7 +28,7 @@ func NewInClusterAgonesClient() (*Client, error) {
 	}, nil
 }
 
-func NewLocalAgonesClient() (*Client, error) {
+func NewLocalAgonesClient(baseClient base.Client) (*Client, error) {
 	kubeconfig, err := base.GetConfigUsingKubeconfig()
 	if err != nil {
 		return nil, err
@@ -39,7 +40,8 @@ func NewLocalAgonesClient() (*Client, error) {
 	}
 
 	return &Client{
-		Clientset: clientset,
+		Clientset:  clientset,
+		BaseClient: baseClient,
 	}, nil
 }
 

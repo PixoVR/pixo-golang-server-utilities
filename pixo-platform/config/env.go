@@ -27,6 +27,15 @@ func GetEnvOrReturn(key string, fallback string) string {
 	return fallback
 }
 
+func GetEnvOrCrash(key string) string {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		log.Fatal().Msgf("Missing required environment variable: %s", key)
+	}
+
+	return value
+}
+
 func GetLifecycle() string {
 	return strings.ToLower(GetEnvOrReturn("LIFECYCLE", "dev"))
 }

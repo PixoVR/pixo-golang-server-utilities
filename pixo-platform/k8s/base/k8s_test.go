@@ -9,7 +9,7 @@ import (
 var _ = Describe("K8s", func() {
 
 	It("can connect to your local cluster", func() {
-		client, err := base.NewLocalK8sClient()
+		client, err := base.NewLocalClient()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(client).To(Not(BeNil()))
 	})
