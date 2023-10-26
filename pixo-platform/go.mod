@@ -2,8 +2,6 @@ module github.com/PixoVR/pixo-golang-server-utilities/pixo-platform
 
 go 1.21
 
-toolchain go1.21.1
-
 require (
 	agones.dev/agones v1.35.0
 	cloud.google.com/go/storage v1.33.0

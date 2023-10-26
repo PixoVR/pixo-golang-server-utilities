@@ -12,7 +12,7 @@ import (
 type MatchRequestParams struct {
 	ModuleID        int    `json:"moduleId"`
 	OrgID           int    `json:"orgId"`
-	SemanticVersion string `json:"clientVersion"`
+	SemanticVersion string `json:"semanticVersion"`
 }
 
 type TicketRequestParams struct {
