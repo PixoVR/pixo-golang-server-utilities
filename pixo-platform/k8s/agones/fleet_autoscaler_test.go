@@ -19,7 +19,7 @@ var _ = Describe("Fleet Autoscalers", Ordered, func() {
 			Spec: autoscaling.FleetAutoscalerSpec{
 				FleetName: fleetName,
 				Policy: autoscaling.FleetAutoscalerPolicy{
-					Type: "Buffer",
+					Type: autoscaling.BufferPolicyType,
 					Buffer: &autoscaling.BufferPolicy{
 						BufferSize: intstr.IntOrString{
 							Type:   intstr.Int,
