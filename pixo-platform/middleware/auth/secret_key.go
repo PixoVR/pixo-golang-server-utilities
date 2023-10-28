@@ -29,12 +29,12 @@ func JWTOrSecretKeyAuthMiddleware(getCurrentUser func(*gin.Context) error) gin.H
 	}
 }
 
-func SecretKeyAuthMiddleware(getCurrentUser func(*gin.Context) error) gin.HandlerFunc {
+func SecretKeyAuthMiddleware(headerKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		if !IsValidSecretKey(ExtractToken(c.Request)) {
+		if !IsValidSecretKey(ExtractToken(c.Request, headerKey)) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "unauthorized",
+				"error": "invalid secret key",
 			})
 			return
 		}
