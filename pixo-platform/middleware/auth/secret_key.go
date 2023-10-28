@@ -29,7 +29,14 @@ func JWTOrSecretKeyAuthMiddleware(getCurrentUser func(*gin.Context) error) gin.H
 	}
 }
 
-func SecretKeyAuthMiddleware(headerKey string) gin.HandlerFunc {
+func SecretKeyAuthMiddleware(headerKeyInput ...string) gin.HandlerFunc {
+	var headerKey string
+	if len(headerKeyInput) == 0 {
+		headerKey = SecretKeyHeader
+	} else {
+		headerKey = headerKeyInput[0]
+	}
+
 	return func(c *gin.Context) {
 
 		if !IsValidSecretKey(ExtractToken(c.Request, headerKey)) {
