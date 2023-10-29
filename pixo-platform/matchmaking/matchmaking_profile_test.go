@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("PixoProfile", func() {
 	var (
-		testPixoMatchmakingProfile *matchmaking.PixoMatchmakingProfile
+		testPixoMatchmakingProfile *matchmaking.MultiplayerMatchmakingProfile
 		maxNumberOfPlayers         int
 	)
 

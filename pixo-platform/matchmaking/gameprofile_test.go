@@ -9,8 +9,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var ValidTicketRequest = matchmaking.TicketRequestParams{
-	MatchRequestParams: matchmaking.MatchRequestParams{
+var ValidTicketRequest = matchmaking.TicketRequest{
+	MatchRequest: matchmaking.MatchRequest{
 		OrgID:         1,
 		ModuleID:      1,
 		ServerVersion: "1.00.00",

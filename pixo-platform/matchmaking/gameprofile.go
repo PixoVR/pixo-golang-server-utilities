@@ -9,14 +9,14 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type MatchRequestParams struct {
+type MatchRequest struct {
 	ModuleID      int    `json:"moduleId"`
 	OrgID         int    `json:"orgId"`
 	ServerVersion string `json:"serverVersion"`
 }
 
-type TicketRequestParams struct {
-	MatchRequestParams
+type TicketRequest struct {
+	MatchRequest
 	Engine        string `json:"engine"`
 	ImageRegistry string `json:"imageRegistry"`
 	Status        string `json:"status"`
@@ -28,7 +28,7 @@ type GameProfileRepository struct {
 	ctx    context.Context
 }
 
-func getProfileKey(ticketRequest TicketRequestParams) string {
+func getProfileKey(ticketRequest TicketRequest) string {
 	return fmt.Sprintf("profile:%d%d%s", ticketRequest.OrgID, ticketRequest.ModuleID, ticketRequest.ServerVersion)
 }
 
@@ -46,18 +46,19 @@ func NewGameProfileRepository(redisAddr, redisPassword string) *GameProfileRepos
 	}
 }
 
-func (r *GameProfileRepository) SaveProfile(ticketRequest TicketRequestParams) error {
+func (r *GameProfileRepository) SaveProfile(ticketRequest TicketRequest) error {
 	data, err := json.Marshal(ticketRequest)
 	if err != nil {
 		return err
 	}
+
 	key := getProfileKey(ticketRequest)
-	err = r.Client.Set(r.ctx, key, data, getDuration()).Err()
-	return err
+
+	return r.Client.Set(r.ctx, key, data, getDuration()).Err()
 }
 
-func (r *GameProfileRepository) GetAllProfiles() ([]TicketRequestParams, error) {
-	var profiles []TicketRequestParams
+func (r *GameProfileRepository) GetAllProfiles() ([]TicketRequest, error) {
+	var profiles []TicketRequest
 
 	keys, _, err := r.Client.Scan(r.ctx, 0, "profile:*", 100).Result()
 	if err != nil {
@@ -65,16 +66,19 @@ func (r *GameProfileRepository) GetAllProfiles() ([]TicketRequestParams, error) 
 	}
 
 	for _, key := range keys {
+
 		data, err := r.Client.Get(r.ctx, key).Result()
 		if err != nil {
 			return nil, err
 		}
-		var profile TicketRequestParams
-		err = json.Unmarshal([]byte(data), &profile)
-		if err != nil {
+
+		var profile TicketRequest
+		if err = json.Unmarshal([]byte(data), &profile); err != nil {
 			return nil, err
 		}
+
 		profiles = append(profiles, profile)
 	}
+
 	return profiles, nil
 }

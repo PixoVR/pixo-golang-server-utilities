@@ -11,15 +11,15 @@ const (
 	MaxPlayersExtensionKey = "max-players"
 )
 
-type PixoMatchmakingProfile struct {
+type MultiplayerMatchmakingProfile struct {
 	*pb.MatchProfile
 }
 
-func NewPixoMatchmakingProfile(p *pb.MatchProfile) *PixoMatchmakingProfile {
-	return &PixoMatchmakingProfile{MatchProfile: p}
+func NewPixoMatchmakingProfile(p *pb.MatchProfile) *MultiplayerMatchmakingProfile {
+	return &MultiplayerMatchmakingProfile{MatchProfile: p}
 }
 
-func (p *PixoMatchmakingProfile) GetMaxPlayersPerMatch() int {
+func (p *MultiplayerMatchmakingProfile) GetMaxPlayersPerMatch() int {
 	var val wrappers.Int32Value
 	if err := ptypes.UnmarshalAny(p.MatchProfile.GetExtensions()[MaxPlayersExtensionKey], &val); err != nil {
 		log.Error().Err(err).Msg("Cannot retrieve number of players per match")
