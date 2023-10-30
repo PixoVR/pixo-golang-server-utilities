@@ -15,7 +15,7 @@ type MultiplayerMatchmakingProfile struct {
 	*pb.MatchProfile
 }
 
-func NewPixoMatchmakingProfile(p *pb.MatchProfile) *MultiplayerMatchmakingProfile {
+func NewMatchmakingProfile(p *pb.MatchProfile) *MultiplayerMatchmakingProfile {
 	return &MultiplayerMatchmakingProfile{MatchProfile: p}
 }
 

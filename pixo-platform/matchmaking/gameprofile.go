@@ -24,12 +24,12 @@ type TicketRequest struct {
 }
 
 type GameProfileRepository struct {
-	Client *redis.Client
 	ctx    context.Context
+	Client *redis.Client
 }
 
-func getProfileKey(ticketRequest TicketRequest) string {
-	return fmt.Sprintf("profile:%d%d%s", ticketRequest.OrgID, ticketRequest.ModuleID, ticketRequest.ServerVersion)
+func getProfileKey(req MatchRequest) string {
+	return fmt.Sprintf("profile:%d%d%s", req.OrgID, req.ModuleID, req.ServerVersion)
 }
 
 func getDuration() time.Duration {
@@ -46,19 +46,19 @@ func NewGameProfileRepository(redisAddr, redisPassword string) *GameProfileRepos
 	}
 }
 
-func (r *GameProfileRepository) SaveProfile(ticketRequest TicketRequest) error {
-	data, err := json.Marshal(ticketRequest)
+func (r *GameProfileRepository) SaveProfile(req MatchRequest) error {
+	data, err := json.Marshal(req)
 	if err != nil {
 		return err
 	}
 
-	key := getProfileKey(ticketRequest)
+	key := getProfileKey(req)
 
 	return r.Client.Set(r.ctx, key, data, getDuration()).Err()
 }
 
-func (r *GameProfileRepository) GetAllProfiles() ([]TicketRequest, error) {
-	var profiles []TicketRequest
+func (r *GameProfileRepository) GetAllProfiles() ([]MatchRequest, error) {
+	var profiles []MatchRequest
 
 	keys, _, err := r.Client.Scan(r.ctx, 0, "profile:*", 100).Result()
 	if err != nil {
@@ -72,7 +72,7 @@ func (r *GameProfileRepository) GetAllProfiles() ([]TicketRequest, error) {
 			return nil, err
 		}
 
-		var profile TicketRequest
+		var profile MatchRequest
 		if err = json.Unmarshal([]byte(data), &profile); err != nil {
 			return nil, err
 		}

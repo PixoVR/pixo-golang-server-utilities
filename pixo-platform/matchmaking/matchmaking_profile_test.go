@@ -13,10 +13,11 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 )
 
-var _ = Describe("PixoProfile", func() {
+var _ = Describe("Matchmaking Profile", func() {
+
 	var (
-		testPixoMatchmakingProfile *matchmaking.MultiplayerMatchmakingProfile
-		maxNumberOfPlayers         int
+		matchmakingProfile *matchmaking.MultiplayerMatchmakingProfile
+		maxNumberOfPlayers int
 	)
 
 	BeforeEach(func() {
@@ -30,14 +31,14 @@ var _ = Describe("PixoProfile", func() {
 		}
 
 		extensions[matchmaking.MaxPlayersExtensionKey] = val
-		testPixoMatchmakingProfile = matchmaking.NewPixoMatchmakingProfile(&pb.MatchProfile{
+		matchmakingProfile = matchmaking.NewMatchmakingProfile(&pb.MatchProfile{
 			Extensions: extensions,
 		})
 
 	})
 
 	It("can get the max number of players per match for the pixo matchmaking profile", func() {
-		maxPlayers := testPixoMatchmakingProfile.GetMaxPlayersPerMatch()
+		maxPlayers := matchmakingProfile.GetMaxPlayersPerMatch()
 		Expect(maxPlayers).To(Equal(maxNumberOfPlayers))
 	})
 })
