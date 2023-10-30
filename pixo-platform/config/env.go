@@ -37,7 +37,7 @@ func GetEnvOrCrash(key string) string {
 }
 
 func GetLifecycle() string {
-	return strings.ToLower(GetEnvOrReturn("LIFECYCLE", "dev"))
+	return strings.ToLower(GetEnvOrReturn("LIFECYCLE", "local"))
 }
 
 func GetDomain() string {

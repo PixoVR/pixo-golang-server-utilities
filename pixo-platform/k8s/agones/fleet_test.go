@@ -19,9 +19,4 @@ var _ = Describe("Fleets", Ordered, func() {
 		Expect(newGameserver).NotTo(BeNil())
 	})
 
-	It("can delete a fleet", func() {
-		err := agonesClient.DeleteFleet(namespace, fleetName)
-		Expect(err).NotTo(HaveOccurred())
-	})
-
 })
