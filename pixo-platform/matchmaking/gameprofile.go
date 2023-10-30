@@ -17,10 +17,7 @@ type MatchRequest struct {
 
 type TicketRequest struct {
 	MatchRequest
-	Engine        string `json:"engine"`
-	ImageRegistry string `json:"imageRegistry"`
-	Status        string `json:"status"`
-	Capacity      int    `json:"capacity"`
+	Capacity int `json:"capacity"`
 }
 
 type GameProfileRepository struct {
