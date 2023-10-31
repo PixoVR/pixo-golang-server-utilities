@@ -26,6 +26,8 @@ var _ = Describe("Gameservers", func() {
 
 		err = agonesClient.DeleteGameServer(namespace, gameserver.Name)
 		Expect(err).NotTo(HaveOccurred())
+
+		Expect(agonesClient.IsGameServerAvailable(namespace, gameserver.Name)).To(BeFalse())
 	})
 
 })

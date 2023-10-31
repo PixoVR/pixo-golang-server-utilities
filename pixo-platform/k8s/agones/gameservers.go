@@ -4,6 +4,7 @@ import (
 	v1 "agones.dev/agones/pkg/apis/agones/v1"
 	"context"
 	"github.com/rs/zerolog/log"
+	v12 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -74,4 +75,20 @@ func (c Client) DeleteGameServer(namespace, name string) error {
 	}
 
 	return nil
+}
+
+func (c Client) IsGameServerAvailable(namespace, name string) bool {
+	log.Debug().Msgf("Checking if game server %s is terminating", name)
+
+	gameserver, err := c.GetGameServer(namespace, name)
+	if err != nil {
+		return false
+	}
+
+	pod, err := c.BaseClient.GetPod(namespace, gameserver.Spec.Template.ObjectMeta.Name)
+	if err != nil {
+		return false
+	}
+
+	return pod.Status.Phase == v12.PodRunning
 }
