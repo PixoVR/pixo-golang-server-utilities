@@ -1,4 +1,4 @@
-package matchmaking
+package profile
 
 import (
 	"github.com/golang/protobuf/ptypes"
@@ -11,19 +11,19 @@ const (
 	MaxPlayersExtensionKey = "max-players"
 )
 
-type MultiplayerMatchmakingProfile struct {
+type OpenMatchProfile struct {
 	*pb.MatchProfile
 }
 
-func NewMatchmakingProfile(p *pb.MatchProfile) *MultiplayerMatchmakingProfile {
-	return &MultiplayerMatchmakingProfile{MatchProfile: p}
+func NewOpenMatchProfile(p *pb.MatchProfile) *OpenMatchProfile {
+	return &OpenMatchProfile{MatchProfile: p}
 }
 
-func (p *MultiplayerMatchmakingProfile) GetMaxPlayersPerMatch() int {
+func (p *OpenMatchProfile) GetMaxPlayersPerMatch() int {
 	var val wrappers.Int32Value
 	if err := ptypes.UnmarshalAny(p.MatchProfile.GetExtensions()[MaxPlayersExtensionKey], &val); err != nil {
 		log.Error().Err(err).Msg("Cannot retrieve number of players per match")
-		return 1
+		return 100
 	} else {
 		log.Debug().Msgf("Max players per match: %d", val.Value)
 		return int(val.Value)
