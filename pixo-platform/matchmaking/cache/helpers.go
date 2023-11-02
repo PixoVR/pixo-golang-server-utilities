@@ -11,7 +11,7 @@ func (r *GameProfileCacheClient) getCacheDuration() time.Duration {
 }
 
 func (r *GameProfileCacheClient) getLabel() string {
-	return "profile"
+	return DefaultLabel
 }
 
 func (r *GameProfileCacheClient) getCacheKey(req request.MultiplayerMatchProfile) string {

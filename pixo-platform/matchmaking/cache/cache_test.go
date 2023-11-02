@@ -14,10 +14,10 @@ import (
 var _ = Describe("ProfileRepository", Ordered, func() {
 
 	var (
-		ctx               context.Context
-		s                 *miniredis.Miniredis
-		c                 *redis.Client
-		profileRepository *cache.GameProfileCacheClient
+		ctx              context.Context
+		s                *miniredis.Miniredis
+		c                *redis.Client
+		gameProfileCache *cache.GameProfileCacheClient
 
 		PartyCodeRequest = request.PartyMatchRequest{
 			BaseTicketRequest: request.BaseTicketRequest{Capacity: 1},
@@ -34,18 +34,10 @@ var _ = Describe("ProfileRepository", Ordered, func() {
 
 	BeforeEach(func() {
 		var err error
-		s, err = miniredis.Run()
-		Expect(err).To(BeNil())
-
-		c = redis.NewClient(&redis.Options{
-			Addr:     s.Addr(),
-			Password: "",
-			DB:       0,
-		})
+		gameProfileCache, s, c, err = cache.NewMiniGameProfileCache()
+		Expect(err).NotTo(HaveOccurred())
 
 		ctx = context.Background()
-		profileRepository = cache.NewGameProfileCacheClient(c)
-		Expect(profileRepository).ToNot(BeNil())
 	})
 
 	AfterEach(func() {
@@ -53,8 +45,8 @@ var _ = Describe("ProfileRepository", Ordered, func() {
 	})
 
 	It("can save a valid basic matchmaking profile in the cache", func() {
-		Expect(profileRepository).ToNot(BeNil())
-		err := profileRepository.SaveProfile(ctx, &PartyCodeRequest)
+		Expect(gameProfileCache).ToNot(BeNil())
+		err := gameProfileCache.SaveProfile(ctx, &PartyCodeRequest)
 		Expect(err).To(BeNil())
 
 		formattedKey := PartyCodeRequest.GetLabel()
@@ -64,8 +56,8 @@ var _ = Describe("ProfileRepository", Ordered, func() {
 	})
 
 	It("can save a valid pixo matchmaking profile in the cache", func() {
-		Expect(profileRepository).ToNot(BeNil())
-		err := profileRepository.SaveProfile(ctx, &PixoRequest)
+		Expect(gameProfileCache).ToNot(BeNil())
+		err := gameProfileCache.SaveProfile(ctx, &PixoRequest)
 		Expect(err).To(BeNil())
 
 		formattedKey := PixoRequest.GetLabel()
@@ -75,11 +67,11 @@ var _ = Describe("ProfileRepository", Ordered, func() {
 	})
 
 	It("returns all saved profiles", func() {
-		Expect(profileRepository).ToNot(BeNil())
-		err := profileRepository.SaveProfile(ctx, &PixoRequest)
+		Expect(gameProfileCache).ToNot(BeNil())
+		err := gameProfileCache.SaveProfile(ctx, &PixoRequest)
 		Expect(err).To(BeNil())
 
-		profiles, err := profileRepository.GetAllProfiles(ctx)
+		profiles, err := gameProfileCache.GetAllProfiles(ctx)
 		Expect(err).To(BeNil())
 		Expect(len(profiles)).Should(BeNumerically(">", 0))
 
