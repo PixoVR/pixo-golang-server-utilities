@@ -14,7 +14,7 @@ var _ = Describe("Gameservers", func() {
 		Expect(gameservers).NotTo(BeNil())
 	})
 
-	It("can create, get, and delete a game server", func() {
+	It("can create, get, and delete a game server and then tell its unavailable", func() {
 		gameserver, err := agonesClient.CreateGameServer(namespace, &agones.SimpleGameServer)
 
 		Expect(err).NotTo(HaveOccurred())
