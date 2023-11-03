@@ -1,13 +1,15 @@
 package client
 
 import (
+	"context"
 	"io"
 	"net/http"
 )
 
 type StorageClient interface {
-	UploadFile(uploadableObject UploadableObject, fileReader io.Reader) (string, error)
-	InitResumableUpload(uploadableObject UploadableObject) (*ResumableUploadResponse, error)
+	GetSignedURL(ctx context.Context, uploadableObject UploadableObject) (string, error)
+	UploadFile(ctx context.Context, uploadableObject UploadableObject, fileReader io.Reader) (string, error)
+	InitResumableUpload(ctx context.Context, uploadableObject UploadableObject) (*ResumableUploadResponse, error)
 }
 
 type UploadableObject interface {
