@@ -3,48 +3,46 @@ package aws
 import (
 	"context"
 	"errors"
+	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
-	"os"
 )
 
-func GetSignedURL(b, k string) (string, error) {
-	awsID := os.Getenv("AWS_ACCESS_KEY_ID")
-	awsSecret := os.Getenv("AWS_SECRET_ACCESS_KEY")
+func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {
 
-	if b == "" || k == "" {
-		err := errors.New("bucket or key is empty")
+	if c.bucketName == "" || object.GetUploadDestination() == "" {
+		err := errors.New("bucket or destination is empty")
 		log.Err(err).Msg("unable to get presigned url")
 		return "", err
 	}
 
+	if c.region == "" {
+		c.region = "us-east-1"
+	}
+
 	cfg, err := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithRegion("us-east-1"),
+		ctx,
+		config.WithRegion(c.region),
 		config.WithEndpointResolverWithOptions(customResolver),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(awsID, awsSecret, "")),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(c.accessKeyID, c.secretAccessKey, "")),
 	)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to get presigned url")
-		panic("configuration error, " + err.Error())
+		log.Fatal().Err(err).Msg("unable to get presigned url")
 	}
 
-	bucket := &b
-	key := &k
-
-	client := s3.NewFromConfig(cfg)
+	awsClient := s3.NewFromConfig(cfg)
+	uploadDestination := object.GetUploadDestination()
 
 	input := &s3.GetObjectInput{
-		Bucket: bucket,
-		Key:    key,
+		Bucket: &c.bucketName,
+		Key:    &uploadDestination,
 	}
 
-	psClient := s3.NewPresignClient(client)
+	psClient := s3.NewPresignClient(awsClient)
 
-	resp, err := GetPresignedURL(context.TODO(), psClient, input)
-
+	resp, err := GetPresignedURL(ctx, psClient, input)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get presigned url")
 		return "", err

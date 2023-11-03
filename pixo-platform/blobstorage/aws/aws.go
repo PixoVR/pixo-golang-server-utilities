@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/blob"
 	"os"
 	"time"
 
@@ -44,7 +43,3 @@ var customResolver = aws.EndpointResolverWithOptionsFunc(func(service, region st
 
 	return aws.Endpoint{}, &aws.EndpointNotFoundError{}
 })
-
-func InitResumableUpload(bucketName, filepath string) (blob.ResumableUploadResponse, error) {
-	return blob.ResumableUploadResponse{}, nil
-}
