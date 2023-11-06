@@ -18,6 +18,12 @@ type UploadableObject interface {
 	GetFilename() string
 }
 
+type SignedURLPartsRequest struct {
+	ID        int    `json:"id,required"`
+	Filename  string `json:"filename,required"`
+	NumChunks int    `json:"numChunks,omitempty"`
+}
+
 type ResumableUploadResponse struct {
 	UploadURL    string
 	Method       string
