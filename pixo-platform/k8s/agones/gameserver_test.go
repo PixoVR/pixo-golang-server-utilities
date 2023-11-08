@@ -13,11 +13,17 @@ var _ = Describe("Gameservers", Ordered, func() {
 	var (
 		gameserver *v1.GameServer
 	)
+
 	BeforeAll(func() {
 		var err error
 		gameserver, err = agonesClient.CreateGameServer(context.Background(), namespace, &agones.SimpleGameServer)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gameserver).NotTo(BeNil())
+	})
+
+	AfterAll(func() {
+		err := agonesClient.DeleteGameServer(context.Background(), namespace, gameserver.Name)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("can get the list of gameservers", func() {
@@ -34,22 +40,18 @@ var _ = Describe("Gameservers", Ordered, func() {
 		Expect(updatedGameserver.Labels["test"]).To(Equal("test"))
 	})
 
-	It("can create, get, and delete a game server and then tell its unavailable", func() {
-		gameserver, err := agonesClient.CreateGameServer(context.Background(), namespace, &agones.SimpleGameServer)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(gameserver).NotTo(BeNil())
-		isAvailable := agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.Name)
+	It("can delete a game server and then tell its unavailable", func() {
+		isAvailable := agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.GetName())
 		Expect(isAvailable).To(BeTrue())
 
-		newGameserver, err := agonesClient.GetGameServer(context.Background(), namespace, gameserver.Name)
+		newGameserver, err := agonesClient.GetGameServer(context.Background(), namespace, gameserver.GetName())
 		Expect(err).NotTo(HaveOccurred())
 		Expect(newGameserver).NotTo(BeNil())
 
-		err = agonesClient.DeleteGameServer(context.Background(), namespace, gameserver.Name)
+		err = agonesClient.DeleteGameServer(context.Background(), namespace, gameserver.GetName())
 		Expect(err).NotTo(HaveOccurred())
 
-		isAvailable = agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.Name)
+		isAvailable = agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.GetName())
 		Expect(isAvailable).To(BeFalse())
 	})
 

@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	v12 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 func (c Client) GetGameServers(namespace string, labelSelectors *metav1.LabelSelector) (*v1.GameServerList, error) {
@@ -65,11 +66,12 @@ func (c Client) CreateGameServer(ctx context.Context, namespace string, gameserv
 			return nil, errors.New("timed out waiting for game server to be available")
 		}
 
-		if !c.IsGameServerAvailable(ctx, namespace, newGameServer.Name) {
-			maxWaitSeconds--
-		} else {
+		if c.IsGameServerAvailable(ctx, namespace, newGameServer.Name) {
 			break
 		}
+
+		maxWaitSeconds--
+		time.Sleep(time.Second * 1)
 	}
 
 	return newGameServer, err
@@ -80,7 +82,7 @@ func (c Client) DeleteGameServer(ctx context.Context, namespace, name string) er
 
 	gameserver, err := c.GetGameServer(ctx, namespace, name)
 	if err != nil {
-		return err
+		return nil
 	}
 
 	if _, err = c.AddLabelToGameServer(ctx, gameserver, "deleted", "true"); err != nil {
