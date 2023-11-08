@@ -9,19 +9,17 @@ import (
 )
 
 func GetConfigUsingKubeconfig() (*rest.Config, error) {
-	configPath, exists := os.LookupEnv("KUBECONFIG")
-	if !exists {
-		home, exists := os.LookupEnv("HOME")
-		if !exists {
-			home = "~"
-		}
 
-		configPath = filepath.Join(home, ".kube", "config")
+	home, exists := os.LookupEnv("HOME")
+	if !exists {
+		home = "/workspace"
 	}
+
+	configPath := filepath.Join(home, ".kube", "config")
 
 	kubeconfig, err := clientcmd.BuildConfigFromFlags("", configPath)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to create K8s kubeconfig")
+		log.Error().Err(err).Msg("failed to build K8s config using kubeconfig")
 		return nil, err
 	}
 
