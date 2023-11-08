@@ -11,7 +11,7 @@ import (
 func GetConfigUsingKubeconfig() (*rest.Config, error) {
 	home, exists := os.LookupEnv("HOME")
 	if !exists {
-		home = "/root"
+		home = "~"
 	}
 
 	configPath := filepath.Join(home, ".kube", "config")
