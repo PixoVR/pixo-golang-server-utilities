@@ -63,13 +63,16 @@ func (c Client) GetGameServerByName(ctx context.Context, namespace, name string)
 	return gameserver, nil
 }
 
-func (c Client) IsGameServerReady(ctx context.Context, namespace, name string) bool {
+func (c Client) IsGameServerReady(ctx context.Context, namespace, name string) (*agonesv1.GameServer, bool) {
 	gameserver, err := c.GetGameServerByName(ctx, namespace, name)
 
 	if err != nil {
 		log.Err(err).Msgf("Error getting game servers by name: %v", name)
-		return false
+		return gameserver, false
 	}
 
-	return gameserver.Status.State == agonesv1.GameServerStateReady && c.IsGameServerAvailable(ctx, namespace, name)
+	isReady := gameserver != nil && gameserver.Status.State == agonesv1.GameServerStateReady
+	isAvailable := c.IsGameServerAvailable(ctx, namespace, name)
+
+	return gameserver, isReady && isAvailable
 }
