@@ -6,49 +6,8 @@ import (
 	"errors"
 	"github.com/rs/zerolog/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"time"
 )
-
-func (c Client) GetGameServers(ctx context.Context, namespace string, labelSelectors labels.Set) (*v1.GameServerList, error) {
-	log.Debug().Msg("Fetching game servers")
-
-	if labelSelectors == nil {
-		labelSelectors = labels.Set{}
-	}
-
-	labelSelectors[DeletedGameServerLabel] = "false"
-
-	options := metav1.ListOptions{LabelSelector: labelSelectors.String()}
-
-	gameservers, err := c.Clientset.
-		AgonesV1().
-		GameServers(namespace).
-		List(ctx, options)
-
-	if err != nil {
-		log.Error().Err(err).Msg("Error fetching game servers")
-		return nil, err
-	}
-
-	return gameservers, err
-}
-
-func (c Client) GetGameServer(ctx context.Context, namespace, name string) (*v1.GameServer, error) {
-	log.Debug().Msgf("Fetching game server %s", name)
-
-	gameserver, err := c.Clientset.
-		AgonesV1().
-		GameServers(namespace).
-		Get(ctx, name, metav1.GetOptions{})
-
-	if err != nil {
-		log.Error().Err(err).Msgf("Failed to get game server %s", name)
-		return nil, err
-	}
-
-	return gameserver, err
-}
 
 func (c Client) CreateGameServer(ctx context.Context, namespace string, gameserver *v1.GameServer) (*v1.GameServer, error) {
 	log.Debug().Msg("Creating game server")
