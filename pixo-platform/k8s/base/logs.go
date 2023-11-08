@@ -15,7 +15,7 @@ func (c Client) GetPodLogs(ctx context.Context, namespace, podName, containerNam
 		TailLines: &[]int64{100}[0],
 	}
 
-	req := c.Clientset.
+	req := c.
 		CoreV1().
 		Pods(namespace).
 		GetLogs(podName, &podLogOpts)

@@ -7,7 +7,7 @@ import (
 )
 
 type Client struct {
-	Clientset kubernetes.Interface
+	kubernetes.Interface
 }
 
 func NewInClusterK8sClient() (*Client, error) {

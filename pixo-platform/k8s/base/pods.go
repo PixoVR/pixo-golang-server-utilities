@@ -10,7 +10,7 @@ import (
 func (c Client) GetPods(ctx context.Context, namespace string) (*v1.PodList, error) {
 	log.Debug().Msg("Fetching pods")
 
-	pods, err := c.Clientset.
+	pods, err := c.
 		CoreV1().
 		Pods(namespace).
 		List(ctx, metav1.ListOptions{})
@@ -26,7 +26,7 @@ func (c Client) GetPods(ctx context.Context, namespace string) (*v1.PodList, err
 func (c Client) GetPod(ctx context.Context, namespace, name string) (*v1.Pod, error) {
 	log.Debug().Msgf("Fetching pod %s in namespace %s", name, namespace)
 
-	pod, err := c.Clientset.
+	pod, err := c.
 		CoreV1().
 		Pods(namespace).
 		Get(ctx, name, metav1.GetOptions{})
@@ -36,5 +36,5 @@ func (c Client) GetPod(ctx context.Context, namespace, name string) (*v1.Pod, er
 		return nil, err
 	}
 
-	return pod, err
+	return pod, nil
 }

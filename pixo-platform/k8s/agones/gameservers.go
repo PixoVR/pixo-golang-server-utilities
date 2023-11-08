@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"github.com/rs/zerolog/log"
-	v12 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"time"
@@ -155,10 +154,5 @@ func (c Client) IsGameServerAvailable(ctx context.Context, namespace, name strin
 		return false
 	}
 
-	pod, err := c.BaseClient.GetPod(ctx, namespace, name)
-	if err != nil || pod == nil {
-		return false
-	}
-
-	return pod.Status.Phase == v12.PodRunning && gameserver.Labels[DeletedGameServerLabel] != "true"
+	return gameserver.Labels[DeletedGameServerLabel] != "true"
 }
