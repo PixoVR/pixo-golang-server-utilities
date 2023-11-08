@@ -8,16 +8,19 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (c Client) GetPodLogs(namespace, podName, containerName string) (string, error) {
+func (c Client) GetPodLogs(ctx context.Context, namespace, podName, containerName string) (string, error) {
 
 	podLogOpts := corev1.PodLogOptions{
 		Container: containerName,
 		TailLines: &[]int64{100}[0],
 	}
 
-	req := c.Clientset.CoreV1().Pods(namespace).GetLogs(podName, &podLogOpts)
+	req := c.Clientset.
+		CoreV1().
+		Pods(namespace).
+		GetLogs(podName, &podLogOpts)
 
-	podLogs, err := req.Stream(context.Background())
+	podLogs, err := req.Stream(ctx)
 	if err != nil {
 		log.Err(err).Msgf("Error in opening stream: %s", err)
 		return "", err

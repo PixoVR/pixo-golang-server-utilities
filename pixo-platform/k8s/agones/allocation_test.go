@@ -2,6 +2,7 @@ package agones_test
 
 import (
 	allocationv1 "agones.dev/agones/pkg/apis/allocation/v1"
+	"context"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/agones"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -14,7 +15,7 @@ var _ = Describe("Allocations", func() {
 
 	It("can create and allocate a game server", func() {
 
-		gameserver, err := agonesClient.CreateGameServer(namespace, &agones.SimpleGameServer)
+		gameserver, err := agonesClient.CreateGameServer(context.Background(), namespace, &agones.SimpleGameServer)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gameserver).NotTo(BeNil())
 
@@ -35,7 +36,7 @@ var _ = Describe("Allocations", func() {
 			},
 		}
 
-		allocation, err := agonesClient.CreateGameServerAllocation(namespace, sampleGameServerAllocation)
+		allocation, err := agonesClient.CreateGameServerAllocation(context.Background(), namespace, sampleGameServerAllocation)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(allocation).NotTo(BeNil())

@@ -2,6 +2,7 @@ package agones_test
 
 import (
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
+	"context"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/agones"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	corev1 "k8s.io/api/core/v1"
@@ -70,12 +71,12 @@ var _ = BeforeSuite(func() {
 		},
 	}
 
-	fleet, err := agonesClient.CreateFleet(namespace, sampleFleetObject)
+	fleet, err := agonesClient.CreateFleet(context.Background(), namespace, sampleFleetObject)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(fleet).NotTo(BeNil())
 })
 
 var _ = AfterSuite(func() {
-	err := agonesClient.DeleteFleet(namespace, fleetName)
+	err := agonesClient.DeleteFleet(context.Background(), namespace, fleetName)
 	Expect(err).NotTo(HaveOccurred())
 })

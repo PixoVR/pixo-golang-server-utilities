@@ -7,13 +7,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (c Client) GetFleetAutoscaler(namespace string, name string) (*autoscaling.FleetAutoscaler, error) {
+func (c Client) GetFleetAutoscaler(ctx context.Context, namespace string, name string) (*autoscaling.FleetAutoscaler, error) {
 	log.Debug().Msgf("Getting fleet autoscaler: %s", name)
 
 	res, err := c.Clientset.
 		AutoscalingV1().
 		FleetAutoscalers(namespace).
-		Get(context.TODO(), name, metav1.GetOptions{})
+		Get(ctx, name, metav1.GetOptions{})
 
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to get fleet autoscaler: %s", name)
@@ -24,13 +24,13 @@ func (c Client) GetFleetAutoscaler(namespace string, name string) (*autoscaling.
 	return res, err
 }
 
-func (c Client) CreateFleetAutoscaler(namespace string, autoscaler *autoscaling.FleetAutoscaler) (*autoscaling.FleetAutoscaler, error) {
+func (c Client) CreateFleetAutoscaler(ctx context.Context, namespace string, autoscaler *autoscaling.FleetAutoscaler) (*autoscaling.FleetAutoscaler, error) {
 	log.Debug().Msgf("Creating fleet autoscaler for fleet: %s", autoscaler.Spec.FleetName)
 
 	res, err := c.Clientset.
 		AutoscalingV1().
 		FleetAutoscalers(namespace).
-		Create(context.TODO(), autoscaler, metav1.CreateOptions{})
+		Create(ctx, autoscaler, metav1.CreateOptions{})
 
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to create fleet autoscaler for fleet: %s", autoscaler.Spec.FleetName)
@@ -41,13 +41,13 @@ func (c Client) CreateFleetAutoscaler(namespace string, autoscaler *autoscaling.
 	return res, err
 }
 
-func (c Client) DeleteFleetAutoscaler(namespace string, name string) error {
+func (c Client) DeleteFleetAutoscaler(ctx context.Context, namespace string, name string) error {
 	log.Debug().Msgf("Deleting fleet autoscaler: %s", name)
 
 	err := c.Clientset.
 		AutoscalingV1().
 		FleetAutoscalers(namespace).
-		Delete(context.TODO(), name, metav1.DeleteOptions{})
+		Delete(ctx, name, metav1.DeleteOptions{})
 
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to delete fleet autoscaler: %s", name)

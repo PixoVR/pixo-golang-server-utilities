@@ -2,6 +2,7 @@ package agones_test
 
 import (
 	autoscaling "agones.dev/agones/pkg/apis/autoscaling/v1"
+	"context"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,19 +38,19 @@ var _ = Describe("Fleet Autoscalers", Ordered, func() {
 				},
 			},
 		}
-		autoscaler, err := agonesClient.CreateFleetAutoscaler(namespace, &autoscalerObject)
+		autoscaler, err := agonesClient.CreateFleetAutoscaler(context.Background(), namespace, &autoscalerObject)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(autoscaler).NotTo(BeNil())
 	})
 
 	It("can get a fleet autoscaler", func() {
-		autoscaler, err := agonesClient.GetFleetAutoscaler(namespace, fleetName)
+		autoscaler, err := agonesClient.GetFleetAutoscaler(context.Background(), namespace, fleetName)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(autoscaler).NotTo(BeNil())
 	})
 
 	It("can delete a fleet autoscaler", func() {
-		err := agonesClient.DeleteFleetAutoscaler(namespace, fleetName)
+		err := agonesClient.DeleteFleetAutoscaler(context.Background(), namespace, fleetName)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

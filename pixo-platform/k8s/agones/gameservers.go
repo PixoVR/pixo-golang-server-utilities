@@ -45,13 +45,13 @@ func (c Client) GetGameServer(namespace, name string) (*v1.GameServer, error) {
 	return gameserver, err
 }
 
-func (c Client) CreateGameServer(namespace string, gameserver *v1.GameServer) (*v1.GameServer, error) {
+func (c Client) CreateGameServer(ctx context.Context, namespace string, gameserver *v1.GameServer) (*v1.GameServer, error) {
 	log.Debug().Msg("Creating game server")
 
 	newGameServer, err := c.Clientset.
 		AgonesV1().
 		GameServers(namespace).
-		Create(context.TODO(), gameserver, metav1.CreateOptions{})
+		Create(ctx, gameserver, metav1.CreateOptions{})
 
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to create a game server")
@@ -77,7 +77,7 @@ func (c Client) DeleteGameServer(namespace, name string) error {
 	return nil
 }
 
-func (c Client) IsGameServerAvailable(namespace, name string) bool {
+func (c Client) IsGameServerAvailable(ctx context.Context, namespace, name string) bool {
 	log.Debug().Msgf("Checking if game server %s is terminating", name)
 
 	gameserver, err := c.GetGameServer(namespace, name)
@@ -85,7 +85,7 @@ func (c Client) IsGameServerAvailable(namespace, name string) bool {
 		return false
 	}
 
-	pod, err := c.BaseClient.GetPod(namespace, gameserver.Spec.Template.ObjectMeta.Name)
+	pod, err := c.BaseClient.GetPod(ctx, namespace, gameserver.Spec.Template.ObjectMeta.Name)
 	if err != nil {
 		return false
 	}

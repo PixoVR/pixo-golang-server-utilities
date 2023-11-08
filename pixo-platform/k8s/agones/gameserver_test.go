@@ -1,6 +1,7 @@
 package agones_test
 
 import (
+	"context"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/agones"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,7 +16,7 @@ var _ = Describe("Gameservers", func() {
 	})
 
 	It("can create, get, and delete a game server and then tell its unavailable", func() {
-		gameserver, err := agonesClient.CreateGameServer(namespace, &agones.SimpleGameServer)
+		gameserver, err := agonesClient.CreateGameServer(context.Background(), namespace, &agones.SimpleGameServer)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gameserver).NotTo(BeNil())
@@ -27,7 +28,7 @@ var _ = Describe("Gameservers", func() {
 		err = agonesClient.DeleteGameServer(namespace, gameserver.Name)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(agonesClient.IsGameServerAvailable(namespace, gameserver.Name)).To(BeFalse())
+		Expect(agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.Name)).To(BeFalse())
 	})
 
 })
