@@ -3,7 +3,7 @@ module github.com/PixoVR/pixo-golang-server-utilities/pixo-platform
 go 1.21
 
 require (
-	agones.dev/agones v1.35.0
+	agones.dev/agones v1.36.0
 	cloud.google.com/go/storage v1.34.1
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20230919223034-f42ae50afb62
 	github.com/alicebob/miniredis/v2 v2.31.0
@@ -90,6 +90,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.20.0 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
+	github.com/go-openapi/spec v0.19.5 // indirect
 	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
