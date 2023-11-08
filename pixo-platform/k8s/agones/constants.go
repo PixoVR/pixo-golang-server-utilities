@@ -13,6 +13,8 @@ const (
 	DefaultGameServerPortName             = "udp"
 	DefaultGameServerPort                 = 7777
 	SimpleGameServerImage                 = "gcr.io/pixo-bootstrap/multiplayer/gameservers/simple-server:latest"
+
+	DeletedGameServerLabel = "agones.dev/deleted"
 )
 
 var (

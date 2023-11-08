@@ -7,24 +7,28 @@ import (
 	"github.com/rs/zerolog/log"
 	v12 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"time"
 )
 
-func (c Client) GetGameServers(namespace string, labelSelectors *metav1.LabelSelector) (*v1.GameServerList, error) {
+func (c Client) GetGameServers(ctx context.Context, namespace string, labelSelectors labels.Set) (*v1.GameServerList, error) {
 	log.Debug().Msg("Fetching game servers")
 
-	var options metav1.ListOptions
-
 	if labelSelectors == nil {
-		options = metav1.ListOptions{}
-	} else {
-		options = metav1.ListOptions{LabelSelector: labelSelectors.String()}
+		labelSelectors = labels.Set{}
 	}
 
-	gameservers, err := c.Clientset.AgonesV1().GameServers(namespace).List(context.Background(), options)
+	labelSelectors[DeletedGameServerLabel] = "false"
+
+	options := metav1.ListOptions{LabelSelector: labelSelectors.String()}
+
+	gameservers, err := c.Clientset.
+		AgonesV1().
+		GameServers(namespace).
+		List(ctx, options)
 
 	if err != nil {
-		log.Error().Err(err).Msg("Error fetching label information")
+		log.Error().Err(err).Msg("Error fetching game servers")
 		return nil, err
 	}
 
@@ -50,6 +54,16 @@ func (c Client) GetGameServer(ctx context.Context, namespace, name string) (*v1.
 func (c Client) CreateGameServer(ctx context.Context, namespace string, gameserver *v1.GameServer) (*v1.GameServer, error) {
 	log.Debug().Msg("Creating game server")
 
+	if gameserver == nil {
+		return nil, errors.New("gameserver is nil")
+	}
+
+	if gameserver.Labels == nil {
+		gameserver.Labels = make(map[string]string)
+	}
+
+	gameserver.Labels[DeletedGameServerLabel] = "false"
+
 	newGameServer, err := c.Clientset.
 		AgonesV1().
 		GameServers(namespace).
@@ -60,7 +74,7 @@ func (c Client) CreateGameServer(ctx context.Context, namespace string, gameserv
 		return nil, err
 	}
 
-	maxWaitSeconds := 30
+	maxWaitSeconds := 60
 	for {
 		if maxWaitSeconds == 0 {
 			return nil, errors.New("timed out waiting for game server to be available")
@@ -85,7 +99,7 @@ func (c Client) DeleteGameServer(ctx context.Context, namespace, name string) er
 		return nil
 	}
 
-	if _, err = c.AddLabelToGameServer(ctx, gameserver, "deleted", "true"); err != nil {
+	if _, err = c.AddLabelToGameServer(ctx, gameserver, DeletedGameServerLabel, "true"); err != nil {
 		return err
 	}
 
@@ -146,5 +160,5 @@ func (c Client) IsGameServerAvailable(ctx context.Context, namespace, name strin
 		return false
 	}
 
-	return pod.Status.Phase == v12.PodRunning && gameserver.Labels["deleted"] != "true"
+	return pod.Status.Phase == v12.PodRunning && gameserver.Labels[DeletedGameServerLabel] != "true"
 }

@@ -19,6 +19,7 @@ var _ = Describe("Gameservers", Ordered, func() {
 		gameserver, err = agonesClient.CreateGameServer(context.Background(), namespace, &agones.SimpleGameServer)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gameserver).NotTo(BeNil())
+		Expect(gameserver.Labels[agones.DeletedGameServerLabel]).To(Equal("false"))
 	})
 
 	AfterAll(func() {
@@ -27,9 +28,10 @@ var _ = Describe("Gameservers", Ordered, func() {
 	})
 
 	It("can get the list of gameservers", func() {
-		gameservers, err := agonesClient.GetGameServers(namespace, nil)
+		gameservers, err := agonesClient.GetGameServers(context.Background(), namespace, nil)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gameservers).NotTo(BeNil())
+		Expect(len(gameservers.Items)).To(BeNumerically(">", 0))
 	})
 
 	It("can get a gameserver and add a label to it", func() {
@@ -53,6 +55,19 @@ var _ = Describe("Gameservers", Ordered, func() {
 
 		isAvailable = agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.GetName())
 		Expect(isAvailable).To(BeFalse())
+
+		gameservers, err := agonesClient.GetGameServers(context.Background(), namespace, nil)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(gameservers).NotTo(BeNil())
+
+		foundGameserver := false
+		for _, gs := range gameservers.Items {
+			if gs.GetName() == gameserver.GetName() {
+				foundGameserver = true
+				break
+			}
+		}
+		Expect(foundGameserver).To(BeFalse())
 	})
 
 })
