@@ -1,13 +1,24 @@
 package agones_test
 
 import (
+	v1 "agones.dev/agones/pkg/apis/agones/v1"
 	"context"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/agones"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Gameservers", func() {
+var _ = Describe("Gameservers", Ordered, func() {
+
+	var (
+		gameserver *v1.GameServer
+	)
+	BeforeAll(func() {
+		var err error
+		gameserver, err = agonesClient.CreateGameServer(context.Background(), namespace, &agones.SimpleGameServer)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(gameserver).NotTo(BeNil())
+	})
 
 	It("can get the list of gameservers", func() {
 		gameservers, err := agonesClient.GetGameServers(namespace, nil)
@@ -15,20 +26,31 @@ var _ = Describe("Gameservers", func() {
 		Expect(gameservers).NotTo(BeNil())
 	})
 
+	It("can get a gameserver and add a label to it", func() {
+		Expect(gameserver.Labels["test"]).To(BeEmpty())
+		updatedGameserver, err := agonesClient.AddLabelToGameServer(context.Background(), gameserver, "test", "test")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(updatedGameserver).NotTo(BeNil())
+		Expect(updatedGameserver.Labels["test"]).To(Equal("test"))
+	})
+
 	It("can create, get, and delete a game server and then tell its unavailable", func() {
 		gameserver, err := agonesClient.CreateGameServer(context.Background(), namespace, &agones.SimpleGameServer)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gameserver).NotTo(BeNil())
+		isAvailable := agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.Name)
+		Expect(isAvailable).To(BeTrue())
 
-		newGameserver, err := agonesClient.GetGameServer(namespace, gameserver.Name)
+		newGameserver, err := agonesClient.GetGameServer(context.Background(), namespace, gameserver.Name)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(newGameserver).NotTo(BeNil())
 
-		err = agonesClient.DeleteGameServer(namespace, gameserver.Name)
+		err = agonesClient.DeleteGameServer(context.Background(), namespace, gameserver.Name)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.Name)).To(BeFalse())
+		isAvailable = agonesClient.IsGameServerAvailable(context.Background(), namespace, gameserver.Name)
+		Expect(isAvailable).To(BeFalse())
 	})
 
 })
