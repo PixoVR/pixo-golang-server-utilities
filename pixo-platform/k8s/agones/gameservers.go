@@ -35,7 +35,7 @@ func (c Client) CreateGameServer(ctx context.Context, namespace string, gameserv
 	maxWaitSeconds := 60
 	for {
 		if maxWaitSeconds == 0 {
-			return nil, errors.New("timed out waiting for game server to be available")
+			return nil, errors.New("timed out waiting for game server reach ready state")
 		}
 
 		if c.IsGameServerAvailable(ctx, namespace, newGameServer.Name) {
@@ -46,7 +46,7 @@ func (c Client) CreateGameServer(ctx context.Context, namespace string, gameserv
 		time.Sleep(time.Second * 1)
 	}
 
-	return newGameServer, err
+	return newGameServer, nil
 }
 
 func (c Client) DeleteGameServer(ctx context.Context, namespace, name string) error {
