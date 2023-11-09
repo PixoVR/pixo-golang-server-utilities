@@ -1,6 +1,7 @@
 package argo_test
 
 import (
+	"context"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/argo"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
@@ -55,10 +56,11 @@ var _ = Describe("Argo", func() {
 	})
 
 	It("can get the list of workflows ", func() {
-		workflows, err := clientset.ListWorkflows(namespace)
+		workflows, err := clientset.ListWorkflows(context.Background(), namespace)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(workflows).NotTo(BeNil())
+		Expect(len(workflows)).To(BeNumerically(">", 0))
 	})
 
 	It("can get whalesay workflow", func() {
