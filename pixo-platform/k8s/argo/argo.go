@@ -23,7 +23,7 @@ func (c Client) ListWorkflows(ctx context.Context, namespace string) ([]v1alpha1
 	workflows := workflowList.Items
 
 	sort.Slice(workflows, func(i, j int) bool {
-		return workflows[j].CreationTimestamp.Before(&workflows[i].CreationTimestamp)
+		return workflows[j].CreationTimestamp.Time.Before(workflows[i].CreationTimestamp.Time)
 	})
 
 	return workflows, nil
