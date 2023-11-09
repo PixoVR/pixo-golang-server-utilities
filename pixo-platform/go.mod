@@ -18,7 +18,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/joho/godotenv v1.5.1
 	github.com/onsi/ginkgo/v2 v2.13.0
-	github.com/onsi/gomega v1.29.0
+	github.com/onsi/gomega v1.30.0
 	github.com/redis/go-redis/v9 v9.3.0
 	github.com/rs/zerolog v1.31.0
 	golang.org/x/oauth2 v0.13.0
