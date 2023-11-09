@@ -7,33 +7,15 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 var _ = Describe("Argo", func() {
 
 	var (
-		clientset *argo.Client
-		namespace = "dev-multiplayer"
-	)
-
-	BeforeEach(func() {
-		var err error
-		clientset, err = argo.NewLocalArgoClient()
-		Expect(err).NotTo(HaveOccurred())
-		Expect(clientset).To(Not(BeNil()))
-	})
-
-	It("can get the list of workflows ", func() {
-		workflows, err := clientset.ListWorkflows(namespace)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(workflows).NotTo(BeNil())
-	})
-
-	It("can create, get, and delete a whalesay workflow", func() {
-		name := "whalesay"
-		spec := &v1alpha1.Workflow{
+		clientset    *argo.Client
+		namespace    = "dev-multiplayer"
+		name         = "whalesay"
+		whalesaySpec = &v1alpha1.Workflow{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 			},
@@ -50,24 +32,40 @@ var _ = Describe("Argo", func() {
 				},
 			},
 		}
+	)
 
-		workflow, err := clientset.CreateWorkflow(namespace, spec)
+	BeforeEach(func() {
+		var err error
+		clientset, err = argo.NewLocalArgoClient()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(clientset).To(Not(BeNil()))
+
+		workflow, err := clientset.CreateWorkflow(namespace, whalesaySpec)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(workflow).NotTo(BeNil())
+	})
 
+	AfterEach(func() {
+		err := clientset.DeleteWorkflow(namespace, name)
+		Expect(err).NotTo(HaveOccurred())
+
+		retrieved, err := clientset.GetWorkflow(namespace, name)
+		Expect(err).To(HaveOccurred())
+		Expect(retrieved).To(BeNil())
+	})
+
+	It("can get the list of workflows ", func() {
+		workflows, err := clientset.ListWorkflows(namespace)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(workflows).NotTo(BeNil())
+	})
+
+	It("can get whalesay workflow", func() {
 		retrieved, err := clientset.GetWorkflow(namespace, name)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(retrieved).NotTo(BeNil())
 		Expect(retrieved.Name).To(Equal(name))
-
-		time.Sleep(10 * time.Second)
-
-		err = clientset.DeleteWorkflow(namespace, name)
-		Expect(err).NotTo(HaveOccurred())
-
-		retrieved, err = clientset.GetWorkflow(namespace, name)
-		Expect(err).To(HaveOccurred())
-		Expect(retrieved).To(BeNil())
 	})
 
 })
