@@ -165,7 +165,7 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 		return nil
 	}
 
-	if isClosed(stream) {
+	if IsClosed(stream) {
 		return nil
 	}
 
@@ -173,7 +173,7 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 	return &newLog
 }
 
-func isClosed(ch <-chan Log) bool {
+func IsClosed(ch <-chan Log) bool {
 	select {
 	case <-ch:
 		return true
