@@ -18,27 +18,7 @@ var _ = Describe("Stream", Ordered, func() {
 		Expect(streamer).NotTo(BeNil())
 	})
 
-	It("can tail logs from workflow pods", func() {
-		workflow, err := argoClient.GetWorkflow(namespace, workflowName)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(workflow).NotTo(BeNil())
-
-		logStreamOne, err := streamer.Tail(context.Background(), namespace, templateOneName, workflow)
-		Expect(err).To(BeNil())
-		Expect(logStreamOne).NotTo(BeNil())
-		logOne := <-logStreamOne
-		Expect(logOne.Step).To(ContainSubstring(templateOneName))
-		Expect(logOne.Lines).NotTo(BeEmpty())
-
-		logStreamTwo, err := streamer.Tail(context.Background(), namespace, templateTwoName, workflow)
-		Expect(err).To(BeNil())
-		Expect(logStreamTwo).NotTo(BeNil())
-		logTwo := <-logStreamTwo
-		Expect(logTwo.Step).To(ContainSubstring(templateTwoName))
-		Expect(logTwo.Lines).NotTo(BeEmpty())
-	})
-
-	It("can stream logs from all templates in a workflow", func() {
+	It("can tail logs for all templates in a workflow", func() {
 		logStreams, err := streamer.TailAll(context.Background(), namespace, workflowName)
 		Expect(err).To(BeNil())
 		Expect(logStreams).NotTo(BeNil())

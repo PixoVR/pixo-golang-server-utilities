@@ -148,16 +148,8 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 		return nil
 	}
 
-	for {
-		select {
-		case newLog := <-s.streams[name]:
-			if newLog.Lines != "" {
-				return &newLog
-			}
-		default:
-			return nil
-		}
-	}
+	newLog := <-s.streams[name]
+	return &newLog
 }
 
 func FormatPodName(node *v1alpha1.NodeStatus) string {
