@@ -146,6 +146,11 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 			break
 		}
 
+		if buf.Len() == 0 {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
 		stream <- Log{
 			Step:  node.Name,
 			Lines: buf.String(),
