@@ -2,6 +2,7 @@ package argo
 
 import (
 	"context"
+	"errors"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/rs/zerolog/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -72,4 +73,21 @@ func (c Client) DeleteWorkflow(namespace, name string) error {
 	}
 
 	return nil
+}
+
+func (c Client) GetNode(workflow *v1alpha1.Workflow, name string) (*v1alpha1.NodeStatus, error) {
+	var selectedNode *v1alpha1.NodeStatus
+
+	for _, node := range workflow.Status.Nodes {
+		if node.Type == v1alpha1.NodeTypePod && node.TemplateName == name {
+			selectedNode = &node
+			break
+		}
+	}
+
+	if selectedNode == nil {
+		return nil, errors.New("node not found")
+	}
+
+	return selectedNode, nil
 }

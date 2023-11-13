@@ -1,6 +1,7 @@
 package argo_test
 
 import (
+	"fmt"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/argo"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -8,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -20,8 +22,10 @@ func TestArgo(t *testing.T) {
 }
 
 var (
-	namespace    = "dev-multiplayer"
-	workflowName = "whalesay"
+	namespace       = "dev-multiplayer"
+	workflowName    = "whalesay"
+	templateOneName = fmt.Sprintf("%s-1", workflowName)
+	templateTwoName = fmt.Sprintf("%s-2", templateOneName)
 
 	k8sClient  *base.Client
 	argoClient *argo.Client
@@ -36,7 +40,31 @@ var (
 			Templates: []v1alpha1.Template{
 				{
 					Name: workflowName,
+					DAG: &v1alpha1.DAGTemplate{
+						Tasks: []v1alpha1.DAGTask{
+							{
+								Name:     templateOneName,
+								Template: templateOneName,
+							},
+							{
+								Name:     templateTwoName,
+								Template: templateTwoName,
+							},
+						},
+					},
+				},
+				{
+					Name: templateOneName,
 					Container: &corev1.Container{
+						Name:    templateOneName,
+						Image:   "docker/whalesay:latest",
+						Command: []string{"cowsay"},
+					},
+				},
+				{
+					Name: templateTwoName,
+					Container: &corev1.Container{
+						Name:    templateTwoName,
 						Image:   "docker/whalesay:latest",
 						Command: []string{"cowsay"},
 					},
@@ -59,6 +87,7 @@ var _ = BeforeSuite(func() {
 	workflow, err = argoClient.CreateWorkflow(namespace, whalesaySpec)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(workflow).NotTo(BeNil())
+	time.Sleep(3 * time.Second)
 })
 
 var _ = AfterSuite(func() {

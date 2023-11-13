@@ -14,22 +14,44 @@ var _ = Describe("Stream", Ordered, func() {
 	)
 
 	BeforeAll(func() {
-		streamer = argo.NewLogsStreamer(k8sClient, workflowName)
+		streamer = argo.NewLogsStreamer(k8sClient, argoClient, workflowName)
 		Expect(streamer).NotTo(BeNil())
 	})
 
-	It("can stream logs from a workflow", func() {
+	It("can tail logs from workflow pods", func() {
 		workflow, err := argoClient.GetWorkflow(namespace, workflowName)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(workflow).NotTo(BeNil())
-		node := workflow.Status.Nodes[workflow.Name]
-		Expect(node).NotTo(BeNil())
 
-		stream, err := streamer.Tail(context.Background(), namespace, &node)
+		logStreamOne, err := streamer.Tail(context.Background(), namespace, templateOneName, workflow)
 		Expect(err).To(BeNil())
-		Expect(stream).NotTo(BeNil())
-		log := <-stream
-		Expect(log.Step).To(Equal(workflowName))
+		Expect(logStreamOne).NotTo(BeNil())
+		logOne := <-logStreamOne
+		Expect(logOne.Step).To(ContainSubstring(templateOneName))
+		Expect(logOne.Lines).NotTo(BeEmpty())
+
+		logStreamTwo, err := streamer.Tail(context.Background(), namespace, templateTwoName, workflow)
+		Expect(err).To(BeNil())
+		Expect(logStreamTwo).NotTo(BeNil())
+		logTwo := <-logStreamTwo
+		Expect(logTwo.Step).To(ContainSubstring(templateTwoName))
+		Expect(logTwo.Lines).NotTo(BeEmpty())
+	})
+
+	It("can stream logs from all templates in a workflow", func() {
+		logStreams, err := streamer.TailAll(context.Background(), namespace, workflowName)
+		Expect(err).To(BeNil())
+		Expect(logStreams).NotTo(BeNil())
+
+		logOne := streamer.ReadFromStream(templateOneName)
+		Expect(logOne).NotTo(BeNil())
+		Expect(logOne.Step).To(ContainSubstring(templateOneName))
+		Expect(logOne.Lines).NotTo(BeEmpty())
+
+		logTwo := streamer.ReadFromStream(templateTwoName)
+		Expect(logTwo).NotTo(BeNil())
+		Expect(logTwo.Step).To(ContainSubstring(templateTwoName))
+		Expect(logTwo.Lines).NotTo(BeEmpty())
 	})
 
 })
