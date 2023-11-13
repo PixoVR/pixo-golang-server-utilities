@@ -24,6 +24,7 @@ type LogsStreamer struct {
 	argoClient   *Client
 	WorkflowName string
 	streams      map[string]chan Log
+	numStreams   int
 	numClosed    int
 	mtx          sync.Mutex
 }
@@ -60,6 +61,7 @@ func (s *LogsStreamer) TailAll(c context.Context, namespace string, workflowName
 		stream := s.streams[template.Name]
 		if stream == nil {
 			s.streams[template.Name] = make(chan Log)
+			s.numStreams++
 		}
 		s.mtx.Unlock()
 
@@ -181,7 +183,7 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 
 func (s *LogsStreamer) NumStreams() int {
 	s.mtx.Lock()
-	numStreams := len(s.streams)
+	numStreams := s.numStreams
 	s.mtx.Unlock()
 
 	return numStreams
@@ -193,6 +195,10 @@ func (s *LogsStreamer) NumClosed() int {
 	s.mtx.Unlock()
 
 	return numClosed
+}
+
+func (s *LogsStreamer) IsDone() bool {
+	return s.NumStreams() == s.NumClosed()
 }
 
 func IsClosed(ch <-chan Log) bool {

@@ -23,6 +23,7 @@ var _ = Describe("Stream", Ordered, func() {
 		Expect(err).To(BeNil())
 		Expect(logStreams).NotTo(BeNil())
 		Expect(streamer.NumStreams()).To(Equal(2))
+		Expect(streamer.IsDone()).To(BeFalse())
 
 		logOne := streamer.ReadFromStream(templateOneName)
 		Expect(logOne).NotTo(BeNil())
@@ -41,6 +42,9 @@ var _ = Describe("Stream", Ordered, func() {
 		Expect(streamer.NumClosed()).To(Equal(2))
 		emptyLog = streamer.ReadFromStream(templateTwoName)
 		Expect(emptyLog).To(BeNil())
+
+		Expect(streamer.NumStreams()).To(Equal(2))
+		Expect(streamer.IsDone()).To(BeTrue())
 	})
 
 })
