@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"io"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -23,6 +24,7 @@ type LogsStreamer struct {
 	argoClient   *Client
 	WorkflowName string
 	streams      map[string]chan Log
+	mtx          sync.Mutex
 }
 
 func NewLogsStreamer(k8sClient *base.Client, argoClient *Client, workflowName string) *LogsStreamer {
@@ -53,15 +55,26 @@ func (s *LogsStreamer) TailAll(c context.Context, namespace string, workflowName
 			continue
 		}
 
-		for {
-			time.Sleep(1 * time.Second)
-			if _, err = s.Tail(c, namespace, template.Name, workflow); err == nil {
-				break
-			}
+		s.mtx.Lock()
+		stream := s.streams[template.Name]
+		if stream == nil {
+			s.streams[template.Name] = make(chan Log)
 		}
+		s.mtx.Unlock()
+
+		go s.waitForTail(c, namespace, template, workflow)
 	}
 
 	return s.streams, nil
+}
+
+func (s *LogsStreamer) waitForTail(c context.Context, namespace string, template v1alpha1.Template, workflow *v1alpha1.Workflow) {
+	for {
+		time.Sleep(1 * time.Second)
+		if _, err := s.Tail(c, namespace, template.Name, workflow); err == nil {
+			break
+		}
+	}
 }
 
 func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, workflow *v1alpha1.Workflow) (chan Log, error) {
@@ -77,12 +90,6 @@ func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, w
 	if err != nil {
 		return nil, errors.Join(err, errors.New("unable to find node from template name"))
 	}
-
-	if s.streams[node.TemplateName] != nil {
-		return s.streams[node.TemplateName], nil
-	}
-
-	s.streams[node.TemplateName] = make(chan Log)
 
 	containerName := "main"
 	podName := FormatPodName(node)
@@ -109,13 +116,27 @@ func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, w
 	go s.StreamLogsForNode(node, ioStream)
 
 	log.Debug().Msgf("started tailing logs for node %s", node.TemplateName)
-	return s.streams[node.TemplateName], nil
+
+	s.mtx.Lock()
+	stream := s.streams[node.TemplateName]
+	s.mtx.Unlock()
+
+	return stream, nil
 }
 
 func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.ReadCloser) {
-	if ioStream == nil || node == nil || s.streams[node.TemplateName] == nil {
+	if ioStream == nil || node == nil {
 		return
 	}
+
+	s.mtx.Lock()
+	stream := s.streams[node.TemplateName]
+	s.mtx.Unlock()
+
+	if stream == nil {
+		return
+	}
+
 	defer ioStream.Close()
 
 	log.Debug().Msgf("started streaming logs for %s", node.TemplateName)
@@ -125,7 +146,7 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 			break
 		}
 
-		s.streams[node.TemplateName] <- Log{
+		stream <- Log{
 			Step:  node.Name,
 			Lines: buf.String(),
 		}
@@ -134,11 +155,15 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 }
 
 func (s *LogsStreamer) ReadFromStream(name string) *Log {
-	if s.streams[name] == nil {
+	s.mtx.Lock()
+	stream := s.streams[name]
+	s.mtx.Unlock()
+
+	if stream == nil {
 		return nil
 	}
 
-	newLog := <-s.streams[name]
+	newLog := <-stream
 	return &newLog
 }
 
