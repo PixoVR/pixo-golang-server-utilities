@@ -152,7 +152,7 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 		}
 
 		stream <- Log{
-			Step:  node.Name,
+			Step:  node.DisplayName,
 			Lines: buf.String(),
 		}
 		log.Debug().Msgf("streamed log for %s", node.TemplateName)

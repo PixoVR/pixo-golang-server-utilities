@@ -25,12 +25,12 @@ var _ = Describe("Stream", Ordered, func() {
 
 		logOne := streamer.ReadFromStream(templateOneName)
 		Expect(logOne).NotTo(BeNil())
-		Expect(logOne.Step).To(ContainSubstring(templateOneName))
+		Expect(logOne.Step).To(Equal(templateOneName))
 		Expect(logOne.Lines).NotTo(BeEmpty())
 
 		logTwo := streamer.ReadFromStream(templateTwoName)
 		Expect(logTwo).NotTo(BeNil())
-		Expect(logTwo.Step).To(ContainSubstring(templateTwoName))
+		Expect(logTwo.Step).To(Equal(templateTwoName))
 		Expect(logTwo.Lines).NotTo(BeEmpty())
 	})
 
