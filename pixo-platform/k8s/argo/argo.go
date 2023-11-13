@@ -76,6 +76,11 @@ func (c Client) DeleteWorkflow(namespace, name string) error {
 }
 
 func (c Client) GetNode(workflow *v1alpha1.Workflow, name string) (*v1alpha1.NodeStatus, error) {
+	workflow, err := c.GetWorkflow(workflow.Namespace, workflow.Name)
+	if err != nil {
+		return nil, err
+	}
+
 	var selectedNode *v1alpha1.NodeStatus
 
 	for _, node := range workflow.Status.Nodes {

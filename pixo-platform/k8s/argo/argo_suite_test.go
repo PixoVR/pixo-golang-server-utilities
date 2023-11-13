@@ -47,8 +47,9 @@ var (
 								Template: templateOneName,
 							},
 							{
-								Name:     templateTwoName,
-								Template: templateTwoName,
+								Name:         templateTwoName,
+								Template:     templateTwoName,
+								Dependencies: []string{templateOneName},
 							},
 						},
 					},

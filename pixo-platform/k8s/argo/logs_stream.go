@@ -15,7 +15,7 @@ import (
 
 type Log struct {
 	Step  string `json:"step"`
-	Lines string `json:"line"`
+	Lines string `json:"lines"`
 }
 
 type LogsStreamer struct {
@@ -49,18 +49,15 @@ func (s *LogsStreamer) TailAll(c context.Context, namespace string, workflowName
 	}
 
 	for _, template := range workflow.Spec.Templates {
-		if template.GetNodeType() != v1alpha1.NodeTypePod {
+		if template.GetNodeType() != v1alpha1.NodeTypePod || s.streams[template.Name] != nil {
 			continue
 		}
 
-		failureThreshold := 30
 		for {
 			time.Sleep(1 * time.Second)
-			if _, err = s.Tail(c, namespace, template.Name, workflow); err == nil || failureThreshold == 0 {
+			if _, err = s.Tail(c, namespace, template.Name, workflow); err == nil {
 				break
 			}
-
-			failureThreshold--
 		}
 	}
 
@@ -92,28 +89,18 @@ func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, w
 
 	var ioStream io.ReadCloser
 
-	failureThreshold := 30
 	for {
 		time.Sleep(1 * time.Second)
 
 		node, err = s.argoClient.GetNode(workflow, node.TemplateName)
-		if err != nil {
-			if failureThreshold == 0 {
-				return nil, err
-			}
-
-			failureThreshold--
+		if err != nil || node.Pending() {
+			continue
 		}
 
 		ioStream, err = s.k8sClient.GetPodLogs(c, namespace, podName, containerName)
 		if err != nil {
-			if strings.Contains(err.Error(), "waiting to start") {
-				continue
-			} else if failureThreshold == 0 {
-				return nil, err
-			}
-
-			failureThreshold--
+			log.Debug().Err(err).Msgf("unable to get logs for pod %s", podName)
+			continue
 		}
 
 		break
@@ -121,6 +108,7 @@ func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, w
 
 	go s.StreamLogsForNode(node, ioStream)
 
+	log.Debug().Msgf("started tailing logs for node %s", node.TemplateName)
 	return s.streams[node.TemplateName], nil
 }
 
@@ -130,6 +118,7 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 	}
 	defer ioStream.Close()
 
+	log.Debug().Msgf("started streaming logs for %s", node.TemplateName)
 	for {
 		buf := new(bytes.Buffer)
 		if _, err := io.Copy(buf, ioStream); err != nil {
@@ -140,6 +129,7 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 			Step:  node.Name,
 			Lines: buf.String(),
 		}
+		log.Debug().Msgf("streamed log for %s", node.TemplateName)
 	}
 }
 
