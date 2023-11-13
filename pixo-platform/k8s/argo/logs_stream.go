@@ -24,6 +24,7 @@ type LogsStreamer struct {
 	argoClient   *Client
 	WorkflowName string
 	streams      map[string]chan Log
+	numClosed    int
 	mtx          sync.Mutex
 }
 
@@ -144,7 +145,12 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 		buf := new(bytes.Buffer)
 		if _, err := io.Copy(buf, ioStream); err != nil || buf.Len() == 0 {
 			close(stream)
+
+			s.mtx.Lock()
+			s.numClosed++
 			delete(s.streams, node.TemplateName)
+			s.mtx.Unlock()
+
 			break
 		}
 
@@ -179,6 +185,14 @@ func (s *LogsStreamer) NumStreams() int {
 	s.mtx.Unlock()
 
 	return numStreams
+}
+
+func (s *LogsStreamer) NumClosed() int {
+	s.mtx.Lock()
+	numClosed := s.numClosed
+	s.mtx.Unlock()
+
+	return numClosed
 }
 
 func IsClosed(ch <-chan Log) bool {

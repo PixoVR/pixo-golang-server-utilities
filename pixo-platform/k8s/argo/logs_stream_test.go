@@ -22,12 +22,14 @@ var _ = Describe("Stream", Ordered, func() {
 		logStreams, err := streamer.TailAll(context.Background(), namespace, workflowName)
 		Expect(err).To(BeNil())
 		Expect(logStreams).NotTo(BeNil())
+		Expect(streamer.NumStreams()).To(Equal(2))
 
 		logOne := streamer.ReadFromStream(templateOneName)
 		Expect(logOne).NotTo(BeNil())
 		Expect(logOne.Step).To(Equal(templateOneName))
 		Expect(logOne.Lines).NotTo(BeEmpty())
 
+		Expect(streamer.NumClosed()).To(Equal(1))
 		emptyLog := streamer.ReadFromStream(templateOneName)
 		Expect(emptyLog).To(BeNil())
 
@@ -36,6 +38,7 @@ var _ = Describe("Stream", Ordered, func() {
 		Expect(logTwo.Step).To(Equal(templateTwoName))
 		Expect(logTwo.Lines).NotTo(BeEmpty())
 
+		Expect(streamer.NumClosed()).To(Equal(2))
 		emptyLog = streamer.ReadFromStream(templateTwoName)
 		Expect(emptyLog).To(BeNil())
 	})
