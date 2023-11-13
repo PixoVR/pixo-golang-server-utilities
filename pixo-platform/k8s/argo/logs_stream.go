@@ -142,13 +142,10 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 	log.Debug().Msgf("started streaming logs for %s", node.TemplateName)
 	for {
 		buf := new(bytes.Buffer)
-		if _, err := io.Copy(buf, ioStream); err != nil {
+		if _, err := io.Copy(buf, ioStream); err != nil || buf.Len() == 0 {
+			close(stream)
+			delete(s.streams, node.TemplateName)
 			break
-		}
-
-		if buf.Len() == 0 {
-			time.Sleep(1 * time.Second)
-			continue
 		}
 
 		stream <- Log{
@@ -168,8 +165,21 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 		return nil
 	}
 
+	if isClosed(stream) {
+		return nil
+	}
+
 	newLog := <-stream
 	return &newLog
+}
+
+func isClosed(ch <-chan Log) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+		return false
+	}
 }
 
 func FormatPodName(node *v1alpha1.NodeStatus) string {

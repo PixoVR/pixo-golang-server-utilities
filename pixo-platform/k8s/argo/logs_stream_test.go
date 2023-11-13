@@ -28,10 +28,16 @@ var _ = Describe("Stream", Ordered, func() {
 		Expect(logOne.Step).To(Equal(templateOneName))
 		Expect(logOne.Lines).NotTo(BeEmpty())
 
+		emptyLog := streamer.ReadFromStream(templateOneName)
+		Expect(emptyLog).To(BeNil())
+
 		logTwo := streamer.ReadFromStream(templateTwoName)
 		Expect(logTwo).NotTo(BeNil())
 		Expect(logTwo.Step).To(Equal(templateTwoName))
 		Expect(logTwo.Lines).NotTo(BeEmpty())
+
+		emptyLog = streamer.ReadFromStream(templateTwoName)
+		Expect(emptyLog).To(BeNil())
 	})
 
 })
