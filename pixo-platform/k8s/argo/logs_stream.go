@@ -173,6 +173,14 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 	return &newLog
 }
 
+func (s *LogsStreamer) NumStreams() int {
+	s.mtx.Lock()
+	numStreams := len(s.streams)
+	s.mtx.Unlock()
+
+	return numStreams
+}
+
 func IsClosed(ch <-chan Log) bool {
 	select {
 	case <-ch:
