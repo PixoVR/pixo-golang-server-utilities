@@ -12,7 +12,9 @@ const (
 	DefaultGameServerSidecarContainerName = "agones-gameserver-sidecar"
 	DefaultGameServerPortName             = "udp"
 	DefaultGameServerPort                 = 7777
-	SimpleGameServerImage                 = "us-docker.pkg.dev/agones-images/examples/simple-game-server:0.14"
+	SimpleGameServerImage                 = "gcr.io/pixo-bootstrap/multiplayer/gameservers/simple-server:latest"
+
+	DeletedGameServerLabel = "agones.dev/deleted"
 )
 
 var (

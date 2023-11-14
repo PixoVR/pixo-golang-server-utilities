@@ -8,19 +8,53 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-func (c Client) IsGameServerReady(namespace, name string) bool {
-	gameserver, err := c.GetGameServerByName(namespace, name)
+func (c Client) GetGameServers(ctx context.Context, namespace string, labelSelectors labels.Set) (*agonesv1.GameServerList, error) {
+	log.Debug().Msg("Fetching game servers")
 
-	if err != nil {
-		log.Err(err).Msgf("Error getting game servers by name: %v", name)
-		return false
+	if labelSelectors == nil {
+		labelSelectors = labels.Set{}
 	}
 
-	return gameserver.Status.State == agonesv1.GameServerStateReady
+	labelSelectors[DeletedGameServerLabel] = "false"
+
+	options := metav1.ListOptions{LabelSelector: labelSelectors.String()}
+
+	gameservers, err := c.Clientset.
+		AgonesV1().
+		GameServers(namespace).
+		List(ctx, options)
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching game servers")
+		return nil, err
+	}
+
+	return gameservers, err
 }
 
-func (c Client) GetGameServerByName(namespace, name string) (*agonesv1.GameServer, error) {
-	gameserver, err := c.Clientset.AgonesV1().GameServers(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+func (c Client) GetGameServer(ctx context.Context, namespace, name string) (*agonesv1.GameServer, error) {
+	log.Debug().Msgf("Fetching game server %s", name)
+
+	gameserver, err := c.Clientset.
+		AgonesV1().
+		GameServers(namespace).
+		Get(ctx, name, metav1.GetOptions{})
+
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to get game server %s", name)
+		return nil, err
+	}
+
+	return gameserver, err
+}
+
+func (c Client) GetGameServerByName(ctx context.Context, namespace, name string) (*agonesv1.GameServer, error) {
+
+	gameserver, err := c.
+		AgonesV1().
+		GameServers(namespace).
+		Get(ctx, name, metav1.GetOptions{})
+
 	if err != nil {
 		log.Err(err).Msgf("Error getting game servers by name: %v", name)
 		return nil, err
@@ -29,13 +63,16 @@ func (c Client) GetGameServerByName(namespace, name string) (*agonesv1.GameServe
 	return gameserver, nil
 }
 
-func (c Client) GetGameServersBySelectors(namespace string, selectors labels.Set) ([]agonesv1.GameServer, error) {
-	gameservers, err := c.Clientset.AgonesV1().GameServers(namespace).List(context.TODO(),
-		metav1.ListOptions{LabelSelector: selectors.String()})
+func (c Client) IsGameServerReady(ctx context.Context, namespace, name string) (*agonesv1.GameServer, bool) {
+	gameserver, err := c.GetGameServerByName(ctx, namespace, name)
+
 	if err != nil {
-		log.Err(err).Msgf("Unable to get gameservers with labels: %v", selectors)
-		return nil, err
+		log.Err(err).Msgf("Error getting game servers by name: %v", name)
+		return gameserver, false
 	}
 
-	return gameservers.Items, nil
+	isReady := gameserver != nil && gameserver.Status.State == agonesv1.GameServerStateReady
+	isAvailable := c.IsGameServerAvailable(ctx, namespace, name)
+
+	return gameserver, isReady && isAvailable
 }

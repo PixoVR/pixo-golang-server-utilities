@@ -8,34 +8,33 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (c Client) GetPodLogs(namespace, podName, containerName string) (string, error) {
+func (c Client) GetPodLogs(ctx context.Context, namespace, podName, containerName string) (io.ReadCloser, error) {
 
 	podLogOpts := corev1.PodLogOptions{
 		Container: containerName,
-		TailLines: &[]int64{100}[0],
+		//TailLines: &[]int64{100}[0],
 	}
 
-	req := c.Clientset.CoreV1().Pods(namespace).GetLogs(podName, &podLogOpts)
+	req := c.
+		CoreV1().
+		Pods(namespace).
+		GetLogs(podName, &podLogOpts)
 
-	podLogs, err := req.Stream(context.Background())
-	if err != nil {
-		log.Err(err).Msgf("Error in opening stream: %s", err)
-		return "", err
-	}
+	return req.Stream(ctx)
+}
+
+func ReadLogsFromStream(stream io.ReadCloser) string {
 
 	defer func(podLogs io.ReadCloser) {
-		err = podLogs.Close()
-		if err != nil {
-			log.Err(err).Msgf("Error in closing stream: %s", err)
+		if err := podLogs.Close(); err != nil {
+			log.Err(err).Msg("Error in closing stream")
 		}
-	}(podLogs)
+	}(stream)
 
 	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, podLogs)
-	if err != nil {
-		return "", err
+	if _, err := io.Copy(buf, stream); err != nil {
+		return "unable to read logs"
 	}
-	str := buf.String()
 
-	return str, err
+	return buf.String()
 }

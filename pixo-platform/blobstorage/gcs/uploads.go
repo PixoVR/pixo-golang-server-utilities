@@ -4,24 +4,23 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/blob"
+	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/rs/zerolog/log"
 	"io"
-	"mime/multipart"
 	"net/http"
 )
 
-func UploadFile(bucketName, objectName string, file multipart.File) (string, error) {
-	ctx := context.Background()
+func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, fileReader io.Reader) (string, error) {
+
 	storageClient, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create storage client")
 		return "", err
 	}
 
-	sw := storageClient.Bucket(bucketName).Object(objectName).NewWriter(ctx)
+	sw := storageClient.Bucket(c.bucketName).Object(object.GetUploadDestination()).NewWriter(ctx)
 
-	if _, err = io.Copy(sw, file); err != nil {
+	if _, err = io.Copy(sw, fileReader); err != nil {
 		log.Error().Err(err).Msg("unable to copy file to bucket")
 		return "", err
 	}
@@ -31,7 +30,7 @@ func UploadFile(bucketName, objectName string, file multipart.File) (string, err
 		return "", err
 	}
 
-	url, err := GetSignedURL(bucketName, objectName)
+	url, err := c.GetSignedURL(ctx, object)
 	if err != nil {
 		return "", err
 	}
@@ -39,32 +38,32 @@ func UploadFile(bucketName, objectName string, file multipart.File) (string, err
 	return url, nil
 }
 
-func InitResumableUpload(bucketName, objectName string) (blob.ResumableUploadResponse, error) {
-	log.Debug().Msgf("Initializing resumable upload for %s/%s", bucketName, objectName)
+func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {
+	log.Debug().Msgf("Initializing resumable upload for %s/%s", c.bucketName, object.GetUploadDestination())
 
-	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName)
+	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.bucketName, object.GetUploadDestination())
 
-	request, err := http.NewRequest("POST", url, nil)
+	request, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
-		log.Error().Err(err).Msgf("initializing request client failed: %v", err)
-		return blob.ResumableUploadResponse{}, err
+		log.Error().Err(err).Msgf("initializing request httpClient failed: %v", err)
+		return nil, err
 	}
 
 	accessToken, err := getAccessToken()
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get access token")
-		return blob.ResumableUploadResponse{}, err
+		return nil, err
 	}
 
 	request.Header.Add("Authorization", "Bearer "+accessToken)
 	request.Header.Add("Content-Length", "0")
 	request.Header.Add("x-goog-resumable", "start")
 
-	client := &http.Client{}
-	response, err := client.Do(request)
+	httpClient := &http.Client{}
+	response, err := httpClient.Do(request)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to initiate multipart upload")
-		return blob.ResumableUploadResponse{}, err
+		return nil, err
 	}
 	defer response.Body.Close()
 
@@ -73,13 +72,13 @@ func InitResumableUpload(bucketName, objectName string) (blob.ResumableUploadRes
 		bodyString := string(bodyBytes)
 		err = fmt.Errorf("unable to initiate multipart upload: %s", bodyString)
 		log.Error().Err(err)
-		return blob.ResumableUploadResponse{}, err
+		return nil, err
 	}
 
 	location := response.Header.Get("Location")
 	log.Debug().Msgf("multipart upload url: %s", location)
 
-	return blob.ResumableUploadResponse{
+	return &client.ResumableUploadResponse{
 		UploadURL: location,
 		Method:    http.MethodPut,
 	}, nil

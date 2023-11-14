@@ -1,4 +1,4 @@
-package matchmaking_test
+package profile_test
 
 import (
 	"testing"

@@ -44,13 +44,13 @@ func (c Client) GetFleet(namespace, name string) (*v1.Fleet, error) {
 	return gameserver, err
 }
 
-func (c Client) CreateFleet(namespace string, fleet *v1.Fleet) (*v1.Fleet, error) {
+func (c Client) CreateFleet(ctx context.Context, namespace string, fleet *v1.Fleet) (*v1.Fleet, error) {
 	log.Debug().Msg("Creating fleet")
 
 	newFleet, err := c.Clientset.
 		AgonesV1().
 		Fleets(namespace).
-		Create(context.TODO(), fleet, metav1.CreateOptions{})
+		Create(ctx, fleet, metav1.CreateOptions{})
 
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to create a fleet")
@@ -60,13 +60,13 @@ func (c Client) CreateFleet(namespace string, fleet *v1.Fleet) (*v1.Fleet, error
 	return newFleet, err
 }
 
-func (c Client) DeleteFleet(namespace, name string) error {
+func (c Client) DeleteFleet(ctx context.Context, namespace, name string) error {
 	log.Debug().Msgf("Deleting fleet %s", name)
 
 	err := c.Clientset.
 		AgonesV1().
 		Fleets(namespace).
-		Delete(context.Background(), name, metav1.DeleteOptions{})
+		Delete(ctx, name, metav1.DeleteOptions{})
 
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to delete fleet %s", name)

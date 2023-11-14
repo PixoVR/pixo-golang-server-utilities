@@ -3,6 +3,7 @@ package gcs
 import (
 	"cloud.google.com/go/storage"
 	"context"
+	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -15,11 +16,11 @@ var (
 	expireDuration = 120 * time.Minute
 )
 
-func GetSignedURL(bucketName, objectName string) (string, error) {
+func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {
 	jsonKeyPath := os.Getenv("GOOGLE_JSON_KEY")
 	data, err := os.ReadFile(jsonKeyPath)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to read JSON key file at path: %s", jsonKeyPath)
+		log.Error().Err(err).Msgf("unable to read JSON key file at filepath: %s", jsonKeyPath)
 		return "", err
 	}
 
@@ -29,7 +30,6 @@ func GetSignedURL(bucketName, objectName string) (string, error) {
 		return "", err
 	}
 
-	ctx := context.Background()
 	client, err := storage.NewClient(ctx, option.WithTokenSource(conf.TokenSource(ctx)))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create storage client with JSON key")
@@ -44,12 +44,12 @@ func GetSignedURL(bucketName, objectName string) (string, error) {
 		PrivateKey:     conf.PrivateKey,
 	}
 
-	url, err := client.Bucket(bucketName).SignedURL(objectName, opts)
+	url, err := client.Bucket(c.bucketName).SignedURL(object.GetUploadDestination(), opts)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create signed URL")
 		return "", err
 	}
 
-	log.Debug().Msgf("Created signed URL for file %s in bucket %s", bucketName, objectName)
+	log.Debug().Msgf("Created signed URL for file %s in bucket %s", object.GetUploadDestination(), c.bucketName)
 	return url, nil
 }

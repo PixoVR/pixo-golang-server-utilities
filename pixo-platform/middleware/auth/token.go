@@ -43,8 +43,16 @@ func TokenValid(r *http.Request) error {
 	return err
 }
 
-func ExtractToken(r *http.Request) string {
-	accessToken := r.Header.Get(SecretKeyHeader)
+func ExtractToken(r *http.Request, headerKeyInput ...string) string {
+
+	var headerKey string
+	if len(headerKeyInput) == 0 {
+		headerKey = SecretKeyHeader
+	} else {
+		headerKey = headerKeyInput[0]
+	}
+
+	accessToken := r.Header.Get(headerKey)
 	if accessToken != "" {
 		return accessToken
 	}

@@ -47,11 +47,8 @@ func LoggingMiddleware(logger *zerolog.Logger) gin.HandlerFunc {
 			Str("duration", time.Since(startTime).String()).
 			Msg("Request processed")
 
-		logger.Debug().Msgf("Request Headers: %v", c.Request.Header)
-
 		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "PATCH" {
 			body, _ := io.ReadAll(c.Request.Body)
-			println(string(body))
 			logger.Debug().Msgf("Request Body: %s", body)
 		}
 
