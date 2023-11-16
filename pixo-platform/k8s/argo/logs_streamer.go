@@ -128,6 +128,7 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 
 	stream := s.getStream(node.TemplateName)
 	if stream == nil {
+		log.Debug().Msgf("stream for %s is nil", node.TemplateName)
 		return
 	}
 
@@ -160,13 +161,17 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 }
 
 func (s *LogsStreamer) IsDone() bool {
-	return s.NumStreams() == s.NumClosed()
+	isDone := s.NumStreams() == s.NumClosed()
+
+	log.Debug().Msgf("is done %t", isDone)
+	return isDone
 }
 
 func (s *LogsStreamer) NumStreams() int {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
+	log.Debug().Msgf("num streams %d", s.numStreams)
 	return s.numStreams
 }
 
@@ -174,6 +179,7 @@ func (s *LogsStreamer) NumClosed() int {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
+	log.Debug().Msgf("num closed %d", s.numClosed)
 	return s.numClosed
 }
 

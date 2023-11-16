@@ -9,19 +9,23 @@ import (
 
 func IsClosed(ch <-chan Log) bool {
 	if ch == nil {
+		log.Debug().Msg("Channel is nil")
 		return true
 	}
 
 	select {
 	case <-ch:
+		log.Debug().Msg("Channel is closed")
 		return true
 	default:
+		log.Debug().Msg("Channel is not closed")
 		return false
 	}
 }
 
 func FormatPodName(node *v1alpha1.NodeStatus) string {
 	if node == nil {
+		log.Debug().Msg("Node is nil")
 		return ""
 	}
 
