@@ -25,7 +25,7 @@ require (
 	google.golang.org/api v0.150.0
 	helm.sh/helm/v3 v3.13.2
 	k8s.io/api v0.28.3
-	k8s.io/apimachinery v0.28.3
+	k8s.io/apimachinery v0.28.4
 	k8s.io/cli-runtime v0.28.3
 	k8s.io/client-go v0.28.3
 	open-match.dev/open-match v1.8.0
