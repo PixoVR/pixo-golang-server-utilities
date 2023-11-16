@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/rs/zerolog/log"
 	"io"
-	"strings"
 	"sync"
 	"time"
 )
@@ -53,17 +51,15 @@ func (s *LogsStreamer) TailAll(c context.Context, namespace string, workflowName
 	}
 
 	for _, template := range workflow.Spec.Templates {
-		if template.GetNodeType() != v1alpha1.NodeTypePod || s.streams[template.Name] != nil {
+		if template.GetNodeType() != v1alpha1.NodeTypePod || s.getStream(template.Name) != nil {
 			continue
 		}
 
-		s.mtx.Lock()
-		stream := s.streams[template.Name]
+		stream := s.getStream(template.Name)
+
 		if stream == nil {
-			s.streams[template.Name] = make(chan Log)
-			s.numStreams++
+			s.addStream(template.Name)
 		}
-		s.mtx.Unlock()
 
 		go s.waitForTail(c, namespace, template, workflow)
 	}
@@ -74,6 +70,7 @@ func (s *LogsStreamer) TailAll(c context.Context, namespace string, workflowName
 func (s *LogsStreamer) waitForTail(c context.Context, namespace string, template v1alpha1.Template, workflow *v1alpha1.Workflow) {
 	for {
 		time.Sleep(1 * time.Second)
+
 		if _, err := s.Tail(c, namespace, template.Name, workflow); err == nil {
 			break
 		}
@@ -103,7 +100,7 @@ func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, w
 		time.Sleep(1 * time.Second)
 
 		node, err = s.argoClient.GetNode(workflow, node.TemplateName)
-		if err != nil || node.Pending() {
+		if err != nil || node == nil || node.Pending() {
 			continue
 		}
 
@@ -120,39 +117,26 @@ func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, w
 
 	log.Debug().Msgf("started tailing logs for node %s", node.TemplateName)
 
-	s.mtx.Lock()
-	stream := s.streams[node.TemplateName]
-	s.mtx.Unlock()
-
-	return stream, nil
+	return s.getStream(node.TemplateName), nil
 }
 
 func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.ReadCloser) {
 	if ioStream == nil || node == nil {
 		return
 	}
+	defer ioStream.Close()
 
-	s.mtx.Lock()
-	stream := s.streams[node.TemplateName]
-	s.mtx.Unlock()
-
+	stream := s.getStream(node.TemplateName)
 	if stream == nil {
 		return
 	}
-
-	defer ioStream.Close()
 
 	log.Debug().Msgf("started streaming logs for %s", node.TemplateName)
 	for {
 		buf := new(bytes.Buffer)
 		if _, err := io.Copy(buf, ioStream); err != nil || buf.Len() == 0 {
-			close(stream)
-
-			s.mtx.Lock()
-			s.numClosed++
-			delete(s.streams, node.TemplateName)
-			s.mtx.Unlock()
-
+			log.Debug().Err(err).Msgf("unable to copy logs for %s", node.TemplateName)
+			s.closeStream(node.TemplateName)
 			break
 		}
 
@@ -160,19 +144,13 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 			Step:  node.DisplayName,
 			Lines: buf.String(),
 		}
+
 		log.Debug().Msgf("streamed log for %s", node.TemplateName)
 	}
 }
 
 func (s *LogsStreamer) ReadFromStream(name string) *Log {
-	s.mtx.Lock()
-	stream := s.streams[name]
-	s.mtx.Unlock()
-
-	if stream == nil {
-		return nil
-	}
-
+	stream := s.getStream(name)
 	if IsClosed(stream) {
 		return nil
 	}
@@ -181,44 +159,54 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 	return &newLog
 }
 
-func (s *LogsStreamer) NumStreams() int {
-	s.mtx.Lock()
-	numStreams := s.numStreams
-	s.mtx.Unlock()
-
-	return numStreams
-}
-
-func (s *LogsStreamer) NumClosed() int {
-	s.mtx.Lock()
-	numClosed := s.numClosed
-	s.mtx.Unlock()
-
-	return numClosed
-}
-
 func (s *LogsStreamer) IsDone() bool {
 	return s.NumStreams() == s.NumClosed()
 }
 
-func IsClosed(ch <-chan Log) bool {
-	select {
-	case <-ch:
-		return true
-	default:
-		return false
-	}
+func (s *LogsStreamer) NumStreams() int {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	return s.numStreams
 }
 
-func FormatPodName(node *v1alpha1.NodeStatus) string {
-	if node == nil {
-		return ""
+func (s *LogsStreamer) NumClosed() int {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	return s.numClosed
+}
+
+func (s *LogsStreamer) addStream(name string) bool {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	if s.streams[name] != nil && !IsClosed(s.streams[name]) {
+		return false
 	}
 
-	nodeID := strings.Split(node.ID, "-")
-	podName := fmt.Sprintf("%s-%s-%s", node.BoundaryID, node.TemplateName, nodeID[len(nodeID)-1])
+	s.streams[name] = make(chan Log)
+	s.numStreams++
 
-	log.Debug().Msgf("Formatted pod name: %s", podName)
+	log.Debug().Msgf("added stream %s", name)
+	return true
+}
 
-	return podName
+func (s *LogsStreamer) getStream(name string) chan Log {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	log.Debug().Msgf("getting stream %s", name)
+	return s.streams[name]
+}
+
+func (s *LogsStreamer) closeStream(name string) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	delete(s.streams, name)
+	s.numClosed++
+
+	log.Debug().Msgf("closed stream %s", name)
+
 }
