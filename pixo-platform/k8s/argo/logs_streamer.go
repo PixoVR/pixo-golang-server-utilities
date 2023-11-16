@@ -18,30 +18,68 @@ type Log struct {
 }
 
 type LogsStreamer struct {
-	k8sClient    *base.Client
-	argoClient   *Client
+	k8sClient    base.Client
+	argoClient   Client
 	WorkflowName string
+	namespace    string
 	streams      map[string]chan Log
 	numStreams   int
 	numClosed    int
 	mtx          sync.Mutex
 }
 
-func NewLogsStreamer(k8sClient *base.Client, argoClient *Client, workflowName string) *LogsStreamer {
-	return &LogsStreamer{
-		k8sClient:    k8sClient,
-		argoClient:   argoClient,
-		WorkflowName: workflowName,
-		streams:      make(map[string]chan Log),
+func NewLogsStreamer(k8sClient base.Client, argoClient Client, namespace, workflowName string) (*LogsStreamer, error) {
+	if namespace == "" {
+		return nil, errors.New("namespace may not be empty")
 	}
-}
 
-func (s *LogsStreamer) TailAll(c context.Context, namespace string, workflowName string) (map[string]chan Log, error) {
 	if workflowName == "" {
 		return nil, errors.New("workflowName may not be empty")
 	}
 
-	workflow, err := s.argoClient.GetWorkflow(namespace, workflowName)
+	return &LogsStreamer{
+		k8sClient:    k8sClient,
+		argoClient:   argoClient,
+		WorkflowName: workflowName,
+		namespace:    namespace,
+		streams:      make(map[string]chan Log),
+	}, nil
+}
+
+func (s *LogsStreamer) GetLogsStream() chan Log {
+	combinedStream := make(chan Log)
+
+	go func() {
+		streams, err := s.TailAll(context.Background())
+		if err != nil {
+			return
+		}
+
+		for _, stream := range streams {
+			go s.CombineStream(combinedStream, stream)
+		}
+	}()
+
+	return combinedStream
+}
+
+func (s *LogsStreamer) CombineStream(combinedStream, stream chan Log) {
+	for !IsClosed(stream) {
+		newLog := <-stream
+		log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
+		combinedStream <- newLog
+	}
+
+	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumTotalStreams(), s.NumClosed())
+
+	if !IsClosed(combinedStream) && s.IsDone() {
+		log.Debug().Msg("All streams are closed. Closing combined stream")
+		close(combinedStream)
+	}
+}
+
+func (s *LogsStreamer) TailAll(c context.Context) (map[string]chan Log, error) {
+	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
 	if err != nil {
 		return nil, err
 	}
@@ -61,23 +99,23 @@ func (s *LogsStreamer) TailAll(c context.Context, namespace string, workflowName
 			s.addStream(template.Name)
 		}
 
-		go s.waitForTail(c, namespace, template, workflow)
+		go s.waitForTail(c, template, workflow)
 	}
 
 	return s.streams, nil
 }
 
-func (s *LogsStreamer) waitForTail(c context.Context, namespace string, template v1alpha1.Template, workflow *v1alpha1.Workflow) {
+func (s *LogsStreamer) waitForTail(c context.Context, template v1alpha1.Template, workflow *v1alpha1.Workflow) {
 	for {
 		time.Sleep(1 * time.Second)
 
-		if _, err := s.Tail(c, namespace, template.Name, workflow); err == nil {
+		if _, err := s.Tail(c, template.Name, workflow); err == nil {
 			break
 		}
 	}
 }
 
-func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, workflow *v1alpha1.Workflow) (chan Log, error) {
+func (s *LogsStreamer) Tail(c context.Context, templateName string, workflow *v1alpha1.Workflow) (chan Log, error) {
 	if workflow == nil {
 		return nil, errors.New("workflow may not be nil")
 	}
@@ -104,7 +142,7 @@ func (s *LogsStreamer) Tail(c context.Context, namespace, templateName string, w
 			continue
 		}
 
-		ioStream, err = s.k8sClient.GetPodLogs(c, namespace, podName, containerName)
+		ioStream, err = s.k8sClient.GetPodLogs(c, s.namespace, podName, containerName)
 		if err != nil {
 			log.Debug().Err(err).Msgf("unable to get logs for pod %s", podName)
 			continue
@@ -135,10 +173,21 @@ func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.
 	log.Debug().Msgf("started streaming logs for %s", node.TemplateName)
 	for {
 		buf := new(bytes.Buffer)
-		if _, err := io.Copy(buf, ioStream); err != nil || buf.Len() == 0 {
+
+		if _, err := io.Copy(buf, ioStream); err != nil {
 			log.Debug().Err(err).Msgf("unable to copy logs for %s", node.TemplateName)
 			s.closeStream(node.TemplateName)
 			break
+
+		} else if buf.Len() == 0 {
+			if !s.nodeIsDone(node) {
+				log.Debug().Msgf("no logs for %s", node.TemplateName)
+				time.Sleep(1 * time.Second)
+				continue
+			} else {
+				s.closeStream(node.TemplateName)
+				break
+			}
 		}
 
 		stream <- Log{
@@ -161,13 +210,13 @@ func (s *LogsStreamer) ReadFromStream(name string) *Log {
 }
 
 func (s *LogsStreamer) IsDone() bool {
-	isDone := s.NumStreams() == s.NumClosed()
+	isDone := s.NumTotalStreams() == s.NumClosed()
 
 	log.Debug().Msgf("is done %t", isDone)
 	return isDone
 }
 
-func (s *LogsStreamer) NumStreams() int {
+func (s *LogsStreamer) NumTotalStreams() int {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
@@ -215,4 +264,22 @@ func (s *LogsStreamer) closeStream(name string) {
 
 	log.Debug().Msgf("closed stream %s", name)
 
+}
+
+func (s *LogsStreamer) nodeIsDone(node *v1alpha1.NodeStatus) bool {
+	if node == nil {
+		return false
+	}
+
+	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
+	if err != nil {
+		return false
+	}
+
+	newNode, err := s.argoClient.GetNode(workflow, node.TemplateName)
+	if err != nil || newNode == nil {
+		return false
+	}
+
+	return newNode.Phase == v1alpha1.NodeSucceeded || newNode.Phase == v1alpha1.NodeFailed
 }
