@@ -85,6 +85,9 @@ var _ = Describe("Stream", func() {
 		Expect(logTwo).NotTo(BeNil())
 		Expect(logTwo.Step).To(Equal(templateTwoName))
 		Expect(logTwo.Lines).NotTo(BeEmpty())
+
+		time.Sleep(3 * time.Second)
+		Expect(newStreamer.IsDone()).To(BeTrue())
 	})
 
 })
