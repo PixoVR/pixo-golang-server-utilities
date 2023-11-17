@@ -6,9 +6,15 @@ import (
 )
 
 const (
-	GinContextKey           = "GIN_CONTEXT"
-	ContextRequestUser      = ContextRequest("user")
-	ContextRequestIPAddress = ContextRequest("ipAddress")
+	GinContextKey            = "GIN_CONTEXT"
+	AuthorizationContextKey  = "ENFORCER_CONTEXT"
+	AuthenticationContextKey = "USER_CONTEXT"
+	IPAddressContextKey      = "IP_ADDRESS_CONTEXT"
+
+	ContextRequestGin            = ContextRequest(GinContextKey)
+	ContextRequestAuthorization  = ContextRequest(AuthorizationContextKey)
+	ContextRequestAuthentication = ContextRequest(AuthenticationContextKey)
+	ContextRequestIPAddress      = ContextRequest(IPAddressContextKey)
 )
 
 type ContextRequest string
@@ -18,7 +24,7 @@ func (c ContextRequest) String() string {
 }
 
 func GetGinContext(ctx context.Context) *gin.Context {
-	ginContext, ok := ctx.Value(GinContextKey).(*gin.Context)
+	ginContext, ok := ctx.Value(ContextRequestGin).(*gin.Context)
 	if !ok {
 		return nil
 	}
@@ -31,12 +37,21 @@ type User struct {
 }
 
 func GetCurrentUserID(userContext context.Context) int {
-	user, ok := userContext.Value(ContextRequestUser).(*User)
+	user, ok := userContext.Value(ContextRequestAuthentication).(*User)
 	if !ok {
 		return 0
 	}
 
 	return user.ID
+}
+
+func GetAuthorization(userContext context.Context) string {
+	authorization, ok := userContext.Value(ContextRequestAuthorization).(string)
+	if !ok {
+		return ""
+	}
+
+	return authorization
 }
 
 func GetIPAddress(userContext context.Context) string {
