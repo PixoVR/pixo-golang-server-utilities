@@ -7,15 +7,17 @@ import (
 )
 
 const (
-	GinContextKey            = "GIN_CONTEXT"
-	AuthorizationContextKey  = "ENFORCER_CONTEXT"
-	AuthenticationContextKey = "USER_CONTEXT"
-	IPAddressContextKey      = "IP_ADDRESS_CONTEXT"
+	ginContextKey            = "GIN_CONTEXT"
+	authorizationContextKey  = "ENFORCER_CONTEXT"
+	authenticationContextKey = "USER_CONTEXT"
+	ipAddressContextKey      = "IP_ADDRESS_CONTEXT"
+	CustomContextKey         = "CUSTOM_CONTEXT"
 
-	ContextRequestGin            = ContextRequest(GinContextKey)
-	ContextRequestAuthorization  = ContextRequest(AuthorizationContextKey)
-	ContextRequestAuthentication = ContextRequest(AuthenticationContextKey)
-	ContextRequestIPAddress      = ContextRequest(IPAddressContextKey)
+	ContextRequestGin            = ContextRequest(ginContextKey)
+	ContextRequestAuthorization  = ContextRequest(authorizationContextKey)
+	ContextRequestAuthentication = ContextRequest(authenticationContextKey)
+	ContextRequestIPAddress      = ContextRequest(ipAddressContextKey)
+	ContextRequestCustom         = ContextRequest(CustomContextKey)
 )
 
 type User struct{ ID int }
