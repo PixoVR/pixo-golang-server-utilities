@@ -25,7 +25,8 @@ func NewInClusterAgonesClient(baseClient base.Client) (Client, error) {
 	}
 
 	return Client{
-		Clientset: clientset,
+		Clientset:  clientset,
+		BaseClient: baseClient,
 	}, nil
 }
 
