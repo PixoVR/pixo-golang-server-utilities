@@ -11,13 +11,13 @@ const (
 	authorizationContextKey  = "ENFORCER_CONTEXT"
 	authenticationContextKey = "USER_CONTEXT"
 	ipAddressContextKey      = "IP_ADDRESS_CONTEXT"
-	CustomContextKey         = "CUSTOM_CONTEXT"
+	customContextKey         = "CUSTOM_CONTEXT"
 
 	ContextRequestGin            = ContextRequest(ginContextKey)
 	ContextRequestAuthorization  = ContextRequest(authorizationContextKey)
 	ContextRequestAuthentication = ContextRequest(authenticationContextKey)
 	ContextRequestIPAddress      = ContextRequest(ipAddressContextKey)
-	ContextRequestCustom         = ContextRequest(CustomContextKey)
+	ContextRequestCustom         = ContextRequest(customContextKey)
 )
 
 type User struct{ ID int }
