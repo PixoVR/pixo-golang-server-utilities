@@ -9,7 +9,7 @@ import (
 var _ = Describe("Helm", Ordered, func() {
 
 	var (
-		helmClient     *helm.Client
+		helmClient     helm.Client
 		chart          helm.Chart
 		sampleChartURL = "https://github.com/PixoVR/helm-charts/releases/download/multiplayer-build-trigger-0.0.2/multiplayer-build-trigger-0.0.2.tgz"
 	)

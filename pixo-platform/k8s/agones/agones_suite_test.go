@@ -23,7 +23,7 @@ func TestAgones(t *testing.T) {
 var (
 	namespace    = "dev-multiplayer"
 	fleetName    = "test-fleet"
-	agonesClient *agones.Client
+	agonesClient agones.Client
 )
 
 var _ = BeforeSuite(func() {

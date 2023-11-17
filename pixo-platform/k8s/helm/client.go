@@ -18,7 +18,7 @@ type ClientConfig struct {
 	ChartsDirectory string
 }
 
-func NewClient(config ClientConfig) (*Client, error) {
+func NewClient(config ClientConfig) (Client, error) {
 	if config.Namespace == "" {
 		config.Namespace = os.Getenv("NAMESPACE")
 	}
@@ -32,10 +32,10 @@ func NewClient(config ClientConfig) (*Client, error) {
 
 	if err := actionConfig.Init(options, config.Namespace, config.Driver, log.Printf); err != nil {
 		log.Error().Err(err).Msgf("Failed to initialize helm provider")
-		return nil, err
+		return Client{}, err
 	}
 
-	return &Client{
+	return Client{
 		actionConfig: actionConfig,
 		config:       config,
 	}, nil
