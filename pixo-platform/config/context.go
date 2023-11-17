@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +17,8 @@ const (
 	ContextRequestAuthentication = ContextRequest(AuthenticationContextKey)
 	ContextRequestIPAddress      = ContextRequest(IPAddressContextKey)
 )
+
+type User struct{ ID int }
 
 type ContextRequest string
 
@@ -32,8 +35,13 @@ func GetGinContext(ctx context.Context) *gin.Context {
 	return ginContext
 }
 
-type User struct {
-	ID int
+func GetIPAddress(userContext context.Context) string {
+	ipAddress, ok := userContext.Value(ContextRequestIPAddress).(string)
+	if !ok {
+		return "127.0.0.1"
+	}
+
+	return ipAddress
 }
 
 func GetCurrentUserID(userContext context.Context) int {
@@ -45,20 +53,11 @@ func GetCurrentUserID(userContext context.Context) int {
 	return user.ID
 }
 
-func GetAuthorization(userContext context.Context) string {
-	authorization, ok := userContext.Value(ContextRequestAuthorization).(string)
+func GetAuthorizationEnforcer(userContext context.Context) *casbin.Enforcer {
+	enforcer, ok := userContext.Value(ContextRequestAuthorization).(*casbin.Enforcer)
 	if !ok {
-		return ""
+		return nil
 	}
 
-	return authorization
-}
-
-func GetIPAddress(userContext context.Context) string {
-	ipAddress, ok := userContext.Value(ContextRequestIPAddress).(string)
-	if !ok {
-		return "127.0.0.1"
-	}
-
-	return ipAddress
+	return enforcer
 }
