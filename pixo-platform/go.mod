@@ -23,7 +23,7 @@ require (
 	github.com/redis/go-redis/v9 v9.3.0
 	github.com/rs/zerolog v1.31.0
 	golang.org/x/oauth2 v0.14.0
-	google.golang.org/api v0.150.0
+	google.golang.org/api v0.151.0
 	helm.sh/helm/v3 v3.13.2
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4
