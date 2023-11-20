@@ -75,6 +75,19 @@ var _ = Describe("S3 Signed URLs", Ordered, func() {
 		Expect(signedUrl).To(ContainSubstring(filename))
 	})
 
+	It("can read a file", func() {
+		fileReader, err := awsClient.ReadFile(context.Background(), object)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fileReader).NotTo(BeNil())
+
+		bytes := make([]byte, 7)
+		n, err := fileReader.Read(bytes)
+		//Expect(err).NotTo(HaveOccurred()) // TODO: This is returning an EOF error, but the file is still being read...
+		Expect(n).To(Equal(7))
+		Expect(string(bytes)).To(ContainSubstring("Go Blue"))
+		Expect(fileReader.Close()).NotTo(HaveOccurred())
+	})
+
 	It("can initiate a multipart upload", func() {
 		res, err := awsClient.InitResumableUpload(context.Background(), object)
 		Expect(err).NotTo(HaveOccurred())

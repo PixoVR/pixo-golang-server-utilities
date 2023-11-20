@@ -59,6 +59,19 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(signedUrl).To(ContainSubstring(filename))
 	})
 
+	It("can read a file", func() {
+		fileReader, err := gcsClient.ReadFile(context.Background(), uploadableObject)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fileReader).NotTo(BeNil())
+
+		bytes := make([]byte, 7)
+		n, err := fileReader.Read(bytes)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(n).To(Equal(7))
+		Expect(string(bytes)).To(ContainSubstring("Go Blue"))
+		Expect(fileReader.Close()).NotTo(HaveOccurred())
+	})
+
 	It("can initiate a multipart upload", func() {
 		res, err := gcsClient.InitResumableUpload(context.Background(), uploadableObject)
 

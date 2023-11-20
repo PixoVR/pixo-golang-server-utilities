@@ -1,6 +1,8 @@
 package gcs
 
-import "errors"
+import (
+	"errors"
+)
 
 type Config struct {
 	BucketName string

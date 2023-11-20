@@ -63,7 +63,7 @@ var _ = Describe("Stream", func() {
 		Expect(streamer.IsDone()).To(BeTrue())
 	})
 
-	It("can tail the logs with a combined stream", func() {
+	It("can tail the logs with a combined stream then pull the archived logs from cloud storage", func() {
 		newWorkflow, err := argoClient.CreateWorkflow(namespace, whalesaySpec)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(newWorkflow).NotTo(BeNil())
@@ -88,6 +88,11 @@ var _ = Describe("Stream", func() {
 
 		time.Sleep(3 * time.Second)
 		Expect(newStreamer.IsDone()).To(BeTrue())
+
+		// Pull the archived logs from cloud storage
+		archivedLogs, err := newStreamer.GetArchivedLogs(context.Background())
+		Expect(err).NotTo(HaveOccurred())
+		Expect(archivedLogs).NotTo(BeEmpty())
 	})
 
 })

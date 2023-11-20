@@ -30,7 +30,7 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		return "", err
 	}
 
-	client, err := storage.NewClient(ctx, option.WithTokenSource(conf.TokenSource(ctx)))
+	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(conf.TokenSource(ctx)))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create storage client with JSON key")
 		return "", err
@@ -44,7 +44,7 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		PrivateKey:     conf.PrivateKey,
 	}
 
-	url, err := client.Bucket(c.bucketName).SignedURL(object.GetUploadDestination(), opts)
+	url, err := storageClient.Bucket(c.bucketName).SignedURL(object.GetUploadDestination(), opts)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create signed URL")
 		return "", err

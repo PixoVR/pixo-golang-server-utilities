@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/gcs"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/rs/zerolog/log"
@@ -18,8 +19,10 @@ type Log struct {
 }
 
 type LogsStreamer struct {
-	k8sClient    base.Client
 	argoClient   Client
+	k8sClient    base.Client
+	gcsClient    gcs.Client
+	bucketName   string
 	WorkflowName string
 	namespace    string
 	streams      map[string]chan Log
@@ -28,7 +31,7 @@ type LogsStreamer struct {
 	mtx          sync.Mutex
 }
 
-func NewLogsStreamer(k8sClient base.Client, argoClient Client, namespace, workflowName string) (*LogsStreamer, error) {
+func NewLogsStreamer(k8sClient base.Client, argoClient Client, namespace, workflowName, bucketName string) (*LogsStreamer, error) {
 	if namespace == "" {
 		return nil, errors.New("namespace may not be empty")
 	}
@@ -42,6 +45,7 @@ func NewLogsStreamer(k8sClient base.Client, argoClient Client, namespace, workfl
 		argoClient:   argoClient,
 		WorkflowName: workflowName,
 		namespace:    namespace,
+		bucketName:   bucketName,
 		streams:      make(map[string]chan Log),
 	}, nil
 }
@@ -282,4 +286,25 @@ func (s *LogsStreamer) nodeIsDone(node *v1alpha1.NodeStatus) bool {
 	}
 
 	return newNode.Phase == v1alpha1.NodeSucceeded || newNode.Phase == v1alpha1.NodeFailed
+}
+
+func (s *LogsStreamer) GetArchivedLogs(c context.Context, node *v1alpha1.NodeStatus) (io.ReadCloser, error) {
+
+	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
+	if err != nil || workflow == nil {
+		return nil, errors.Join(err, errors.New("unable to get workflow"))
+	}
+
+	archive := Archive{
+		BucketName:   s.bucketName,
+		WorkflowName: s.WorkflowName,
+		PodName:      FormatPodName(node),
+	}
+
+	if node.Phase != v1alpha1.NodeSucceeded && node.Phase != v1alpha1.NodeFailed {
+		return nil, errors.New("node is not done")
+	}
+
+	s.gcsClient.ReadFile(c, archive)
+
 }
