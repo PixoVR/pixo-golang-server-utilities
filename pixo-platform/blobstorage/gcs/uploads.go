@@ -41,7 +41,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {
 	log.Debug().Msgf("Initializing resumable upload for %s/%s", c.bucketName, object.GetUploadDestination())
 
-	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.bucketName, object.GetUploadDestination())
+	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.getBucketName(object), c.getFullPath(object))
 
 	request, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {

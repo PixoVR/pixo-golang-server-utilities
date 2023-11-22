@@ -3,6 +3,7 @@ package gcs
 import (
 	"cloud.google.com/go/storage"
 	"context"
+	"fmt"
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2/google"
@@ -15,6 +16,25 @@ import (
 var (
 	expireDuration = 120 * time.Minute
 )
+
+func (c Client) getBucketName(object client.UploadableObject) string {
+
+	bucketName := object.GetBucketName()
+	if bucketName != "" {
+		return bucketName
+	}
+
+	if c.bucketName == "" {
+		return c.bucketName
+	}
+
+	return os.Getenv("GOOGLE_STORAGE_BUCKET")
+}
+
+func (c Client) getFullPath(object client.UploadableObject) string {
+	destination := fmt.Sprintf("%s/%s", object.GetUploadDestination(), object.GetFilename())
+	return destination
+}
 
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {
 	jsonKeyPath := os.Getenv("GOOGLE_JSON_KEY")
@@ -44,12 +64,12 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		PrivateKey:     conf.PrivateKey,
 	}
 
-	url, err := storageClient.Bucket(c.bucketName).SignedURL(object.GetUploadDestination(), opts)
+	url, err := storageClient.Bucket(object.GetBucketName()).SignedURL(c.getFullPath(object), opts)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create signed URL")
 		return "", err
 	}
 
-	log.Debug().Msgf("Created signed URL for file %s in bucket %s", object.GetUploadDestination(), c.bucketName)
+	log.Debug().Msgf("Created signed URL for %s", c.getFullPath(object))
 	return url, nil
 }

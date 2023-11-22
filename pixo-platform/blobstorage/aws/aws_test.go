@@ -85,7 +85,7 @@ var _ = Describe("S3 Signed URLs", Ordered, func() {
 		//Expect(err).NotTo(HaveOccurred()) // TODO: This is returning an EOF error, but the file is still being read...
 		Expect(n).To(Equal(7))
 		Expect(string(bytes)).To(ContainSubstring("Go Blue"))
-		Expect(fileReader.Close()).NotTo(HaveOccurred())
+		Expect(fileReader.Close()).To(Succeed())
 	})
 
 	It("can initiate a multipart upload", func() {

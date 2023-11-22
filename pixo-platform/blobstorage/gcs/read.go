@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-func (c Client) ReadFile(ctx context.Context, uploadableObject client.UploadableObject) (io.ReadCloser, error) {
+func (c Client) ReadFile(ctx context.Context, object client.UploadableObject) (io.ReadCloser, error) {
 
 	storageClient, err := storage.NewClient(ctx)
 	if err != nil {
@@ -16,7 +16,7 @@ func (c Client) ReadFile(ctx context.Context, uploadableObject client.Uploadable
 		return nil, err
 	}
 
-	rc, err := storageClient.Bucket(c.bucketName).Object(uploadableObject.GetUploadDestination()).NewReader(ctx)
+	rc, err := storageClient.Bucket(c.getBucketName(object)).Object(c.getFullPath(object)).NewReader(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create storage reader")
 		return nil, err

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/gcs"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -19,16 +20,16 @@ type Log struct {
 }
 
 type LogsStreamer struct {
-	argoClient   Client
-	k8sClient    base.Client
-	gcsClient    gcs.Client
-	bucketName   string
-	WorkflowName string
-	namespace    string
-	streams      map[string]chan Log
-	numStreams   int
-	numClosed    int
-	mtx          sync.Mutex
+	argoClient    Client
+	k8sClient     base.Client
+	storageClient client.StorageClient
+	bucketName    string
+	WorkflowName  string
+	namespace     string
+	streams       map[string]chan Log
+	numStreams    int
+	numClosed     int
+	mtx           sync.Mutex
 }
 
 func NewLogsStreamer(k8sClient base.Client, argoClient Client, namespace, workflowName, bucketName string) (*LogsStreamer, error) {
@@ -40,13 +41,23 @@ func NewLogsStreamer(k8sClient base.Client, argoClient Client, namespace, workfl
 		return nil, errors.New("workflowName may not be empty")
 	}
 
+	if bucketName == "" {
+		return nil, errors.New("bucketName may not be empty")
+	}
+
+	storageClient, err := gcs.NewClient(gcs.Config{BucketName: bucketName})
+	if err != nil {
+		return nil, err
+	}
+
 	return &LogsStreamer{
-		k8sClient:    k8sClient,
-		argoClient:   argoClient,
-		WorkflowName: workflowName,
-		namespace:    namespace,
-		bucketName:   bucketName,
-		streams:      make(map[string]chan Log),
+		k8sClient:     k8sClient,
+		argoClient:    argoClient,
+		storageClient: storageClient,
+		WorkflowName:  workflowName,
+		namespace:     namespace,
+		bucketName:    bucketName,
+		streams:       make(map[string]chan Log),
 	}, nil
 }
 
@@ -54,6 +65,7 @@ func (s *LogsStreamer) GetLogsStream() chan Log {
 	combinedStream := make(chan Log)
 
 	go func() {
+
 		streams, err := s.TailAll(context.Background())
 		if err != nil {
 			return
@@ -90,6 +102,10 @@ func (s *LogsStreamer) TailAll(c context.Context) (map[string]chan Log, error) {
 
 	if workflow == nil {
 		return nil, errors.New("workflow not found")
+	}
+
+	if workflow.Status.Phase == v1alpha1.WorkflowSucceeded || workflow.Status.Phase == v1alpha1.WorkflowFailed {
+		return s.getArchiveChannels(workflow)
 	}
 
 	for _, template := range workflow.Spec.Templates {
@@ -288,11 +304,16 @@ func (s *LogsStreamer) nodeIsDone(node *v1alpha1.NodeStatus) bool {
 	return newNode.Phase == v1alpha1.NodeSucceeded || newNode.Phase == v1alpha1.NodeFailed
 }
 
-func (s *LogsStreamer) GetArchivedLogs(c context.Context, node *v1alpha1.NodeStatus) (io.ReadCloser, error) {
+func (s *LogsStreamer) GetArchivedLogs(c context.Context, templateName string) (io.ReadCloser, error) {
 
 	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
 	if err != nil || workflow == nil {
 		return nil, errors.Join(err, errors.New("unable to get workflow"))
+	}
+
+	node, err := s.argoClient.GetNode(workflow, templateName)
+	if err != nil || node == nil {
+		return nil, errors.Join(err, errors.New("unable to get node"))
 	}
 
 	archive := Archive{
@@ -305,6 +326,49 @@ func (s *LogsStreamer) GetArchivedLogs(c context.Context, node *v1alpha1.NodeSta
 		return nil, errors.New("node is not done")
 	}
 
-	s.gcsClient.ReadFile(c, archive)
+	readCloser, err := s.storageClient.ReadFile(c, archive)
+	if err != nil {
+		return nil, errors.Join(err, errors.New("unable to read archived logs"))
+	}
 
+	return readCloser, nil
+}
+
+func (s *LogsStreamer) getArchiveChannels(workflow *v1alpha1.Workflow) (map[string]chan Log, error) {
+
+	archiveChannels := make(map[string]chan Log)
+
+	for _, node := range workflow.Status.Nodes {
+		if node.Type == v1alpha1.NodeTypePod {
+			archiveChannels[node.TemplateName] = make(chan Log)
+			go func() {
+				s.streamArchivedLogs(archiveChannels)
+			}()
+		}
+	}
+
+	return archiveChannels, nil
+}
+
+func (s *LogsStreamer) streamArchivedLogs(archiveChannels map[string]chan Log) {
+	for {
+		for templateName, archiveChannel := range archiveChannels {
+			readCloser, err := s.GetArchivedLogs(context.Background(), templateName)
+			if err != nil {
+				log.Debug().Err(err).Msgf("unable to get archived logs for %s", templateName)
+				continue
+			}
+
+			buf := new(bytes.Buffer)
+			if _, err = io.Copy(buf, readCloser); err != nil {
+				log.Debug().Err(err).Msgf("unable to copy archived logs for %s", templateName)
+				continue
+			}
+
+			archiveChannel <- Log{
+				Step:  templateName,
+				Lines: buf.String(),
+			}
+		}
+	}
 }

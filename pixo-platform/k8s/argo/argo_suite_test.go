@@ -22,24 +22,41 @@ func TestArgo(t *testing.T) {
 }
 
 var (
-	namespace       = "dev-multiplayer"
-	workflowName    = "whalesay-"
-	templateOneName = fmt.Sprintf("%s1", workflowName)
-	templateTwoName = fmt.Sprintf("%s2", workflowName)
+	bucketName         = "dev-multiplayer-allocator-build-logs"
+	namespace          = "dev-multiplayer"
+	serviceAccountName = "multiplayer-workload"
+	workflowName       = "whalesay-"
+	templateOneName    = fmt.Sprintf("%s1", workflowName)
+	templateTwoName    = fmt.Sprintf("%s2", workflowName)
 
 	k8sClient  base.Client
 	argoClient argo.Client
 	workflow   *v1alpha1.Workflow
+
+	archiveLogs = true
 
 	whalesaySpec = &v1alpha1.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: workflowName,
 		},
 		Spec: v1alpha1.WorkflowSpec{
-			Entrypoint: workflowName,
+			Entrypoint:  workflowName,
+			ArchiveLogs: &archiveLogs,
+			PodGC: &v1alpha1.PodGC{
+				Strategy: v1alpha1.PodGCOnWorkflowCompletion,
+			},
 			Templates: []v1alpha1.Template{
 				{
-					Name: workflowName,
+					Name:               workflowName,
+					ServiceAccountName: serviceAccountName,
+					ArchiveLocation: &v1alpha1.ArtifactLocation{
+						GCS: &v1alpha1.GCSArtifact{
+							GCSBucket: v1alpha1.GCSBucket{
+								Bucket: bucketName,
+							},
+							Key: "whalesay-{{workflow.name}}-{{pod.name}}-{{time}}",
+						},
+					},
 					DAG: &v1alpha1.DAGTemplate{
 						Tasks: []v1alpha1.DAGTask{
 							{
@@ -55,7 +72,8 @@ var (
 					},
 				},
 				{
-					Name: templateOneName,
+					Name:               templateOneName,
+					ServiceAccountName: serviceAccountName,
 					Container: &corev1.Container{
 						Name:    templateOneName,
 						Image:   "docker/whalesay:latest",
@@ -63,7 +81,8 @@ var (
 					},
 				},
 				{
-					Name: templateTwoName,
+					Name:               templateTwoName,
+					ServiceAccountName: serviceAccountName,
 					Container: &corev1.Container{
 						Name:    templateTwoName,
 						Image:   "docker/whalesay:latest",

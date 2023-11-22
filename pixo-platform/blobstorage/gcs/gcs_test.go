@@ -13,18 +13,18 @@ import (
 var _ = Describe("Blob Storage", Ordered, func() {
 
 	var (
-		bucketFilepath         = "testdata"
-		localTestDir           = "../testdata"
-		filename               = "test-file.txt"
-		bucketName             = "dev-apex-api-modules"
+		localTestDir   = "../testdata"
+		filename       = "test-file.txt"
+		localFilepath  = fmt.Sprintf("%s/%s", localTestDir, filename)
+		bucketName     = "dev-apex-api-modules"
+		bucketFilepath = "testdata"
+
 		gcsClient              gcs.Client
-		remoteFilepath         = fmt.Sprintf("%s/%s", bucketFilepath, filename)
-		localFilepath          = fmt.Sprintf("%s/%s", localTestDir, filename)
 		expectedSignedURLValue = "X-Goog-Algorithm=GOOG4-RSA-SHA256"
 
 		uploadableObject = client.BasicUploadableObject{
 			BucketName:        bucketName,
-			UploadDestination: remoteFilepath,
+			UploadDestination: bucketFilepath,
 			Filename:          filename,
 		}
 	)
@@ -69,7 +69,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(n).To(Equal(7))
 		Expect(string(bytes)).To(ContainSubstring("Go Blue"))
-		Expect(fileReader.Close()).NotTo(HaveOccurred())
+		Expect(fileReader.Close()).To(Succeed())
 	})
 
 	It("can initiate a multipart upload", func() {
