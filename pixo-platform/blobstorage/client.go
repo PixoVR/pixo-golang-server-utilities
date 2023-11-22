@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -30,4 +31,14 @@ type ResumableUploadResponse struct {
 	UploadURL    string
 	Method       string
 	SignedHeader http.Header
+}
+
+func GetFullPath(object UploadableObject) string {
+	fileDest := object.GetUploadDestination()
+	if fileDest == "" {
+		return object.GetFilename()
+	}
+
+	fullPath := fmt.Sprintf("%s/%s", fileDest, object.GetFilename())
+	return fullPath
 }

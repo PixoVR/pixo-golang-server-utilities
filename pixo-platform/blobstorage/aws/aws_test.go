@@ -95,7 +95,6 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 		Expect(res.UploadURL).To(ContainSubstring("x-id=GetObject"))
 		Expect(res.UploadURL).To(ContainSubstring(bucketFileDir))
 		Expect(res.UploadURL).To(ContainSubstring(filename))
-
 	})
 
 })

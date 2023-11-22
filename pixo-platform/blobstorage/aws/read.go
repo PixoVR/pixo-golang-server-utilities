@@ -16,7 +16,7 @@ func (c Client) ReadFile(ctx context.Context, object client.UploadableObject) (i
 	}
 
 	bucketName := c.getBucketName(object)
-	destination := c.getFullPath(object)
+	destination := client.GetFullPath(object)
 
 	output, err := s3Client.GetObject(ctx, &s3.GetObjectInput{Bucket: &bucketName, Key: &destination})
 	if err != nil {

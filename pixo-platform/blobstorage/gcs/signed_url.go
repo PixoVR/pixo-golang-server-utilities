@@ -3,7 +3,6 @@ package gcs
 import (
 	"cloud.google.com/go/storage"
 	"context"
-	"fmt"
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2/google"
@@ -29,11 +28,6 @@ func (c Client) getBucketName(object client.UploadableObject) string {
 	}
 
 	return os.Getenv("GOOGLE_STORAGE_BUCKET")
-}
-
-func (c Client) getFullPath(object client.UploadableObject) string {
-	destination := fmt.Sprintf("%s/%s", object.GetUploadDestination(), object.GetFilename())
-	return destination
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {
@@ -64,12 +58,12 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		PrivateKey:     conf.PrivateKey,
 	}
 
-	url, err := storageClient.Bucket(object.GetBucketName()).SignedURL(c.getFullPath(object), opts)
+	url, err := storageClient.Bucket(object.GetBucketName()).SignedURL(client.GetFullPath(object), opts)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create signed URL")
 		return "", err
 	}
 
-	log.Debug().Msgf("Created signed URL for %s", c.getFullPath(object))
+	log.Debug().Msgf("Created signed URL for %s", client.GetFullPath(object))
 	return url, nil
 }

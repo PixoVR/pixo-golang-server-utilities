@@ -16,7 +16,7 @@ func (c Client) ReadFile(ctx context.Context, object client.UploadableObject) (i
 		return nil, err
 	}
 
-	rc, err := storageClient.Bucket(c.getBucketName(object)).Object(c.getFullPath(object)).NewReader(ctx)
+	rc, err := storageClient.Bucket(c.getBucketName(object)).Object(client.GetFullPath(object)).NewReader(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create storage reader")
 		return nil, err

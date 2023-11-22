@@ -35,7 +35,7 @@ var _ = Describe("Stream", func() {
 		Expect(err.Error()).To(ContainSubstring("not found"))
 	})
 
-	It("can tail logs for all templates in a workflow separately and read from the archives", func() {
+	It("can tail logs for all templates in a workflow while running separately and then read the logs from the archives", func() {
 		streamer, err := argo.NewLogsStreamer(k8sClient, argoClient, namespace, workflow.Name, bucketName)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(streamer).NotTo(BeNil())
@@ -65,6 +65,7 @@ var _ = Describe("Stream", func() {
 		archivedLogs, err := streamer.GetArchivedLogs(context.Background(), templateOneName)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(archivedLogs).NotTo(BeNil())
+
 		logBytes := make([]byte, 1024)
 		n, err := archivedLogs.Read(logBytes)
 		Expect(err).NotTo(HaveOccurred())

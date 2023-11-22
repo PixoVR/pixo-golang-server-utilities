@@ -14,7 +14,7 @@ func (c Client) DeleteFile(ctx context.Context, object client.UploadableObject) 
 		return err
 	}
 
-	destination := c.getFullPath(object)
+	destination := client.GetFullPath(object)
 	deleteObjectInput := s3.DeleteObjectInput{
 		Bucket: &c.bucketName,
 		Key:    &destination,

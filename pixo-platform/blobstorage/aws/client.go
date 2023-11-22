@@ -79,7 +79,3 @@ func (c Client) getBucketName(object client.UploadableObject) string {
 
 	return os.Getenv("S3_BUCKET_NAME")
 }
-
-func (c Client) getFullPath(object client.UploadableObject) string {
-	return object.GetUploadDestination() + "/" + object.GetFilename()
-}

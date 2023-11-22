@@ -15,7 +15,7 @@ func (c Client) DeleteFile(ctx context.Context, object client.UploadableObject) 
 		return err
 	}
 
-	if err = storageClient.Bucket(c.getBucketName(object)).Object(c.getFullPath(object)).Delete(ctx); err != nil {
+	if err = storageClient.Bucket(c.getBucketName(object)).Object(client.GetFullPath(object)).Delete(ctx); err != nil {
 		log.Error().Err(err).Msg("unable to delete storage object")
 		return err
 	}

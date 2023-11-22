@@ -22,7 +22,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		gcsClient              gcs.Client
 		expectedSignedURLValue = "X-Goog-Algorithm=GOOG4-RSA-SHA256"
 
-		uploadableObject = client.BasicUploadableObject{
+		object = client.BasicUploadableObject{
 			BucketName:        bucketName,
 			UploadDestination: bucketFilepath,
 			Filename:          filename,
@@ -40,7 +40,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		fileReader, err := os.Open(localFilepath)
 		Expect(err).NotTo(HaveOccurred())
 
-		signedURL, err := gcsClient.UploadFile(context.Background(), uploadableObject, fileReader)
+		signedURL, err := gcsClient.UploadFile(context.Background(), object, fileReader)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
@@ -50,7 +50,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can get the signed url for the previously uploaded file", func() {
-		signedUrl, err := gcsClient.GetSignedURL(context.Background(), uploadableObject)
+		signedUrl, err := gcsClient.GetSignedURL(context.Background(), object)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(signedUrl).To(ContainSubstring(expectedSignedURLValue))
@@ -60,7 +60,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can read a file", func() {
-		fileReader, err := gcsClient.ReadFile(context.Background(), uploadableObject)
+		fileReader, err := gcsClient.ReadFile(context.Background(), object)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fileReader).NotTo(BeNil())
 
@@ -73,15 +73,15 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can delete a file", func() {
-		err := gcsClient.DeleteFile(context.Background(), uploadableObject)
+		err := gcsClient.DeleteFile(context.Background(), object)
 		Expect(err).NotTo(HaveOccurred())
-		fileReader, err := gcsClient.ReadFile(context.Background(), uploadableObject)
+		fileReader, err := gcsClient.ReadFile(context.Background(), object)
 		Expect(err).To(HaveOccurred())
 		Expect(fileReader).To(BeNil())
 	})
 
 	It("can initiate a multipart upload", func() {
-		res, err := gcsClient.InitResumableUpload(context.Background(), uploadableObject)
+		res, err := gcsClient.InitResumableUpload(context.Background(), object)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res).NotTo(BeNil())

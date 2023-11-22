@@ -18,7 +18,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 
 	_, err := s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(c.getBucketName(object)),
-		Key:    aws.String(c.getFullPath(object)),
+		Key:    aws.String(client.GetFullPath(object)),
 	})
 
 	signedURL, err := c.GetSignedURL(ctx, object)
@@ -38,7 +38,7 @@ func (c Client) InitResumableUpload(ctx context.Context, object client.Uploadabl
 
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(c.getBucketName(object)),
-		Key:    aws.String(c.getFullPath(object)),
+		Key:    aws.String(client.GetFullPath(object)),
 	}
 
 	presignedResponse, err := GetPresignedURL(ctx, presignClient, input)
