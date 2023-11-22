@@ -7,10 +7,11 @@ import (
 )
 
 type StorageClient interface {
-	GetSignedURL(ctx context.Context, uploadableObject UploadableObject) (string, error)
-	UploadFile(ctx context.Context, uploadableObject UploadableObject, fileReader io.Reader) (string, error)
-	ReadFile(ctx context.Context, uploadableObject UploadableObject) (io.ReadCloser, error)
-	InitResumableUpload(ctx context.Context, uploadableObject UploadableObject) (*ResumableUploadResponse, error)
+	GetSignedURL(ctx context.Context, object UploadableObject) (string, error)
+	UploadFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error)
+	ReadFile(ctx context.Context, object UploadableObject) (io.ReadCloser, error)
+	DeleteFile(ctx context.Context, object UploadableObject) error
+	InitResumableUpload(ctx context.Context, object UploadableObject) (*ResumableUploadResponse, error)
 }
 
 type UploadableObject interface {

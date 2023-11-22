@@ -14,11 +14,12 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		return "", err
 	}
 
-	uploadDestination := object.GetUploadDestination()
+	bucketName := c.getBucketName(object)
+	destination := c.getFullPath(object)
 
 	input := &s3.GetObjectInput{
-		Bucket: &c.bucketName,
-		Key:    &uploadDestination,
+		Bucket: &bucketName,
+		Key:    &destination,
 	}
 
 	psClient := s3.NewPresignClient(s3Client)

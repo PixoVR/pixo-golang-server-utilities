@@ -72,6 +72,14 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(fileReader.Close()).To(Succeed())
 	})
 
+	It("can delete a file", func() {
+		err := gcsClient.DeleteFile(context.Background(), uploadableObject)
+		Expect(err).NotTo(HaveOccurred())
+		fileReader, err := gcsClient.ReadFile(context.Background(), uploadableObject)
+		Expect(err).To(HaveOccurred())
+		Expect(fileReader).To(BeNil())
+	})
+
 	It("can initiate a multipart upload", func() {
 		res, err := gcsClient.InitResumableUpload(context.Background(), uploadableObject)
 

@@ -8,15 +8,17 @@ import (
 	"io"
 )
 
-func (c Client) ReadFile(ctx context.Context, uploadableObject client.UploadableObject) (io.ReadCloser, error) {
+func (c Client) ReadFile(ctx context.Context, object client.UploadableObject) (io.ReadCloser, error) {
 
 	s3Client, err := c.getClient(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	destination := uploadableObject.GetUploadDestination()
-	output, err := s3Client.GetObject(ctx, &s3.GetObjectInput{Bucket: &c.bucketName, Key: &destination})
+	bucketName := c.getBucketName(object)
+	destination := c.getFullPath(object)
+
+	output, err := s3Client.GetObject(ctx, &s3.GetObjectInput{Bucket: &bucketName, Key: &destination})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get object")
 		return nil, err

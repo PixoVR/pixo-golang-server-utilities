@@ -3,11 +3,15 @@ package aws
 import (
 	"context"
 	"errors"
+	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
+	"os"
 )
+
+var value = interface{}(Client{}).(client.StorageClient)
 
 type Config struct {
 	BucketName      string
@@ -60,7 +64,22 @@ func (c Client) getClient(ctx context.Context) (*s3.Client, error) {
 		return nil, err
 	}
 
-	awsClient := s3.NewFromConfig(cfg)
+	return s3.NewFromConfig(cfg), nil
+}
 
-	return awsClient, nil
+func (c Client) getBucketName(object client.UploadableObject) string {
+	bucketName := object.GetBucketName()
+	if bucketName != "" {
+		return bucketName
+	}
+
+	if c.bucketName != "" {
+		return c.bucketName
+	}
+
+	return os.Getenv("S3_BUCKET_NAME")
+}
+
+func (c Client) getFullPath(object client.UploadableObject) string {
+	return object.GetUploadDestination() + "/" + object.GetFilename()
 }
