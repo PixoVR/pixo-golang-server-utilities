@@ -58,7 +58,7 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		PrivateKey:     conf.PrivateKey,
 	}
 
-	url, err := storageClient.Bucket(object.GetBucketName()).SignedURL(client.GetFullPath(object), opts)
+	url, err := storageClient.Bucket(c.getBucketName(object)).SignedURL(client.GetFullPath(object), opts)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create signed URL")
 		return "", err
