@@ -18,7 +18,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 		return "", err
 	}
 
-	sw := storageClient.Bucket(c.bucketName).Object(client.GetFullPath(object)).NewWriter(ctx)
+	sw := storageClient.Bucket(c.getBucketName(object)).Object(client.GetFullPath(object)).NewWriter(ctx)
 
 	if _, err = io.Copy(sw, fileReader); err != nil {
 		log.Error().Err(err).Msg("unable to copy file to bucket")
@@ -39,7 +39,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 }
 
 func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {
-	log.Debug().Msgf("Initializing resumable upload for %s/%s", c.bucketName, object.GetUploadDestination())
+	log.Debug().Msgf("Initializing resumable upload for %s/%s", c.getBucketName(object), object.GetUploadDestination())
 
 	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.getBucketName(object), client.GetFullPath(object))
 

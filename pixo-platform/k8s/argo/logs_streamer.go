@@ -350,6 +350,7 @@ func (s *LogsStreamer) streamArchivedLogs(templateName string, archiveChannel ch
 	readCloser, err := s.GetArchivedLogs(context.Background(), templateName)
 	if err != nil || readCloser == nil {
 		s.closeStream(templateName)
+		return
 	}
 
 	for {
@@ -357,6 +358,7 @@ func (s *LogsStreamer) streamArchivedLogs(templateName string, archiveChannel ch
 		if _, err = io.Copy(buf, readCloser); err != nil {
 			log.Debug().Err(err).Msgf("read 0 archived logs to buffer for %s", templateName)
 			s.closeStream(templateName)
+			break
 		}
 
 		archiveChannel <- Log{

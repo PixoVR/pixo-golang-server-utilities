@@ -24,10 +24,10 @@ func (c Client) getBucketName(object client.UploadableObject) string {
 	}
 
 	if c.bucketName == "" {
-		return c.bucketName
+		c.bucketName = os.Getenv("GOOGLE_STORAGE_BUCKET")
 	}
 
-	return os.Getenv("GOOGLE_STORAGE_BUCKET")
+	return c.bucketName
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {

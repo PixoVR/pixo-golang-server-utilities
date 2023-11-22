@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"os"
+	"time"
 )
 
 var _ = Describe("Blob Storage", Ordered, func() {
@@ -73,6 +74,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can delete a file", func() {
+		time.Sleep(1 * time.Second) // wait 1 second to allow for retention policy to be met
 		err := gcsClient.DeleteFile(context.Background(), object)
 		Expect(err).NotTo(HaveOccurred())
 		fileReader, err := gcsClient.ReadFile(context.Background(), object)
