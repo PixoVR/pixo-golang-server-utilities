@@ -72,13 +72,16 @@ func (s *LogsStreamer) Start(c context.Context) (chan Log, error) {
 	}
 
 	for _, template := range workflow.Spec.Templates {
-
-		if template.GetNodeType() != v1alpha1.NodeTypePod || s.getStream(template.Name) != nil {
+		if !hasLogs(template) {
 			continue
 		}
 
 		s.addStream(template.Name)
+	}
 
+	combinedStream := s.combineStreams()
+
+	for _, template := range workflow.Spec.Templates {
 		if workflow.Status.Phase == v1alpha1.WorkflowSucceeded || workflow.Status.Phase == v1alpha1.WorkflowFailed {
 			go s.streamArchive(template.Name)
 
@@ -87,6 +90,10 @@ func (s *LogsStreamer) Start(c context.Context) (chan Log, error) {
 		}
 	}
 
+	return combinedStream, nil
+}
+
+func (s *LogsStreamer) combineStreams() chan Log {
 	combinedStream := make(chan Log, 1000)
 
 	s.mtx.Lock()
@@ -96,7 +103,7 @@ func (s *LogsStreamer) Start(c context.Context) (chan Log, error) {
 		go s.combineStream(combinedStream, stream)
 	}
 
-	return combinedStream, nil
+	return combinedStream
 }
 
 func (s *LogsStreamer) combineStream(combinedStream, stream chan Log) {
@@ -253,4 +260,8 @@ func (s *LogsStreamer) GetArchivedLogsForTemplate(c context.Context, templateNam
 	}
 
 	return readCloser, nil
+}
+
+func hasLogs(template v1alpha1.Template) bool {
+	return template.GetNodeType() == v1alpha1.NodeTypePod
 }
