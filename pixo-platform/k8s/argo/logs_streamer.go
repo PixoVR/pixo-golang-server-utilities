@@ -27,8 +27,8 @@ type LogsStreamer struct {
 	bucketName    string
 	namespace     string
 	streams       map[string]chan Log
-	numStreams    int
-	numClosed     int
+	numNodes      int
+	numDone       int
 	mtx           sync.Mutex
 }
 
@@ -61,40 +61,7 @@ func NewLogsStreamer(k8sClient base.Client, argoClient Client, namespace, workfl
 	}, nil
 }
 
-func (s *LogsStreamer) GetLogsStream() chan Log {
-	combinedStream := make(chan Log)
-
-	go func() {
-
-		streams, err := s.TailAll(context.Background())
-		if err != nil {
-			return
-		}
-
-		for _, stream := range streams {
-			go s.CombineStream(combinedStream, stream)
-		}
-	}()
-
-	return combinedStream
-}
-
-func (s *LogsStreamer) CombineStream(combinedStream, stream chan Log) {
-	for !IsClosed(stream) {
-		newLog := <-stream
-		log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
-		combinedStream <- newLog
-	}
-
-	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumTotalStreams(), s.NumClosed())
-
-	if !IsClosed(combinedStream) && s.IsDone() {
-		log.Debug().Msg("All streams are closed. Closing combined stream")
-		close(combinedStream)
-	}
-}
-
-func (s *LogsStreamer) TailAll(c context.Context) (map[string]chan Log, error) {
+func (s *LogsStreamer) Start(c context.Context) (chan Log, error) {
 	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
 	if err != nil {
 		return nil, err
@@ -104,36 +71,62 @@ func (s *LogsStreamer) TailAll(c context.Context) (map[string]chan Log, error) {
 		return nil, errors.New("workflow not found")
 	}
 
-	if workflow.Status.Phase == v1alpha1.WorkflowSucceeded || workflow.Status.Phase == v1alpha1.WorkflowFailed {
-		return s.getArchiveChannels(workflow), nil
-	}
-
 	for _, template := range workflow.Spec.Templates {
+
 		if template.GetNodeType() != v1alpha1.NodeTypePod || s.getStream(template.Name) != nil {
 			continue
 		}
 
-		if s.getStream(template.Name) == nil {
-			s.addStream(template.Name)
-		}
+		s.addStream(template.Name)
 
-		go s.waitForTail(c, template, workflow)
+		if workflow.Status.Phase == v1alpha1.WorkflowSucceeded || workflow.Status.Phase == v1alpha1.WorkflowFailed {
+			go s.streamArchive(template.Name)
+
+		} else if workflow.Status.Phase == v1alpha1.WorkflowRunning {
+			go s.waitForTail(c, template, workflow)
+		}
 	}
 
-	return s.streams, nil
+	combinedStream := make(chan Log, 1000)
+
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	for _, stream := range s.streams {
+		go s.combineStream(combinedStream, stream)
+	}
+
+	return combinedStream, nil
+}
+
+func (s *LogsStreamer) combineStream(combinedStream, stream chan Log) {
+	for !IsClosed(stream) {
+		newLog := <-stream
+		if newLog.Step != "" && newLog.Lines != "" {
+			log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
+			combinedStream <- newLog
+		}
+	}
+
+	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumNodes(), s.NumDone())
+
+	if !IsClosed(combinedStream) && s.IsDone() {
+		log.Debug().Msg("All streams are closed. Closing combined stream")
+		close(combinedStream)
+	}
 }
 
 func (s *LogsStreamer) waitForTail(c context.Context, template v1alpha1.Template, workflow *v1alpha1.Workflow) {
 	for {
 		time.Sleep(1 * time.Second)
 
-		if _, err := s.Tail(c, template.Name, workflow); err == nil {
+		if _, err := s.tail(c, template.Name, workflow); err == nil {
 			break
 		}
 	}
 }
 
-func (s *LogsStreamer) Tail(c context.Context, templateName string, workflow *v1alpha1.Workflow) (chan Log, error) {
+func (s *LogsStreamer) tail(c context.Context, templateName string, workflow *v1alpha1.Workflow) (chan Log, error) {
 	if workflow == nil {
 		return nil, errors.New("workflow may not be nil")
 	}
@@ -169,138 +162,66 @@ func (s *LogsStreamer) Tail(c context.Context, templateName string, workflow *v1
 		break
 	}
 
-	go s.StreamLogsForNode(node, ioStream)
+	go s.readLogsForNode(node.TemplateName, ioStream)
 
 	log.Debug().Msgf("started tailing logs for node %s", node.TemplateName)
 
 	return s.getStream(node.TemplateName), nil
 }
 
-func (s *LogsStreamer) StreamLogsForNode(node *v1alpha1.NodeStatus, ioStream io.ReadCloser) {
-	if ioStream == nil || node == nil {
+func (s *LogsStreamer) streamArchive(nodeName string) {
+	readCloser, err := s.GetArchivedLogsForTemplate(context.Background(), nodeName)
+	if err != nil {
+		return
+	}
+	go s.readLogsForNode(nodeName, readCloser)
+}
+
+func (s *LogsStreamer) readLogsForNode(nodeName string, ioStream io.ReadCloser) {
+	if nodeName == "" || ioStream == nil {
 		return
 	}
 	defer ioStream.Close()
 
-	stream := s.getStream(node.TemplateName)
+	stream := s.getStream(nodeName)
 	if stream == nil {
-		log.Debug().Msgf("stream for %s is nil", node.TemplateName)
+		log.Debug().Msgf("stream for %s is nil", nodeName)
 		return
 	}
 
-	log.Debug().Msgf("started streaming logs for %s", node.TemplateName)
+	log.Debug().Msgf("started streaming logs for %s", nodeName)
 	for {
 		buf := new(bytes.Buffer)
-
 		if _, err := io.Copy(buf, ioStream); err != nil {
-			log.Debug().Err(err).Msgf("unable to copy logs for %s", node.TemplateName)
-			s.closeStream(node.TemplateName)
+			log.Debug().Err(err).Msgf("unable to copy logs for %s", nodeName)
+			s.markStreamDone(nodeName)
 			break
 
 		} else if buf.Len() == 0 {
-			if !s.nodeIsDone(node) {
-				log.Debug().Msgf("no logs for %s", node.TemplateName)
+
+			if !s.nodeIsDone(nodeName) {
+				log.Debug().Msgf("no logs for running node %s", nodeName)
 				time.Sleep(1 * time.Second)
 				continue
+
 			} else {
-				s.closeStream(node.TemplateName)
+				log.Debug().Msgf("no logs for completed node %s", nodeName)
+				s.markStreamDone(nodeName)
 				break
 			}
+
 		}
 
 		stream <- Log{
-			Step:  node.DisplayName,
+			Step:  nodeName,
 			Lines: buf.String(),
 		}
 
-		log.Debug().Msgf("streamed log for %s", node.TemplateName)
+		log.Debug().Msgf("streamed log for %s", nodeName)
 	}
 }
 
-func (s *LogsStreamer) ReadFromStream(name string) *Log {
-	stream := s.getStream(name)
-	if IsClosed(stream) {
-		return nil
-	}
-
-	newLog := <-stream
-	return &newLog
-}
-
-func (s *LogsStreamer) IsDone() bool {
-	isDone := s.NumTotalStreams() == s.NumClosed()
-
-	log.Debug().Msgf("is done %t", isDone)
-	return isDone
-}
-
-func (s *LogsStreamer) NumTotalStreams() int {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
-	log.Debug().Msgf("num streams %d", s.numStreams)
-	return s.numStreams
-}
-
-func (s *LogsStreamer) NumClosed() int {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
-	log.Debug().Msgf("num closed %d", s.numClosed)
-	return s.numClosed
-}
-
-func (s *LogsStreamer) addStream(name string) chan Log {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
-	if s.streams[name] == nil || IsClosed(s.streams[name]) {
-		log.Debug().Msgf("reopening stream %s", name)
-		s.streams[name] = make(chan Log)
-		s.numStreams++
-	}
-
-	log.Debug().Msgf("added stream %s", name)
-	return s.streams[name]
-}
-
-func (s *LogsStreamer) getStream(name string) chan Log {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
-	log.Debug().Msgf("getting stream %s", name)
-	return s.streams[name]
-}
-
-func (s *LogsStreamer) closeStream(name string) {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
-	delete(s.streams, name)
-	s.numClosed++
-
-	log.Debug().Msgf("closed stream %s", name)
-}
-
-func (s *LogsStreamer) nodeIsDone(node *v1alpha1.NodeStatus) bool {
-	if node == nil {
-		return false
-	}
-
-	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
-	if err != nil {
-		return false
-	}
-
-	newNode, err := s.argoClient.GetNode(workflow, node.TemplateName)
-	if err != nil || newNode == nil {
-		return false
-	}
-
-	return newNode.Phase == v1alpha1.NodeSucceeded || newNode.Phase == v1alpha1.NodeFailed
-}
-
-func (s *LogsStreamer) GetArchivedLogs(c context.Context, templateName string) (io.ReadCloser, error) {
+func (s *LogsStreamer) GetArchivedLogsForTemplate(c context.Context, templateName string) (io.ReadCloser, error) {
 
 	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
 	if err != nil || workflow == nil {
@@ -319,6 +240,7 @@ func (s *LogsStreamer) GetArchivedLogs(c context.Context, templateName string) (
 	}
 
 	if node.Phase != v1alpha1.NodeSucceeded && node.Phase != v1alpha1.NodeFailed {
+		log.Debug().Msgf("unable to get archives, node %s is not done", node.TemplateName)
 		return nil, errors.New("node is not done")
 	}
 
@@ -328,43 +250,4 @@ func (s *LogsStreamer) GetArchivedLogs(c context.Context, templateName string) (
 	}
 
 	return readCloser, nil
-}
-
-func (s *LogsStreamer) getArchiveChannels(workflow *v1alpha1.Workflow) map[string]chan Log {
-
-	for _, node := range workflow.Status.Nodes {
-		if node.Type == v1alpha1.NodeTypePod {
-			archiveChannel := s.addStream(node.TemplateName)
-
-			go func() {
-				s.streamArchivedLogs(node.TemplateName, archiveChannel)
-			}()
-		}
-	}
-
-	return s.streams
-}
-
-func (s *LogsStreamer) streamArchivedLogs(templateName string, archiveChannel chan Log) {
-
-	readCloser, err := s.GetArchivedLogs(context.Background(), templateName)
-	if err != nil || readCloser == nil {
-		s.closeStream(templateName)
-		return
-	}
-
-	for {
-		buf := new(bytes.Buffer)
-		if _, err = io.Copy(buf, readCloser); err != nil {
-			log.Debug().Err(err).Msgf("read 0 archived logs to buffer for %s", templateName)
-			s.closeStream(templateName)
-			break
-		}
-
-		archiveChannel <- Log{
-			Step:  templateName,
-			Lines: buf.String(),
-		}
-	}
-
 }

@@ -32,7 +32,5 @@ func FormatPodName(node *v1alpha1.NodeStatus) string {
 	nodeID := strings.Split(node.ID, "-")
 	podName := fmt.Sprintf("%s-%s-%s", node.BoundaryID, node.TemplateName, nodeID[len(nodeID)-1])
 
-	log.Debug().Msgf("Formatted pod name: %s", podName)
-
 	return podName
 }

@@ -29,105 +29,96 @@ var _ = Describe("Stream", func() {
 		nonexistentStreamer, err := argo.NewLogsStreamer(k8sClient, argoClient, namespace, "nonexistent-workflow", bucketName)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = nonexistentStreamer.TailAll(context.Background())
+		_, err = nonexistentStreamer.Start(context.Background())
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("not found"))
 	})
 
-	It("can tail logs for all templates in a workflow while running separately and then read the logs from the archives", func() {
-		streamer, err := argo.NewLogsStreamer(k8sClient, argoClient, namespace, workflow.Name, bucketName)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(streamer).NotTo(BeNil())
+	Context("after running a whalesay workflow", func() {
 
-		logStreams, err := streamer.TailAll(context.Background())
-		Expect(err).To(BeNil())
-		Expect(logStreams).NotTo(BeNil())
+		var (
+			ctx      context.Context
+			streamer *argo.LogsStreamer
+		)
 
-		Expect(streamer.NumTotalStreams()).To(Equal(2))
-		Expect(streamer.IsDone()).To(BeFalse())
+		BeforeEach(func() {
+			var err error
+			streamer, err = argo.NewLogsStreamer(k8sClient, argoClient, namespace, workflow.Name, bucketName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(streamer).NotTo(BeNil())
 
-		readFromStreamAndExpectLinesTo(Not(BeEmpty()), streamer, templateOneName)
-		time.Sleep(3 * time.Second)
-		Expect(streamer.NumClosed()).To(Equal(1))
-		Expect(streamer.IsDone()).To(BeFalse())
+			ctx = context.Background()
+		})
 
-		emptyLog := streamer.ReadFromStream(templateOneName)
-		Expect(emptyLog).To(BeNil())
+		It("can stream logs and read the archives", func() {
+			stream, err := streamer.Start(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(stream).NotTo(BeNil())
 
-		readFromStreamAndExpectLinesTo(Not(BeEmpty()), streamer, templateTwoName)
-		time.Sleep(3 * time.Second)
-		Expect(streamer.NumClosed()).To(Equal(2))
-		Expect(streamer.ReadFromStream(templateTwoName)).To(BeNil())
-		Expect(streamer.NumTotalStreams()).To(Equal(2))
-		Expect(streamer.IsDone()).To(BeTrue())
+			Expect(streamer.NumNodes()).To(Equal(2))
+			Expect(streamer.NumDone()).To(Equal(0))
+			Expect(streamer.IsDone()).To(BeFalse())
 
-		archivedLogs, err := streamer.GetArchivedLogs(context.Background(), templateOneName)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(archivedLogs).NotTo(BeNil())
+			readNLogsFromChannelAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
 
-		logBytes := make([]byte, 1024)
-		n, err := archivedLogs.Read(logBytes)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(n).To(BeNumerically(">", 0))
-		Expect(archivedLogs.Close()).To(Succeed())
-	})
+			time.Sleep(3 * time.Second)
+			Expect(streamer.NumDone()).To(Equal(2))
+			Expect(streamer.NumNodes()).To(Equal(2))
+			Expect(streamer.IsDone()).To(BeTrue())
+			Expect(argo.IsClosed(stream)).To(BeTrue())
 
-	It("can tail the logs with a combined stream while running", func() {
-		newWorkflow, err := argoClient.CreateWorkflow(namespace, whalesaySpec)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(newWorkflow).NotTo(BeNil())
+			archivedLogs, err := streamer.GetArchivedLogsForTemplate(context.Background(), templateOneName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(archivedLogs).NotTo(BeNil())
 
-		newStreamer, err := argo.NewLogsStreamer(k8sClient, argoClient, namespace, newWorkflow.Name, bucketName)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(newStreamer).NotTo(BeNil())
+			logBytes := make([]byte, 1024)
+			n, err := archivedLogs.Read(logBytes)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(n).To(BeNumerically(">", 0))
+			Expect(string(logBytes)).To(ContainSubstring("~~~"))
+			Expect(archivedLogs.Close()).To(Succeed())
 
-		time.Sleep(3 * time.Second)
-		combinedStream := newStreamer.GetLogsStream()
-		Expect(combinedStream).NotTo(BeNil())
+			archivedLogs, err = streamer.GetArchivedLogsForTemplate(context.Background(), templateTwoName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(archivedLogs).NotTo(BeNil())
 
-		logOne := <-combinedStream
-		Expect(logOne).NotTo(BeNil())
-		Expect(logOne.Step).To(Equal(templateOneName))
-		Expect(logOne.Lines).NotTo(BeEmpty())
+			logBytes = make([]byte, 1024)
+			n, err = archivedLogs.Read(logBytes)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(n).To(BeNumerically(">", 0))
+			Expect(logBytes).To(ContainSubstring("~~~"))
+			Expect(archivedLogs.Close()).To(Succeed())
+		})
 
-		logTwo := <-combinedStream
-		Expect(logTwo).NotTo(BeNil())
-		Expect(logTwo.Step).To(Equal(templateTwoName))
-		Expect(logTwo.Lines).NotTo(BeEmpty())
+		It("can wait for the workflow to end and then read archived logs", func() {
+			time.Sleep(30 * time.Second)
 
-		time.Sleep(3 * time.Second)
-		Expect(newStreamer.IsDone()).To(BeTrue())
-	})
+			stream, err := streamer.Start(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(stream).NotTo(BeNil())
 
-	It("can wait for the workflow to end and then read archived logs", func() {
+			readNLogsFromChannelAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
 
-		time.Sleep(30 * time.Second)
+			time.Sleep(5 * time.Second)
+			Expect(streamer.NumDone()).To(Equal(2))
+			Expect(streamer.NumNodes()).To(Equal(2))
+			Expect(streamer.IsDone()).To(BeTrue())
+			Expect(argo.IsClosed(stream)).To(BeTrue())
+		})
 
-		newStreamer, err := argo.NewLogsStreamer(k8sClient, argoClient, namespace, workflow.Name, bucketName)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(newStreamer).NotTo(BeNil())
-
-		combinedStream := newStreamer.GetLogsStream()
-		Expect(combinedStream).NotTo(BeNil())
-
-		logOne := <-combinedStream
-		Expect(logOne).NotTo(BeNil())
-		Expect(logOne.Lines).NotTo(BeEmpty())
-
-		logTwo := <-combinedStream
-		Expect(logTwo).NotTo(BeNil())
-		Expect(logTwo.Lines).NotTo(BeEmpty())
-
-		time.Sleep(3 * time.Second)
-		Expect(newStreamer.IsDone()).To(BeTrue())
 	})
 
 })
 
-func readFromStreamAndExpectLinesTo(matcher types.GomegaMatcher, streamer *argo.LogsStreamer, templateName string) {
-	logTwo := streamer.ReadFromStream(templateName)
-	Expect(logTwo).NotTo(BeNil())
-	Expect(logTwo.Step).To(Equal(templateName))
-	Expect(logTwo.Lines).To(matcher)
+func readNLogsFromChannelAndExpectLinesTo(matcher types.GomegaMatcher, n int, ch <-chan argo.Log) {
+	for i := 0; i < n; i++ {
+		streamLog := <-ch
+		ExpectLinesTo(matcher, &streamLog)
+	}
+}
+
+func ExpectLinesTo(matcher types.GomegaMatcher, streamLog *argo.Log) {
+	Expect(streamLog).NotTo(BeNil())
+	Expect(streamLog.Lines).To(matcher)
 }
