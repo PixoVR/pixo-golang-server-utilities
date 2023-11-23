@@ -12,7 +12,7 @@ func (c Client) GetPodLogs(ctx context.Context, namespace, podName, containerNam
 
 	podLogOpts := corev1.PodLogOptions{
 		Container: containerName,
-		//TailLines: &[]int64{100}[0],
+		Follow:    true,
 	}
 
 	req := c.

@@ -174,6 +174,7 @@ func (s *LogsStreamer) streamArchive(nodeName string) {
 	if err != nil {
 		return
 	}
+
 	go s.readLogsForNode(nodeName, readCloser)
 }
 
@@ -212,9 +213,11 @@ func (s *LogsStreamer) readLogsForNode(nodeName string, ioStream io.ReadCloser) 
 
 		}
 
-		stream <- Log{
-			Step:  nodeName,
-			Lines: buf.String(),
+		if buf.String() != "" {
+			stream <- Log{
+				Step:  nodeName,
+				Lines: buf.String(),
+			}
 		}
 
 		log.Debug().Msgf("streamed log for %s", nodeName)

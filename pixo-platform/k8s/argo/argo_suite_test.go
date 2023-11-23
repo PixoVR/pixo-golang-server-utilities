@@ -22,7 +22,7 @@ func TestArgo(t *testing.T) {
 }
 
 var (
-	bucketName         = "dev-multiplayer-allocator-build-logs"
+	bucketName         = "multi-central1-dev-multiplayer-allocator-build-logs"
 	namespace          = "dev-multiplayer"
 	serviceAccountName = "multiplayer-workload"
 	workflowName       = "whalesay-"
