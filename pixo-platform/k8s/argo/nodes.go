@@ -7,7 +7,7 @@ func (s *LogsStreamer) nodeIsDone(nodeName string) bool {
 		return false
 	}
 
-	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
+	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.workflowName)
 	if err != nil {
 		return false
 	}

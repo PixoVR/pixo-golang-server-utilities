@@ -32,7 +32,7 @@ func (s *LogsStreamer) addStream(name string) chan Log {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	if s.streams[name] == nil || IsClosed(s.streams[name]) {
+	if s.streams[name] == nil {
 		log.Debug().Msgf("opening new stream for node %s", name)
 		s.streams[name] = make(chan Log, 100)
 		s.numNodes++

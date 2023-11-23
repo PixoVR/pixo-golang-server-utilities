@@ -5,9 +5,9 @@ import (
 	"context"
 	"errors"
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/gcs"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 	"io"
 	"sync"
@@ -20,49 +20,71 @@ type Log struct {
 }
 
 type LogsStreamer struct {
-	WorkflowName  string
-	argoClient    Client
-	k8sClient     base.Client
-	storageClient client.StorageClient
-	bucketName    string
-	namespace     string
-	streams       map[string]chan Log
-	numNodes      int
-	numDone       int
-	mtx           sync.Mutex
+	workflowName   string
+	argoClient     *Client
+	k8sClient      *base.Client
+	storageClient  client.StorageClient
+	logsCache      *redis.Client
+	bucketName     string
+	namespace      string
+	streams        map[string]chan Log
+	combinedStream chan Log
+	numNodes       int
+	numDone        int
+	mtx            sync.Mutex
 }
 
-func NewLogsStreamer(k8sClient base.Client, argoClient Client, namespace, workflowName, bucketName string) (*LogsStreamer, error) {
-	if namespace == "" {
-		return nil, errors.New("namespace may not be empty")
+type StreamerConfig struct {
+	K8sClient     *base.Client
+	ArgoClient    *Client
+	StorageClient client.StorageClient
+	LogsCache     *redis.Client
+	Namespace     string
+	WorkflowName  string
+}
+
+func (sc StreamerConfig) isValid() error {
+	if sc.Namespace == "" {
+		return errors.New("namespace may not be empty")
 	}
 
-	if workflowName == "" {
-		return nil, errors.New("workflowName may not be empty")
+	if sc.WorkflowName == "" {
+		return errors.New("workflowName may not be empty")
 	}
 
-	if bucketName == "" {
-		return nil, errors.New("bucketName may not be empty")
+	if sc.StorageClient == nil {
+		return errors.New("storage client may not be nil")
 	}
 
-	storageClient, err := gcs.NewClient(gcs.Config{BucketName: bucketName})
-	if err != nil {
+	if sc.K8sClient == nil {
+		return errors.New("k8s client may not be nil")
+	}
+
+	if sc.ArgoClient == nil {
+		return errors.New("argo client may not be nil")
+	}
+
+	return nil
+}
+
+func NewLogsStreamer(config StreamerConfig) (*LogsStreamer, error) {
+	if err := config.isValid(); err != nil {
 		return nil, err
 	}
 
 	return &LogsStreamer{
-		k8sClient:     k8sClient,
-		argoClient:    argoClient,
-		storageClient: storageClient,
-		WorkflowName:  workflowName,
-		namespace:     namespace,
-		bucketName:    bucketName,
+		k8sClient:     config.K8sClient,
+		argoClient:    config.ArgoClient,
+		logsCache:     config.LogsCache,
+		storageClient: config.StorageClient,
+		workflowName:  config.WorkflowName,
+		namespace:     config.Namespace,
 		streams:       make(map[string]chan Log),
 	}, nil
 }
 
-func (s *LogsStreamer) Start(c context.Context) (chan Log, error) {
-	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
+func (s *LogsStreamer) Start(ctx context.Context) (chan Log, error) {
+	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.workflowName)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +93,14 @@ func (s *LogsStreamer) Start(c context.Context) (chan Log, error) {
 		return nil, errors.New("workflow not found")
 	}
 
+	s.addStreams(workflow)
+	s.combineStreams()
+	go s.startStreaming(ctx, workflow)
+
+	return s.combinedStream, nil
+}
+
+func (s *LogsStreamer) addStreams(workflow *v1alpha1.Workflow) {
 	for _, template := range workflow.Spec.Templates {
 		if !hasLogs(template) {
 			continue
@@ -78,48 +108,49 @@ func (s *LogsStreamer) Start(c context.Context) (chan Log, error) {
 
 		s.addStream(template.Name)
 	}
-
-	combinedStream := s.combineStreams()
-
-	for _, template := range workflow.Spec.Templates {
-		if workflow.Status.Phase == v1alpha1.WorkflowSucceeded || workflow.Status.Phase == v1alpha1.WorkflowFailed {
-			go s.streamArchive(template.Name)
-
-		} else if workflow.Status.Phase == v1alpha1.WorkflowRunning {
-			go s.waitForTail(c, template, workflow)
-		}
-	}
-
-	return combinedStream, nil
 }
 
-func (s *LogsStreamer) combineStreams() chan Log {
-	combinedStream := make(chan Log, 1000)
+func (s *LogsStreamer) combineStreams() {
 
 	s.mtx.Lock()
-	defer s.mtx.Unlock()
+	if s.combinedStream == nil {
+		s.combinedStream = make(chan Log, 1000)
+	}
+	s.mtx.Unlock()
 
 	for _, stream := range s.streams {
-		go s.combineStream(combinedStream, stream)
+		go s.combineStream(stream)
 	}
 
-	return combinedStream
 }
 
-func (s *LogsStreamer) combineStream(combinedStream, stream chan Log) {
-	for !IsClosed(stream) {
-		newLog := <-stream
+func (s *LogsStreamer) startStreaming(ctx context.Context, workflow *v1alpha1.Workflow) {
+	for _, template := range workflow.Spec.Templates {
+		if workflow.Status.Phase == v1alpha1.WorkflowSucceeded || workflow.Status.Phase == v1alpha1.WorkflowFailed {
+			go s.streamArchive(ctx, template.Name)
+
+		} else if workflow.Status.Phase == v1alpha1.WorkflowRunning {
+			go s.waitForTail(ctx, template, workflow)
+		}
+	}
+}
+
+func (s *LogsStreamer) combineStream(stream chan Log) {
+	for newLog, ok := <-stream; ok; {
 		if newLog.Step != "" && newLog.Lines != "" {
 			log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
-			combinedStream <- newLog
+			s.combinedStream <- newLog
 		}
 	}
 
 	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumNodes(), s.NumDone())
 
-	if !IsClosed(combinedStream) && s.IsDone() {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	if s.IsDone() {
 		log.Debug().Msg("All streams are closed. Closing combined stream")
-		close(combinedStream)
+		close(s.combinedStream)
 	}
 }
 
@@ -176,8 +207,8 @@ func (s *LogsStreamer) tail(c context.Context, templateName string, workflow *v1
 	return s.getStream(node.TemplateName), nil
 }
 
-func (s *LogsStreamer) streamArchive(nodeName string) {
-	readCloser, err := s.GetArchivedLogsForTemplate(context.Background(), nodeName)
+func (s *LogsStreamer) streamArchive(ctx context.Context, nodeName string) {
+	readCloser, err := s.GetArchivedLogsForTemplate(ctx, nodeName)
 	if err != nil {
 		return
 	}
@@ -233,7 +264,7 @@ func (s *LogsStreamer) readLogsForNode(nodeName string, ioStream io.ReadCloser) 
 
 func (s *LogsStreamer) GetArchivedLogsForTemplate(c context.Context, templateName string) (io.ReadCloser, error) {
 
-	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.WorkflowName)
+	workflow, err := s.argoClient.GetWorkflow(s.namespace, s.workflowName)
 	if err != nil || workflow == nil {
 		return nil, errors.Join(err, errors.New("unable to get workflow"))
 	}
@@ -245,7 +276,7 @@ func (s *LogsStreamer) GetArchivedLogsForTemplate(c context.Context, templateNam
 
 	archive := Archive{
 		BucketName:   s.bucketName,
-		WorkflowName: s.WorkflowName,
+		WorkflowName: s.workflowName,
 		PodName:      FormatPodName(node),
 	}
 
