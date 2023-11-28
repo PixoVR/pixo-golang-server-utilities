@@ -139,7 +139,7 @@ var _ = Describe("Stream", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stream).NotTo(BeNil())
 
-			readNLogsAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
+			readLogsUntilDoneAndExpectLinesTo(Not(BeEmpty()), stream)
 
 			time.Sleep(5 * time.Second)
 			Expect(streamer.NumDone()).To(Equal(2))

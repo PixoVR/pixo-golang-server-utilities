@@ -10,9 +10,11 @@ import (
 
 func (c Client) GetPodLogs(ctx context.Context, namespace, podName, containerName string) (io.ReadCloser, error) {
 
+	//tailLines := int64(1)
 	podLogOpts := corev1.PodLogOptions{
 		Container: containerName,
-		Follow:    true,
+		//TailLines: &tailLines,
+		//Follow: true,
 	}
 
 	req := c.
