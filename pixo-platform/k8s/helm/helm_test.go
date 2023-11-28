@@ -60,6 +60,21 @@ var _ = Describe("Helm", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	It("can tell if a chart is installed", func() {
+		installed, err := helmClient.Exists(chart)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(installed).To(BeTrue())
+
+		nonexistentChart := helm.Chart{
+			RepoURL:     chart.RepoURL,
+			Name:        chart.Name,
+			ReleaseName: "nonexistent-chart",
+		}
+		installed, err = helmClient.Exists(nonexistentChart)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(installed).To(BeFalse())
+	})
+
 	It("can uninstall a chart", func() {
 		err := helmClient.Uninstall(chart)
 		Expect(err).NotTo(HaveOccurred())
