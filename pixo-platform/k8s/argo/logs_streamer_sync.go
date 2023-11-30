@@ -49,6 +49,16 @@ func (s *LogsStreamer) getStream(name string) chan Log {
 	return s.streams[name]
 }
 
+func (s *LogsStreamer) makeCombinedStream() {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	if s.combinedStream == nil {
+		log.Debug().Msg("making combined stream")
+		s.combinedStream = make(chan Log)
+	}
+}
+
 func (s *LogsStreamer) markStreamDone(name string) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()

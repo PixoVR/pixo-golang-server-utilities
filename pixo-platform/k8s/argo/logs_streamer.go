@@ -111,11 +111,7 @@ func (s *LogsStreamer) addStreams(workflow *v1alpha1.Workflow) {
 }
 
 func (s *LogsStreamer) combineStreams() {
-	s.mtx.Lock()
-	if s.combinedStream == nil {
-		s.combinedStream = make(chan Log)
-	}
-	s.mtx.Unlock()
+	s.makeCombinedStream()
 
 	for _, stream := range s.streams {
 		go s.combineStream(stream)
