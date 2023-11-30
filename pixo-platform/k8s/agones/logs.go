@@ -15,13 +15,13 @@ func (c Client) GetGameServerLogs(ctx context.Context, baseClient *base.Client, 
 
 	podName := gs.ObjectMeta.Name
 
-	logs, err := baseClient.GetPodLogs(ctx, namespace, podName, DefaultGameServerContainerName)
+	logs, err := baseClient.GetPodLogs(ctx, namespace, podName, DefaultGameServerContainerName, false)
 	if err != nil {
 		log.Err(err).Msgf("error getting pod logs for pod %v", podName)
 		return "", "", err
 	}
 
-	sidecarLogs, err := baseClient.GetPodLogs(ctx, namespace, podName, DefaultGameServerSidecarContainerName)
+	sidecarLogs, err := baseClient.GetPodLogs(ctx, namespace, podName, DefaultGameServerSidecarContainerName, false)
 	if err != nil {
 		log.Err(err).Msgf("error getting pod logs for pod %v", podName)
 		return "", "", err

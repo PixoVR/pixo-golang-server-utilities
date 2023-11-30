@@ -8,11 +8,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (c Client) GetPodLogs(ctx context.Context, namespace, podName, containerName string) (io.ReadCloser, error) {
+func (c Client) GetPodLogs(ctx context.Context, namespace, podName, containerName string, follow bool) (io.ReadCloser, error) {
 
 	podLogOpts := corev1.PodLogOptions{
 		Container: containerName,
-		Follow:    true,
+		Follow:    follow,
 	}
 
 	req := c.

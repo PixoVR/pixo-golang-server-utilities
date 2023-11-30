@@ -179,7 +179,7 @@ func (s *LogsStreamer) tail(c context.Context, templateName string, workflow *v1
 			continue
 		}
 
-		readCloser, err := s.k8sClient.GetPodLogs(c, s.namespace, podName, containerName)
+		readCloser, err := s.k8sClient.GetPodLogs(c, s.namespace, podName, containerName, true)
 		if err != nil {
 			log.Debug().Err(err).Msgf("unable to get logs for pod %s", podName)
 			continue
