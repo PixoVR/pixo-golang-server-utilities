@@ -111,17 +111,15 @@ func (s *LogsStreamer) addStreams(workflow *v1alpha1.Workflow) {
 }
 
 func (s *LogsStreamer) combineStreams() {
-
 	s.mtx.Lock()
 	if s.combinedStream == nil {
-		s.combinedStream = make(chan Log, 1000)
+		s.combinedStream = make(chan Log)
 	}
 	s.mtx.Unlock()
 
 	for _, stream := range s.streams {
 		go s.combineStream(stream)
 	}
-
 }
 
 func (s *LogsStreamer) startStreaming(ctx context.Context, workflow *v1alpha1.Workflow) {
@@ -136,7 +134,7 @@ func (s *LogsStreamer) startStreaming(ctx context.Context, workflow *v1alpha1.Wo
 }
 
 func (s *LogsStreamer) combineStream(stream chan Log) {
-	for newLog, ok := <-stream; ok; {
+	for newLog := range stream {
 		if newLog.Step != "" && newLog.Lines != "" {
 			log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
 			s.combinedStream <- newLog
@@ -145,12 +143,8 @@ func (s *LogsStreamer) combineStream(stream chan Log) {
 
 	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumNodes(), s.NumDone())
 
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
 	if s.IsDone() {
-		log.Debug().Msg("All streams are closed. Closing combined stream")
-		close(s.combinedStream)
+		s.markComplete()
 	}
 }
 
@@ -181,8 +175,6 @@ func (s *LogsStreamer) tail(c context.Context, templateName string, workflow *v1
 	containerName := "main"
 	podName := FormatPodName(node)
 
-	var ioStream io.ReadCloser
-
 	for {
 		time.Sleep(1 * time.Second)
 
@@ -191,36 +183,33 @@ func (s *LogsStreamer) tail(c context.Context, templateName string, workflow *v1
 			continue
 		}
 
-		ioStream, err = s.k8sClient.GetPodLogs(c, s.namespace, podName, containerName)
+		readCloser, err := s.k8sClient.GetPodLogs(c, s.namespace, podName, containerName)
 		if err != nil {
 			log.Debug().Err(err).Msgf("unable to get logs for pod %s", podName)
 			continue
 		}
 
+		go s.readLogsForNode(node.TemplateName, readCloser)
 		break
 	}
-
-	go s.readLogsForNode(node.TemplateName, ioStream)
-
-	log.Debug().Msgf("started tailing logs for node %s", node.TemplateName)
 
 	return s.getStream(node.TemplateName), nil
 }
 
 func (s *LogsStreamer) streamArchive(ctx context.Context, nodeName string) {
-	readCloser, err := s.GetArchivedLogsForTemplate(ctx, nodeName)
+	archiveReadCloser, err := s.GetArchivedLogsForTemplate(ctx, nodeName)
 	if err != nil {
 		return
 	}
 
-	go s.readLogsForNode(nodeName, readCloser)
+	go s.readLogsForNode(nodeName, archiveReadCloser)
 }
 
-func (s *LogsStreamer) readLogsForNode(nodeName string, ioStream io.ReadCloser) {
-	if nodeName == "" || ioStream == nil {
+func (s *LogsStreamer) readLogsForNode(nodeName string, readCloser io.ReadCloser) {
+	if nodeName == "" || readCloser == nil {
 		return
 	}
-	defer ioStream.Close()
+	defer readCloser.Close()
 
 	stream := s.getStream(nodeName)
 	if stream == nil {
@@ -231,12 +220,12 @@ func (s *LogsStreamer) readLogsForNode(nodeName string, ioStream io.ReadCloser) 
 	log.Debug().Msgf("started streaming logs for %s", nodeName)
 	for {
 		buf := new(bytes.Buffer)
-		if _, err := io.Copy(buf, ioStream); err != nil {
+		if written, err := io.Copy(buf, readCloser); err != nil {
 			log.Debug().Err(err).Msgf("unable to copy logs for %s", nodeName)
 			s.markStreamDone(nodeName)
 			break
 
-		} else if buf.Len() == 0 {
+		} else if written == 0 {
 
 			if !s.nodeIsDone(nodeName) {
 				log.Debug().Msgf("no logs for running node %s", nodeName)
@@ -256,9 +245,10 @@ func (s *LogsStreamer) readLogsForNode(nodeName string, ioStream io.ReadCloser) 
 				Step:  nodeName,
 				Lines: buf.String(),
 			}
+
+			log.Debug().Msgf("streamed log for %s", nodeName)
 		}
 
-		log.Debug().Msgf("streamed log for %s", nodeName)
 	}
 }
 

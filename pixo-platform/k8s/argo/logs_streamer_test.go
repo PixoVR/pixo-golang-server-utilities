@@ -115,8 +115,8 @@ var _ = Describe("Stream", func() {
 			readNLogsAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
 
 			time.Sleep(20 * time.Second)
-			Expect(streamer.NumDone()).To(Equal(2))
 			Expect(streamer.NumNodes()).To(Equal(2))
+			Expect(streamer.NumDone()).To(Equal(2))
 			Expect(streamer.IsDone()).To(BeTrue())
 
 			archivedLogs, err := streamer.GetArchivedLogsForTemplate(context.Background(), templateOneName)

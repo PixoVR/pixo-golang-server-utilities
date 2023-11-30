@@ -34,7 +34,7 @@ func (s *LogsStreamer) addStream(name string) chan Log {
 
 	if s.streams[name] == nil {
 		log.Debug().Msgf("opening new stream for node %s", name)
-		s.streams[name] = make(chan Log, 100)
+		s.streams[name] = make(chan Log)
 		s.numNodes++
 	}
 
@@ -57,4 +57,13 @@ func (s *LogsStreamer) markStreamDone(name string) {
 	close(s.streams[name])
 
 	log.Debug().Msgf("marked stream done for node %s", name)
+}
+
+func (s *LogsStreamer) markComplete() {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	close(s.combinedStream)
+
+	log.Debug().Msg("All streams are closed. Closing combined stream")
 }
