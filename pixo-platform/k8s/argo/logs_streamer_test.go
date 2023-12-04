@@ -114,7 +114,7 @@ var _ = Describe("Stream", func() {
 
 			readNLogsAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
 
-			time.Sleep(20 * time.Second)
+			time.Sleep(10 * time.Second)
 			Expect(streamer.NumNodes()).To(Equal(2))
 			Expect(streamer.NumDone()).To(Equal(2))
 			Expect(streamer.IsDone()).To(BeTrue())
@@ -141,7 +141,7 @@ var _ = Describe("Stream", func() {
 
 			readLogsUntilDoneAndExpectLinesTo(Not(BeEmpty()), stream)
 
-			time.Sleep(5 * time.Second)
+			time.Sleep(2 * time.Second)
 			Expect(streamer.NumDone()).To(Equal(2))
 			Expect(streamer.NumNodes()).To(Equal(2))
 			Expect(streamer.IsDone()).To(BeTrue())
