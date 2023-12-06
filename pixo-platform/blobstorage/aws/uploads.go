@@ -21,6 +21,10 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 		Key:    aws.String(client.GetFullPath(object)),
 	})
 
+	if err != nil {
+		return "", err
+	}
+
 	signedURL, err := c.GetSignedURL(ctx, object)
 	if err != nil {
 		return "", err
