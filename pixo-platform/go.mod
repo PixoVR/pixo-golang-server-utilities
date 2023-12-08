@@ -29,7 +29,7 @@ require (
 	k8s.io/apimachinery v0.28.4
 	k8s.io/cli-runtime v0.28.4
 	k8s.io/client-go v0.28.4
-	open-match.dev/open-match v1.8.0
+	open-match.dev/open-match v1.8.1
 )
 
 require (
