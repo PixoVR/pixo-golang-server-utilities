@@ -3,7 +3,7 @@ module github.com/PixoVR/pixo-golang-server-utilities/pixo-platform
 go 1.21
 
 require (
-	agones.dev/agones v1.36.0
+	agones.dev/agones v1.37.0
 	cloud.google.com/go/storage v1.36.0
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20230919223034-f42ae50afb62
 	github.com/alicebob/miniredis/v2 v2.31.0
