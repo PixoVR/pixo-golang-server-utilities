@@ -9,7 +9,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/argoproj/argo-workflows/v3 v3.5.2
 	github.com/aws/aws-sdk-go-v2 v1.24.0
-	github.com/aws/aws-sdk-go-v2/config v1.26.1
+	github.com/aws/aws-sdk-go-v2/config v1.26.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.13
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.47.6
 	github.com/casbin/casbin/v2 v2.80.0
