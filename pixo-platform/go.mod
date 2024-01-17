@@ -22,6 +22,8 @@ require (
 	github.com/onsi/gomega v1.30.0
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/rs/zerolog v1.31.0
+	github.com/swaggo/files v1.0.1
+	github.com/swaggo/gin-swagger v1.6.0
 	golang.org/x/oauth2 v0.16.0
 	google.golang.org/api v0.156.0
 	helm.sh/helm/v3 v3.13.3
@@ -40,6 +42,7 @@ require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
+	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
@@ -93,7 +96,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.20.0 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
-	github.com/go-openapi/spec v0.19.5 // indirect
+	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -179,6 +182,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.18.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/swaggo/swag v1.8.12 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
