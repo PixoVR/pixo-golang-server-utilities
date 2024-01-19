@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	platformAuth "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/middleware/auth"
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,7 @@ type Config struct {
 	Port                       int
 	BasePath                   string
 
+	Lifecycle         string
 	Tracing           bool
 	CollectorEndpoint string
 	InternalRoutes    bool
@@ -67,7 +69,10 @@ func NewEngine(config Config) *CustomEngine {
 
 	if config.Tracing {
 		if config.CollectorEndpoint == "" {
-			config.CollectorEndpoint = "jaeger.linkerd-jaeger.svc:16686"
+			if strings.ToLower(config.Lifecycle) == "local" {
+				config.CollectorEndpoint = "http://localhost:16686"
+			}
+			config.CollectorEndpoint = "http://jaeger.linkerd-jaeger.svc:16686"
 		}
 
 		cfg := &jaegerConfig.Configuration{
