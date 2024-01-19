@@ -40,12 +40,14 @@ var _ = Describe("Engine", func() {
 		Expect(e.Engine()).NotTo(BeNil())
 	})
 
-	It("can create an custom engine with a basic route", func() {
+	It("can create an custom engine with a basic route and tracing", func() {
 		config := engine.Config{
-			Port:           8002,
-			BasePath:       "/api/v2",
-			InternalRoutes: true,
-			ExternalRoutes: true,
+			Port:              8002,
+			BasePath:          "/api/v2",
+			Tracing:           true,
+			CollectorEndpoint: "localhost:55678",
+			InternalRoutes:    true,
+			ExternalRoutes:    true,
 		}
 
 		engine := engine.NewEngine(config)

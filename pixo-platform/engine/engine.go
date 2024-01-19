@@ -2,16 +2,19 @@ package engine
 
 import (
 	"fmt"
+	env "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
+	"github.com/opentracing-contrib/go-gin/ginhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/uber/jaeger-client-go"
 	"net/http"
 	"os"
 	"strconv"
 
-	env "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	platformAuth "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/middleware/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	jaegerConfig "github.com/uber/jaeger-client-go/config"
 )
 
 type CustomContext struct {
@@ -22,8 +25,10 @@ type Config struct {
 	Port                       int
 	BasePath                   string
 
-	InternalRoutes bool
-	ExternalRoutes bool
+	Tracing           bool
+	CollectorEndpoint string
+	InternalRoutes    bool
+	ExternalRoutes    bool
 }
 
 type CustomEngine struct {
@@ -59,6 +64,36 @@ func NewEngine(config Config) *CustomEngine {
 	}
 
 	e.engine = gin.New()
+
+	if config.Tracing {
+		if config.CollectorEndpoint == "" {
+			config.CollectorEndpoint = "collector.linkerd-jaeger.svc:55678"
+		}
+
+		cfg := &jaegerConfig.Configuration{
+			ServiceName: fmt.Sprintf("%s-service", e.basePath),
+			Sampler: &jaegerConfig.SamplerConfig{
+				Type:  "const",
+				Param: 1,
+			},
+			Reporter: &jaegerConfig.ReporterConfig{
+				LogSpans:          true,
+				CollectorEndpoint: config.CollectorEndpoint,
+			},
+			// Token configuration
+			//Tags: []opentracing.Tag{ // Set the tag, where information such as token can be stored.
+			//	{Key: "token", Value: token},
+			//},
+		}
+
+		tracer, _, err := cfg.NewTracer(jaegerConfig.Logger(jaeger.StdLogger))
+		if err != nil {
+			log.Fatal().Err(err).Msg("Unable to initialize tracer")
+		}
+		//defer closer.Close() // nolint: errcheck
+
+		e.engine.Use(ginhttp.Middleware(tracer))
+	}
 
 	if config.AddCustomContextMiddleware != nil {
 		config.AddCustomContextMiddleware(e.engine)
