@@ -67,7 +67,7 @@ func NewEngine(config Config) *CustomEngine {
 
 	if config.Tracing {
 		if config.CollectorEndpoint == "" {
-			config.CollectorEndpoint = "collector.linkerd-jaeger.svc:55678"
+			config.CollectorEndpoint = "jaeger.linkerd-jaeger.svc:16686"
 		}
 
 		cfg := &jaegerConfig.Configuration{
