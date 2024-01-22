@@ -43,3 +43,12 @@ func GetLifecycle() string {
 func GetDomain() string {
 	return GetEnvOrReturn("DOMAIN", "localhost")
 }
+
+func GetRegion() string {
+	region := strings.ToLower(GetEnvOrCrash("REGION"))
+	if strings.Contains(region, "me-central") || strings.Contains(region, "saudi") {
+		return "saudi"
+	}
+
+	return "us-central1"
+}
