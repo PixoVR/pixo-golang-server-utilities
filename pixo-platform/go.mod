@@ -25,7 +25,7 @@ require (
 	github.com/rs/zerolog v1.31.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
-	github.com/uber/jaeger-client-go v2.25.0+incompatible
+	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	golang.org/x/oauth2 v0.16.0
 	google.golang.org/api v0.157.0
 	helm.sh/helm/v3 v3.14.0
