@@ -9,7 +9,7 @@ import (
 var _ = Describe("Helm", Ordered, func() {
 
 	var (
-		helmClient     *helm.Client
+		helmClient     helm.Client
 		chart          helm.Chart
 		sampleChartURL = "https://github.com/PixoVR/helm-charts/releases/download/multiplayer-build-trigger-0.0.2/multiplayer-build-trigger-0.0.2.tgz"
 	)
@@ -58,6 +58,21 @@ var _ = Describe("Helm", Ordered, func() {
 		values := map[string]interface{}{}
 		err := helmClient.Upgrade(chart, values)
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("can tell if a chart is installed", func() {
+		installed, err := helmClient.Exists(chart)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(installed).To(BeTrue())
+
+		nonexistentChart := helm.Chart{
+			RepoURL:     chart.RepoURL,
+			Name:        chart.Name,
+			ReleaseName: "nonexistent-chart",
+		}
+		installed, err = helmClient.Exists(nonexistentChart)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(installed).To(BeFalse())
 	})
 
 	It("can uninstall a chart", func() {

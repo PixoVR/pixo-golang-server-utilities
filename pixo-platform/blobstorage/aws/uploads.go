@@ -2,24 +2,31 @@ package aws
 
 import (
 	"context"
+	"io"
+
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
-	"io"
 )
 
 func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, fileReader io.Reader) (string, error) {
 	log.Debug().Msgf("Uploading %s/%s", c.bucketName, object.GetUploadDestination())
 
-	s3Client := s3.New(s3.Options{
-		Region: "us-east-1",
+	s3Client, err := c.getClient(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(c.getBucketName(object)),
+		Key:    aws.String(client.GetFullPath(object)),
+		Body:   fileReader,
 	})
 
-	_, err := s3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(c.bucketName),
-		Key:    aws.String(object.GetUploadDestination()),
-	})
+	if err != nil {
+		return "", err
+	}
 
 	signedURL, err := c.GetSignedURL(ctx, object)
 	if err != nil {
@@ -37,8 +44,8 @@ func (c Client) InitResumableUpload(ctx context.Context, object client.Uploadabl
 	}))
 
 	input := &s3.GetObjectInput{
-		Bucket: aws.String(c.bucketName),
-		Key:    aws.String(object.GetUploadDestination()),
+		Bucket: aws.String(c.getBucketName(object)),
+		Key:    aws.String(client.GetFullPath(object)),
 	}
 
 	presignedResponse, err := GetPresignedURL(ctx, presignClient, input)

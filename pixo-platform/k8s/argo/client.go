@@ -11,34 +11,34 @@ type Client struct {
 	*versioned.Clientset
 }
 
-func NewInClusterArgoClient() (*Client, error) {
+func NewInClusterArgoClient() (Client, error) {
 	kubeconfig, err := base.GetConfigUsingInCluster()
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
 	clientset, err := getArgoClientsetFromConfig(kubeconfig)
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
-	return &Client{
+	return Client{
 		Clientset: clientset,
 	}, nil
 }
 
-func NewLocalArgoClient() (*Client, error) {
+func NewLocalArgoClient() (Client, error) {
 	kubeconfig, err := base.GetConfigUsingKubeconfig()
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
 	clientset, err := getArgoClientsetFromConfig(kubeconfig)
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
-	return &Client{
+	return Client{
 		Clientset: clientset,
 	}, nil
 }

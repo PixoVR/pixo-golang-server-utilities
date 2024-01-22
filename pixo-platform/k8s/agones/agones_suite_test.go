@@ -23,7 +23,7 @@ func TestAgones(t *testing.T) {
 var (
 	namespace    = "dev-multiplayer"
 	fleetName    = "test-fleet"
-	agonesClient *agones.Client
+	agonesClient agones.Client
 )
 
 var _ = BeforeSuite(func() {
@@ -31,7 +31,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(baseClient).To(Not(BeNil()))
 
-	agonesClient, err = agones.NewLocalAgonesClient(*baseClient)
+	agonesClient, err = agones.NewLocalAgonesClient(baseClient)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(agonesClient).To(Not(BeNil()))
 

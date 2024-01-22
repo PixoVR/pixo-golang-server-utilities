@@ -8,23 +8,24 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"os"
+	"time"
 )
 
 var _ = Describe("Blob Storage", Ordered, func() {
 
 	var (
-		bucketFilepath         = "testdata"
-		localTestDir           = "../testdata"
-		filename               = "test-file.txt"
-		bucketName             = "dev-apex-api-modules"
+		localTestDir   = "../testdata"
+		filename       = "test-file.txt"
+		localFilepath  = fmt.Sprintf("%s/%s", localTestDir, filename)
+		bucketName     = "dev-apex-api-modules"
+		bucketFilepath = "testdata"
+
 		gcsClient              gcs.Client
-		remoteFilepath         = fmt.Sprintf("%s/%s", bucketFilepath, filename)
-		localFilepath          = fmt.Sprintf("%s/%s", localTestDir, filename)
 		expectedSignedURLValue = "X-Goog-Algorithm=GOOG4-RSA-SHA256"
 
-		uploadableObject = client.BasicUploadableObject{
+		object = client.BasicUploadableObject{
 			BucketName:        bucketName,
-			UploadDestination: remoteFilepath,
+			UploadDestination: bucketFilepath,
 			Filename:          filename,
 		}
 	)
@@ -40,7 +41,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		fileReader, err := os.Open(localFilepath)
 		Expect(err).NotTo(HaveOccurred())
 
-		signedURL, err := gcsClient.UploadFile(context.Background(), uploadableObject, fileReader)
+		signedURL, err := gcsClient.UploadFile(context.Background(), object, fileReader)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
@@ -50,7 +51,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can get the signed url for the previously uploaded file", func() {
-		signedUrl, err := gcsClient.GetSignedURL(context.Background(), uploadableObject)
+		signedUrl, err := gcsClient.GetSignedURL(context.Background(), object)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(signedUrl).To(ContainSubstring(expectedSignedURLValue))
@@ -59,8 +60,30 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(signedUrl).To(ContainSubstring(filename))
 	})
 
+	It("can read a file", func() {
+		fileReader, err := gcsClient.ReadFile(context.Background(), object)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fileReader).NotTo(BeNil())
+
+		bytes := make([]byte, 7)
+		n, err := fileReader.Read(bytes)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(n).To(Equal(7))
+		Expect(string(bytes)).To(ContainSubstring("Go Blue"))
+		Expect(fileReader.Close()).To(Succeed())
+	})
+
+	It("can delete a file", func() {
+		time.Sleep(1 * time.Second) // wait 1 second to allow for retention policy to be met
+		err := gcsClient.DeleteFile(context.Background(), object)
+		Expect(err).NotTo(HaveOccurred())
+		fileReader, err := gcsClient.ReadFile(context.Background(), object)
+		Expect(err).To(HaveOccurred())
+		Expect(fileReader).To(BeNil())
+	})
+
 	It("can initiate a multipart upload", func() {
-		res, err := gcsClient.InitResumableUpload(context.Background(), uploadableObject)
+		res, err := gcsClient.InitResumableUpload(context.Background(), object)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res).NotTo(BeNil())

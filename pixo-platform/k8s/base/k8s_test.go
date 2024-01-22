@@ -10,7 +10,7 @@ import (
 var _ = Describe("K8s", func() {
 
 	var (
-		baseClient *base.Client
+		baseClient base.Client
 	)
 
 	BeforeEach(func() {

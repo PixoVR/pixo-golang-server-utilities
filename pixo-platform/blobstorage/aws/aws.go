@@ -2,10 +2,8 @@ package aws
 
 import (
 	"context"
-	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
@@ -32,14 +30,3 @@ type S3PresignGetObjectAPI interface {
 func GetPresignedURL(c context.Context, api S3PresignGetObjectAPI, input *s3.GetObjectInput) (*v4.PresignedHTTPRequest, error) {
 	return api.PresignGetObject(c, input, func(options *s3.PresignOptions) { options.Expires = time.Second * 3600 })
 }
-
-var customResolver = aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-	if os.Getenv("ENV") == "SAUDI" {
-		return aws.Endpoint{
-			URL:           "https://api-object.bluvalt.com:8082",
-			SigningRegion: "us-east-1",
-		}, nil
-	}
-
-	return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-})

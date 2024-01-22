@@ -17,10 +17,10 @@ var _ = Describe("Argo", func() {
 	})
 
 	It("can get whalesay workflow", func() {
-		retrieved, err := argoClient.GetWorkflow(namespace, workflowName)
+		retrieved, err := argoClient.GetWorkflow(namespace, workflow.Name)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(retrieved).NotTo(BeNil())
-		Expect(retrieved.Name).To(Equal(workflowName))
+		Expect(retrieved.Name).To(Equal(workflow.Name))
 	})
 
 })

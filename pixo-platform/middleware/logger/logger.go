@@ -5,6 +5,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -47,8 +48,15 @@ func LoggingMiddleware(logger *zerolog.Logger) gin.HandlerFunc {
 			Str("duration", time.Since(startTime).String()).
 			Msg("Request processed")
 
-		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "PATCH" {
-			body, _ := io.ReadAll(c.Request.Body)
+		if c.Request.Method == http.MethodPost ||
+			c.Request.Method == http.MethodPut ||
+			c.Request.Method == http.MethodPatch {
+
+			body, err := io.ReadAll(c.Request.Body)
+			if err != nil {
+				logger.Error().Err(err).Msg("Error reading request body")
+			}
+
 			logger.Debug().Msgf("Request Body: %s", body)
 		}
 

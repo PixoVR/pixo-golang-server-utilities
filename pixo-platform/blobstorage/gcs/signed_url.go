@@ -16,6 +16,20 @@ var (
 	expireDuration = 120 * time.Minute
 )
 
+func (c Client) getBucketName(object client.UploadableObject) string {
+
+	bucketName := object.GetBucketName()
+	if bucketName != "" {
+		return bucketName
+	}
+
+	if c.bucketName == "" {
+		c.bucketName = os.Getenv("GOOGLE_STORAGE_BUCKET")
+	}
+
+	return c.bucketName
+}
+
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {
 	jsonKeyPath := os.Getenv("GOOGLE_JSON_KEY")
 	data, err := os.ReadFile(jsonKeyPath)
@@ -30,7 +44,7 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		return "", err
 	}
 
-	client, err := storage.NewClient(ctx, option.WithTokenSource(conf.TokenSource(ctx)))
+	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(conf.TokenSource(ctx)))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create storage client with JSON key")
 		return "", err
@@ -44,12 +58,12 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		PrivateKey:     conf.PrivateKey,
 	}
 
-	url, err := client.Bucket(c.bucketName).SignedURL(object.GetUploadDestination(), opts)
+	url, err := storageClient.Bucket(c.getBucketName(object)).SignedURL(client.GetFullPath(object), opts)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create signed URL")
 		return "", err
 	}
 
-	log.Debug().Msgf("Created signed URL for file %s in bucket %s", object.GetUploadDestination(), c.bucketName)
+	log.Debug().Msgf("Created signed URL for %s", client.GetFullPath(object))
 	return url, nil
 }

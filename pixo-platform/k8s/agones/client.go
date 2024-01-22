@@ -13,34 +13,35 @@ type Client struct {
 	BaseClient base.Client
 }
 
-func NewInClusterAgonesClient(baseClient base.Client) (*Client, error) {
+func NewInClusterAgonesClient(baseClient base.Client) (Client, error) {
 	kubeconfig, err := base.GetConfigUsingInCluster()
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
 	clientset, err := getAgonesClientsetFromConfig(kubeconfig)
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
-	return &Client{
-		Clientset: clientset,
+	return Client{
+		Clientset:  clientset,
+		BaseClient: baseClient,
 	}, nil
 }
 
-func NewLocalAgonesClient(baseClient base.Client) (*Client, error) {
+func NewLocalAgonesClient(baseClient base.Client) (Client, error) {
 	kubeconfig, err := base.GetConfigUsingKubeconfig()
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
 	clientset, err := getAgonesClientsetFromConfig(kubeconfig)
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
-	return &Client{
+	return Client{
 		Clientset:  clientset,
 		BaseClient: baseClient,
 	}, nil

@@ -10,32 +10,32 @@ type Client struct {
 	kubernetes.Interface
 }
 
-func NewInClusterK8sClient() (*Client, error) {
+func NewInClusterK8sClient() (Client, error) {
 	kubeconfig, err := GetConfigUsingInCluster()
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
 	clientset, err := getClientsetFromConfig(kubeconfig)
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
-	return &Client{clientset}, nil
+	return Client{clientset}, nil
 }
 
-func NewLocalClient() (*Client, error) {
+func NewLocalClient() (Client, error) {
 	kubeconfig, err := GetConfigUsingKubeconfig()
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
 	clientset, err := getClientsetFromConfig(kubeconfig)
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
-	return &Client{clientset}, nil
+	return Client{clientset}, nil
 }
 
 func getClientsetFromConfig(config *rest.Config) (*kubernetes.Clientset, error) {
