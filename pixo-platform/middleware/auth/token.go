@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"net/http"
@@ -25,7 +26,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 			})
 			return
 		}
-		c.Set(UserKey, user)
+		c.Set(string(config.ContextRequestAuthentication), user)
 
 		c.Next()
 	}
