@@ -11,8 +11,7 @@ import (
 
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := TokenValid(c.Request)
-		if err != nil {
+		if err := TokenValid(c.Request); err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "unauthorized",
 			})
@@ -26,7 +25,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 			})
 			return
 		}
-		c.Set(string(config.ContextRequestAuthentication), user)
+		c.Set(config.ContextRequestAuthentication.String(), user)
 
 		c.Next()
 	}
@@ -46,10 +45,8 @@ func TokenValid(r *http.Request) error {
 
 func ExtractToken(r *http.Request, headerKeyInput ...string) string {
 
-	var headerKey string
-	if len(headerKeyInput) == 0 {
-		headerKey = SecretKeyHeader
-	} else {
+	headerKey := SecretKeyHeader
+	if len(headerKeyInput) != 0 {
 		headerKey = headerKeyInput[0]
 	}
 
