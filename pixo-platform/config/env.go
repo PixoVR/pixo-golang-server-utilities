@@ -15,9 +15,7 @@ func init() {
 func LoadEnvVars(differential ...string) {
 	envPath := filepath.Join(GetProjectRoot(differential...), ".env")
 
-	if err := godotenv.Load(envPath); err != nil {
-		log.Debug().Msgf("No .env file loaded: %s", err)
-	}
+	_ = godotenv.Load(envPath)
 }
 
 func GetEnvOrReturn(key string, fallback string) string {
