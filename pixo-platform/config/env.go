@@ -43,7 +43,7 @@ func GetDomain() string {
 }
 
 func GetRegion() string {
-	region := strings.ToLower(GetEnvOrCrash("REGION"))
+	region := strings.ToLower(GetEnvOrReturn("REGION", "us-central1"))
 	if strings.Contains(region, "me-central") || strings.Contains(region, "saudi") {
 		return "saudi"
 	}
