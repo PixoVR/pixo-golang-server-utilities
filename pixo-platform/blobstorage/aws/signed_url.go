@@ -14,7 +14,7 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 	}
 
 	bucketName := c.getBucketName(object)
-	destination := client.GetFullPath(object)
+	destination := object.GetFileLocation()
 
 	input := &s3.GetObjectInput{
 		Bucket: &bucketName,

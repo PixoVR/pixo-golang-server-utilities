@@ -14,7 +14,7 @@ func (c Client) FileExists(ctx context.Context, object client.UploadableObject) 
 	}
 
 	bucketName := c.getBucketName(object)
-	destination := client.GetFullPath(object)
+	destination := object.GetFileLocation()
 
 	if _, err = s3Client.HeadObject(ctx, &s3.HeadObjectInput{Bucket: &bucketName, Key: &destination}); err != nil {
 		return false, nil
@@ -31,7 +31,7 @@ func (c Client) ReadFile(ctx context.Context, object client.UploadableObject) (i
 	}
 
 	bucketName := c.getBucketName(object)
-	destination := client.GetFullPath(object)
+	destination := object.GetFileLocation()
 
 	output, err := s3Client.GetObject(ctx, &s3.GetObjectInput{Bucket: &bucketName, Key: &destination})
 	if err != nil {

@@ -13,10 +13,10 @@ func (c Client) DeleteFile(ctx context.Context, object client.UploadableObject) 
 		return err
 	}
 
-	destination := client.GetFullPath(object)
+	fileLocation := object.GetFileLocation()
 	deleteObjectInput := s3.DeleteObjectInput{
 		Bucket: &c.bucketName,
-		Key:    &destination,
+		Key:    &fileLocation,
 	}
 	_, err = s3Client.DeleteObject(ctx, &deleteObjectInput)
 	if err != nil {
