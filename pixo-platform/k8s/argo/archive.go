@@ -18,6 +18,6 @@ func (a Archive) GetUploadDestination() string {
 	return fmt.Sprintf("%s/%s", a.WorkflowName, a.PodName)
 }
 
-func (a Archive) GetFilename() string {
+func (a Archive) GetFileLocation() string {
 	return "main.log"
 }

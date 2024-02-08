@@ -4,7 +4,6 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"net/http"
@@ -34,19 +33,16 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 	jsonKeyPath := os.Getenv("GOOGLE_JSON_KEY")
 	data, err := os.ReadFile(jsonKeyPath)
 	if err != nil {
-		log.Error().Err(err).Msgf("unable to read JSON key file at filepath: %s", jsonKeyPath)
 		return "", err
 	}
 
 	conf, err := google.JWTConfigFromJSON(data, storage.ScopeReadOnly)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to create JWT config from JSON key data")
 		return "", err
 	}
 
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(conf.TokenSource(ctx)))
 	if err != nil {
-		log.Error().Err(err).Msg("unable to create storage client with JSON key")
 		return "", err
 	}
 
@@ -60,10 +56,8 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 
 	url, err := storageClient.Bucket(c.getBucketName(object)).SignedURL(client.GetFullPath(object), opts)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to create signed URL")
 		return "", err
 	}
 
-	log.Debug().Msgf("Created signed URL for %s", client.GetFullPath(object))
 	return url, nil
 }

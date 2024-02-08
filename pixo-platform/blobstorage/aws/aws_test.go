@@ -80,6 +80,20 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			Expect(fileReader.Close()).To(Succeed())
 		})
 
+		It("can check if a file exists", func() {
+			exists, err := awsClient.FileExists(context.Background(), object)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(exists).To(BeTrue())
+
+			exists, err = awsClient.FileExists(context.Background(), client.BasicUploadableObject{
+				BucketName:        config.BucketName,
+				UploadDestination: bucketFileDir,
+				Filename:          "nonexistent-file.txt",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(exists).To(BeFalse())
+		})
+
 		It("can delete a file", func() {
 			err := awsClient.DeleteFile(context.Background(), object)
 			Expect(err).NotTo(HaveOccurred())

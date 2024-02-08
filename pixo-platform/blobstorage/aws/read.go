@@ -4,9 +4,24 @@ import (
 	"context"
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/rs/zerolog/log"
 	"io"
 )
+
+func (c Client) FileExists(ctx context.Context, object client.UploadableObject) (bool, error) {
+	s3Client, err := c.getClient(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	bucketName := c.getBucketName(object)
+	destination := client.GetFullPath(object)
+
+	if _, err = s3Client.HeadObject(ctx, &s3.HeadObjectInput{Bucket: &bucketName, Key: &destination}); err != nil {
+		return false, nil
+	}
+
+	return true, nil
+}
 
 func (c Client) ReadFile(ctx context.Context, object client.UploadableObject) (io.ReadCloser, error) {
 
@@ -20,7 +35,6 @@ func (c Client) ReadFile(ctx context.Context, object client.UploadableObject) (i
 
 	output, err := s3Client.GetObject(ctx, &s3.GetObjectInput{Bucket: &bucketName, Key: &destination})
 	if err != nil {
-		log.Error().Err(err).Msg("unable to get object")
 		return nil, err
 	}
 

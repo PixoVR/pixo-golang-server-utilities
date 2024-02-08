@@ -17,7 +17,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		localTestDir   = "../testdata"
 		filename       = "test-file.txt"
 		localFilepath  = fmt.Sprintf("%s/%s", localTestDir, filename)
-		bucketName     = "dev-apex-api-modules"
+		bucketName     = "dev-apex-primary-api-modules"
 		bucketFilepath = "testdata"
 
 		gcsClient              gcs.Client
@@ -48,6 +48,20 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(signedURL).To(ContainSubstring(bucketName))
 		Expect(signedURL).To(ContainSubstring(bucketFilepath))
 		Expect(signedURL).To(ContainSubstring(filename))
+	})
+
+	It("can check if a file exists", func() {
+		exists, err := gcsClient.FileExists(context.Background(), object)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exists).To(BeTrue())
+
+		exists, err = gcsClient.FileExists(context.Background(), client.BasicUploadableObject{
+			BucketName:        bucketName,
+			UploadDestination: bucketFilepath,
+			Filename:          "nonexistent-file.txt",
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exists).To(BeFalse())
 	})
 
 	It("can get the signed url for the previously uploaded file", func() {

@@ -5,7 +5,7 @@ import (
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 )
 
-var value = interface{}(Client{}).(client.StorageClient)
+var _ client.StorageClient = (*Client)(nil)
 
 type Config struct {
 	BucketName string

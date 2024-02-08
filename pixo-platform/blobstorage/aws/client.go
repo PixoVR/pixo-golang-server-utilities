@@ -10,10 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/rs/zerolog/log"
 )
 
-var value = interface{}(Client{}).(client.StorageClient)
+var _ client.StorageClient = (*Client)(nil)
 
 type Config struct {
 	BucketName      string
@@ -47,9 +46,7 @@ func NewClient(config Config) (Client, error) {
 
 func (c Client) getClient(ctx context.Context) (*s3.Client, error) {
 	if c.bucketName == "" {
-		err := errors.New("bucket is empty")
-		log.Err(err).Msg("unable to get presigned url")
-		return nil, err
+		return nil, errors.New("bucket is empty")
 	}
 
 	if c.region == "" {
@@ -74,7 +71,6 @@ func (c Client) getClient(ctx context.Context) (*s3.Client, error) {
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(c.accessKeyID, c.secretAccessKey, "")),
 	)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to get presigned url")
 		return nil, err
 	}
 
