@@ -17,7 +17,6 @@ type StorageClient interface {
 
 type UploadableObject interface {
 	GetBucketName() string
-	GetUploadDestination() string
 	GetFileLocation() string
 }
 

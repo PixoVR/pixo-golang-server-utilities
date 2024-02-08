@@ -16,7 +16,13 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 		return "", err
 	}
 
-	sw := storageClient.Bucket(c.getBucketName(object)).Object(object.GetFileLocation()).NewWriter(ctx)
+	bucketName := c.getBucketName(object)
+	fileLocation := object.GetFileLocation()
+
+	sw := storageClient.
+		Bucket(bucketName).
+		Object(fileLocation).
+		NewWriter(ctx)
 
 	if _, err = io.Copy(sw, fileReader); err != nil {
 		return "", err

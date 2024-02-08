@@ -28,6 +28,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 			UploadDestination: bucketFilepath,
 			Filename:          filename,
 		}
+		ctx = context.Background()
 	)
 
 	BeforeAll(func() {
@@ -41,7 +42,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		fileReader, err := os.Open(localFilepath)
 		Expect(err).NotTo(HaveOccurred())
 
-		signedURL, err := gcsClient.UploadFile(context.Background(), object, fileReader)
+		signedURL, err := gcsClient.UploadFile(ctx, object, fileReader)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
@@ -51,11 +52,11 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can check if a file exists", func() {
-		exists, err := gcsClient.FileExists(context.Background(), object)
+		exists, err := gcsClient.FileExists(ctx, object)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(exists).To(BeTrue())
 
-		exists, err = gcsClient.FileExists(context.Background(), client.BasicUploadableObject{
+		exists, err = gcsClient.FileExists(ctx, client.BasicUploadableObject{
 			BucketName:        bucketName,
 			UploadDestination: bucketFilepath,
 			Filename:          "nonexistent-file.txt",
@@ -65,7 +66,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can get the signed url for the previously uploaded file", func() {
-		signedUrl, err := gcsClient.GetSignedURL(context.Background(), object)
+		signedUrl, err := gcsClient.GetSignedURL(ctx, object)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(signedUrl).To(ContainSubstring(expectedSignedURLValue))
@@ -75,7 +76,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can read a file", func() {
-		fileReader, err := gcsClient.ReadFile(context.Background(), object)
+		fileReader, err := gcsClient.ReadFile(ctx, object)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fileReader).NotTo(BeNil())
 
@@ -89,15 +90,15 @@ var _ = Describe("Blob Storage", Ordered, func() {
 
 	It("can delete a file", func() {
 		time.Sleep(1 * time.Second) // wait 1 second to allow for retention policy to be met
-		err := gcsClient.DeleteFile(context.Background(), object)
+		err := gcsClient.DeleteFile(ctx, object)
 		Expect(err).NotTo(HaveOccurred())
-		fileReader, err := gcsClient.ReadFile(context.Background(), object)
+		fileReader, err := gcsClient.ReadFile(ctx, object)
 		Expect(err).To(HaveOccurred())
 		Expect(fileReader).To(BeNil())
 	})
 
 	It("can initiate a multipart upload", func() {
-		res, err := gcsClient.InitResumableUpload(context.Background(), object)
+		res, err := gcsClient.InitResumableUpload(ctx, object)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res).NotTo(BeNil())
