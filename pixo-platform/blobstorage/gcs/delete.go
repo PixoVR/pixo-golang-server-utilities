@@ -13,7 +13,7 @@ func (c Client) DeleteFile(ctx context.Context, object client.UploadableObject) 
 		return err
 	}
 
-	if err = storageClient.Bucket(c.getBucketName(object)).Object(client.GetFullPath(object)).Delete(ctx); err != nil {
+	if err = storageClient.Bucket(c.getBucketName(object)).Object(object.GetFileLocation()).Delete(ctx); err != nil {
 		return err
 	}
 

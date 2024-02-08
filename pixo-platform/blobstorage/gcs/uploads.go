@@ -16,7 +16,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 		return "", err
 	}
 
-	sw := storageClient.Bucket(c.getBucketName(object)).Object(client.GetFullPath(object)).NewWriter(ctx)
+	sw := storageClient.Bucket(c.getBucketName(object)).Object(object.GetFileLocation()).NewWriter(ctx)
 
 	if _, err = io.Copy(sw, fileReader); err != nil {
 		return "", err
@@ -35,7 +35,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 }
 
 func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {
-	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.getBucketName(object), client.GetFullPath(object))
+	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.getBucketName(object), object.GetFileLocation())
 
 	request, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {

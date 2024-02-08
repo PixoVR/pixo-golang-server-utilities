@@ -54,7 +54,7 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		PrivateKey:     conf.PrivateKey,
 	}
 
-	url, err := storageClient.Bucket(c.getBucketName(object)).SignedURL(client.GetFullPath(object), opts)
+	url, err := storageClient.Bucket(c.getBucketName(object)).SignedURL(object.GetFileLocation(), opts)
 	if err != nil {
 		return "", err
 	}

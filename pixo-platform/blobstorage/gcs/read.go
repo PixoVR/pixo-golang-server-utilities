@@ -14,7 +14,7 @@ func (c Client) FileExists(ctx context.Context, object client.UploadableObject) 
 		return false, err
 	}
 
-	_, err = storageClient.Bucket(c.getBucketName(object)).Object(client.GetFullPath(object)).Attrs(ctx)
+	_, err = storageClient.Bucket(c.getBucketName(object)).Object(object.GetFileLocation()).Attrs(ctx)
 	if err != nil {
 		if errors.Is(err, storage.ErrObjectNotExist) {
 			return false, nil
@@ -33,7 +33,7 @@ func (c Client) ReadFile(ctx context.Context, object client.UploadableObject) (i
 		return nil, err
 	}
 
-	rc, err := storageClient.Bucket(c.getBucketName(object)).Object(client.GetFullPath(object)).NewReader(ctx)
+	rc, err := storageClient.Bucket(c.getBucketName(object)).Object(object.GetFileLocation()).NewReader(ctx)
 	if err != nil {
 		return nil, err
 	}

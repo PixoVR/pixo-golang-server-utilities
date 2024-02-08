@@ -15,5 +15,5 @@ func (b BasicUploadableObject) GetUploadDestination() string {
 }
 
 func (b BasicUploadableObject) GetFileLocation() string {
-	return b.Filename
+	return b.UploadDestination + "/" + b.Filename
 }
