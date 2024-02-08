@@ -1,8 +1,8 @@
 package gcs
 
 import (
-	"errors"
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"os"
 )
 
 var _ client.StorageClient = (*Client)(nil)
@@ -20,7 +20,7 @@ type Client struct {
 func NewClient(config Config) (Client, error) {
 
 	if config.BucketName == "" {
-		return Client{}, errors.New("no bucket name given")
+		config.BucketName = os.Getenv("GOOGLE_STORAGE_BUCKET")
 	}
 
 	return Client{
