@@ -7,6 +7,7 @@ import (
 )
 
 type StorageClient interface {
+	GetPublicURL(object UploadableObject) (string, error)
 	GetSignedURL(ctx context.Context, object UploadableObject) (string, error)
 	FileExists(ctx context.Context, object UploadableObject) (bool, error)
 	UploadFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error)

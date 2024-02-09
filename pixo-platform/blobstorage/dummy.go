@@ -6,6 +6,7 @@ import (
 )
 
 type StorageClientSpy struct {
+	GetPublicURLNumTimesCalled        int
 	GetSignedURLNumTimesCalled        int
 	UploadFileNumTimesCalled          int
 	FileExistsNumTimesCalled          int
@@ -16,6 +17,11 @@ type StorageClientSpy struct {
 
 func NewStorageClientSpy() StorageClient {
 	return &StorageClientSpy{}
+}
+
+func (f *StorageClientSpy) GetPublicURL(object UploadableObject) (string, error) {
+	f.GetPublicURLNumTimesCalled++
+	return "https://storage.googleapis.com/bucket/test-file.txt", nil
 }
 
 func (f *StorageClientSpy) GetSignedURL(ctx context.Context, object UploadableObject) (string, error) {

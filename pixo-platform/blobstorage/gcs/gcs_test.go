@@ -38,6 +38,12 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(gcsClient).NotTo(BeNil())
 	})
 
+	It("can format a public url", func() {
+		publicURL, err := gcsClient.GetPublicURL(object)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(publicURL).To(Equal("https://storage.googleapis.com/dev-apex-primary-api-modules/testdata/test-file.txt"))
+	})
+
 	It("can upload a file", func() {
 		fileReader, err := os.Open(localFilepath)
 		Expect(err).NotTo(HaveOccurred())

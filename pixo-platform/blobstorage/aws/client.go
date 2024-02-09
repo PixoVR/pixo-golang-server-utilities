@@ -32,7 +32,7 @@ type Client struct {
 
 func NewClient(config Config) (Client, error) {
 	if config.BucketName == "" {
-		return Client{}, errors.New("no bucket name given")
+		config.BucketName = os.Getenv("S3_BUCKET_NAME")
 	}
 
 	return Client{

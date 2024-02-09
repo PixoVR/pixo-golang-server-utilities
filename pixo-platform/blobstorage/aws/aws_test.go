@@ -42,9 +42,15 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("can return an error if no bucket name is given", func() {
+		It("can create a client if no bucket name is given", func() {
 			_, err := aws.NewClient(aws.Config{})
-			Expect(err).To(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("can return a public url", func() {
+			publicURL, err := awsClient.GetPublicURL(object)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(publicURL).To(Equal(fmt.Sprintf("https://%s.s3.amazonaws.com/%s", config.BucketName, bucketFileDir+"/"+filename)))
 		})
 
 		It("can upload a file to s3", func() {
