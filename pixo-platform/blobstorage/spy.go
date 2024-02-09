@@ -15,7 +15,7 @@ type StorageClientSpy struct {
 	InitResumableUploadNumTimesCalled int
 }
 
-func NewStorageClientSpy() StorageClient {
+func NewStorageClientSpy() *StorageClientSpy {
 	return &StorageClientSpy{}
 }
 
