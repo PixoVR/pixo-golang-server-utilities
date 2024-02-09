@@ -29,9 +29,9 @@ func (c Client) getBucketName(object client.UploadableObject) string {
 	return c.bucketName
 }
 
-func (c Client) GetPublicURL(object client.UploadableObject) (string, error) {
+func (c Client) GetPublicURL(object client.UploadableObject) string {
 	bucketName := c.getBucketName(object)
-	return "https://storage.googleapis.com/" + bucketName + "/" + object.GetFileLocation(), nil
+	return "https://storage.googleapis.com/" + bucketName + "/" + object.GetFileLocation()
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {

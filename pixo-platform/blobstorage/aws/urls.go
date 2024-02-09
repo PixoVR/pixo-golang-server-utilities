@@ -7,10 +7,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func (c Client) GetPublicURL(object client.UploadableObject) (string, error) {
+func (c Client) GetPublicURL(object client.UploadableObject) string {
 	bucketName := c.getBucketName(object)
 	destination := object.GetFileLocation()
-	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, destination), nil
+	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, destination)
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {

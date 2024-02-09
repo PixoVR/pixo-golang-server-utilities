@@ -19,9 +19,9 @@ func NewStorageClientSpy() StorageClient {
 	return &StorageClientSpy{}
 }
 
-func (f *StorageClientSpy) GetPublicURL(object UploadableObject) (string, error) {
+func (f *StorageClientSpy) GetPublicURL(object UploadableObject) string {
 	f.GetPublicURLNumTimesCalled++
-	return "https://storage.googleapis.com/bucket/test-file.txt", nil
+	return "https://storage.googleapis.com/bucket/test-file.txt"
 }
 
 func (f *StorageClientSpy) GetSignedURL(ctx context.Context, object UploadableObject) (string, error) {

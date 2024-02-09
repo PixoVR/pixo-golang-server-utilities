@@ -48,8 +48,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 		})
 
 		It("can return a public url", func() {
-			publicURL, err := awsClient.GetPublicURL(object)
-			Expect(err).NotTo(HaveOccurred())
+			publicURL := awsClient.GetPublicURL(object)
 			Expect(publicURL).To(Equal(fmt.Sprintf("https://%s.s3.amazonaws.com/%s", config.BucketName, bucketFileDir+"/"+filename)))
 		})
 

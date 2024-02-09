@@ -39,8 +39,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can format a public url", func() {
-		publicURL, err := gcsClient.GetPublicURL(object)
-		Expect(err).NotTo(HaveOccurred())
+		publicURL := gcsClient.GetPublicURL(object)
 		Expect(publicURL).To(Equal("https://storage.googleapis.com/dev-apex-primary-api-modules/testdata/test-file.txt"))
 	})
 
