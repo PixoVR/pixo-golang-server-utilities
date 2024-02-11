@@ -19,9 +19,11 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 	bucketName := c.getBucketName(object)
 	fileLocation := object.GetFileLocation()
 
+	sanitizedFileLocation := c.SanitizeFilename(fileLocation)
+
 	sw := storageClient.
 		Bucket(bucketName).
-		Object(fileLocation).
+		Object(sanitizedFileLocation).
 		NewWriter(ctx)
 
 	if _, err = io.Copy(sw, fileReader); err != nil {
@@ -32,12 +34,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 		return "", err
 	}
 
-	url, err := c.GetSignedURL(ctx, object)
-	if err != nil {
-		return "", err
-	}
-
-	return url, nil
+	return sanitizedFileLocation, nil
 }
 
 func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {

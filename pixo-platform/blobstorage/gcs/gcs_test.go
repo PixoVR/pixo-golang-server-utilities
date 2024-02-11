@@ -43,17 +43,19 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(publicURL).To(Equal("https://storage.googleapis.com/dev-apex-primary-api-modules/testdata/test-file.txt"))
 	})
 
+	It("can sanitize a filename", func() {
+		sanitizedName := gcsClient.SanitizeFilename(filename)
+		Expect(sanitizedName).To(MatchRegexp(`^test-file_\d+.txt$`))
+	})
+
 	It("can upload a file", func() {
 		fileReader, err := os.Open(localFilepath)
 		Expect(err).NotTo(HaveOccurred())
 
-		signedURL, err := gcsClient.UploadFile(ctx, object, fileReader)
+		locationInBucket, err := gcsClient.UploadFile(ctx, object, fileReader)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
-		Expect(signedURL).To(ContainSubstring(bucketName))
-		Expect(signedURL).To(ContainSubstring(bucketFilepath))
-		Expect(signedURL).To(ContainSubstring(filename))
+		Expect(locationInBucket).To(MatchRegexp(`^testdata/test-file_\d+.txt$`))
 	})
 
 	It("can check if a file exists", func() {

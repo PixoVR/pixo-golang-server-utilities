@@ -16,9 +16,11 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 		return "", err
 	}
 
+	sanitizedFileLocation := c.SanitizeFilename(object.GetFileLocation())
+
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(c.getBucketName(object)),
-		Key:    aws.String(object.GetFileLocation()),
+		Key:    aws.String(sanitizedFileLocation),
 		Body:   fileReader,
 	})
 
@@ -26,12 +28,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 		return "", err
 	}
 
-	signedURL, err := c.GetSignedURL(ctx, object)
-	if err != nil {
-		return "", err
-	}
-
-	return signedURL, nil
+	return sanitizedFileLocation, nil
 }
 
 func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {
