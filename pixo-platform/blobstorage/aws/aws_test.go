@@ -30,7 +30,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			}
 			expectedSignedURLValue = "X-Amz-Algorithm=AWS4-HMAC-SHA256"
 
-			object = client.BasicUploadableObject{
+			object = client.BasicUploadable{
 				BucketName:        config.BucketName,
 				UploadDestination: bucketFilePath,
 				Filename:          filename,
@@ -55,7 +55,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 
 		It("can sanitize a filename", func() {
 			sanitizedName := awsClient.SanitizeFilename(filename)
-			Expect(sanitizedName).To(MatchRegexp(`^test-file_\d+.txt$`))
+			Expect(sanitizedName).To(MatchRegexp(`^blob_\d+.txt$`))
 		})
 
 		It("can upload a file to s3", func() {
@@ -64,7 +64,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			locationInBucket, err := awsClient.UploadFile(ctx, object, fileReader)
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(locationInBucket).To(MatchRegexp(`^testdata/test-file_\d+.txt$`))
+			Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
 		})
 
 		It("can generate a signed url for a file", func() {
@@ -94,7 +94,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(exists).To(BeTrue())
 
-			exists, err = awsClient.FileExists(ctx, client.BasicUploadableObject{
+			exists, err = awsClient.FileExists(ctx, client.BasicUploadable{
 				BucketName:        config.BucketName,
 				UploadDestination: bucketFilePath,
 				Filename:          "nonexistent-file.txt",
@@ -133,7 +133,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			}
 			expectedSignedURLValue = "X-Amz-Algorithm=AWS4-HMAC-SHA256"
 
-			object = client.BasicUploadableObject{
+			object = client.BasicUploadable{
 				BucketName:        config.BucketName,
 				UploadDestination: bucketFilePath,
 				Filename:          filename,

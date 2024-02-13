@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+const (
+	filenameOverride = "blob"
+)
+
 func SanitizeFilename(timestamp int64, originalFilename string) (sanitizedFilename string) {
 	if originalFilename == "" {
 		randomInt := rand.Intn(100000)
@@ -16,10 +20,18 @@ func SanitizeFilename(timestamp int64, originalFilename string) (sanitizedFilena
 	nameParts := strings.Split(originalFilename, ".")
 
 	if len(nameParts) < 2 {
-		sanitizedFilename = fmt.Sprintf("%s_%d", originalFilename, timestamp)
+		sanitizedFilename = fmt.Sprintf("%s_%d", filenameOverride, timestamp)
 	} else {
+		pathParts := strings.Split(nameParts[0], "/")
+		path := strings.Join(pathParts[:len(pathParts)-1], "/")
 
-		filename := strings.Join(nameParts[:len(nameParts)-1], ".")
+		var filename string
+		if len(pathParts) > 1 {
+			filename = fmt.Sprintf("%s/%s", path, filenameOverride)
+		} else {
+			filename = filenameOverride
+		}
+
 		fileExtension := nameParts[len(nameParts)-1]
 
 		sanitizedFilename = fmt.Sprintf("%s_%d.%s", filename, timestamp, fileExtension)
