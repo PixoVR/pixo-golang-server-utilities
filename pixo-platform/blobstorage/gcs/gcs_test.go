@@ -46,8 +46,9 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can sanitize a filename", func() {
-		sanitizedName := gcsClient.SanitizeFilename(filename)
-		Expect(sanitizedName).To(MatchRegexp(`^blob_\d+.txt$`))
+		Expect(gcsClient.SanitizeFilename(filename)).To(MatchRegexp(`^blob_\d+.txt$`))
+		Expect(gcsClient.SanitizeFilename("model/thumbnails/")).To(MatchRegexp(`^model/thumbnails/blob_\d+$`))
+		Expect(gcsClient.SanitizeFilename("model/thumbnails/file.txt")).To(MatchRegexp(`^model/thumbnails/blob_\d+.txt$`))
 	})
 
 	It("can upload a file", func() {
