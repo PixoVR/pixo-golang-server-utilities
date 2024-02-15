@@ -9,8 +9,12 @@ import (
 
 func (c Client) GetPublicURL(object client.UploadableObject) string {
 	bucketName := c.getBucketName(object)
-	destination := object.GetFileLocation()
-	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, destination)
+	fileLocation := object.GetFileLocation()
+	if fileLocation == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, fileLocation)
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {

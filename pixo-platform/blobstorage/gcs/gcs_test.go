@@ -40,6 +40,11 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(gcsClient).NotTo(BeNil())
 	})
 
+	It("can return empty string if object is empty", func() {
+		publicURL := gcsClient.GetPublicURL(client.PathUploadable{})
+		Expect(publicURL).To(Equal(""))
+	})
+
 	It("can format a public url", func() {
 		publicURL := gcsClient.GetPublicURL(object)
 		Expect(publicURL).To(Equal("https://storage.googleapis.com/dev-apex-primary-api-modules/testdata/test-file.txt"))
@@ -79,13 +84,13 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can get the signed url for the previously uploaded file", func() {
-		signedUrl, err := gcsClient.GetSignedURL(ctx, uploadedObject)
+		signedURL, err := gcsClient.GetSignedURL(ctx, uploadedObject)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(signedUrl).To(ContainSubstring(expectedSignedURLValue))
-		Expect(signedUrl).To(ContainSubstring(bucketName))
-		Expect(signedUrl).To(ContainSubstring(bucketFilepath))
-		Expect(signedUrl).NotTo(ContainSubstring(filename))
+		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
+		Expect(signedURL).To(ContainSubstring(bucketName))
+		Expect(signedURL).To(ContainSubstring(bucketFilepath))
+		Expect(signedURL).NotTo(ContainSubstring(filename))
 	})
 
 	It("can read a file", func() {

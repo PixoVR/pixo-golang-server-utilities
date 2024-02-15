@@ -3,6 +3,7 @@ package gcs
 import (
 	"cloud.google.com/go/storage"
 	"context"
+	"fmt"
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -31,7 +32,13 @@ func (c Client) getBucketName(object client.UploadableObject) string {
 
 func (c Client) GetPublicURL(object client.UploadableObject) string {
 	bucketName := c.getBucketName(object)
-	return "https://storage.googleapis.com/" + bucketName + "/" + object.GetFileLocation()
+
+	fileLocation := object.GetFileLocation()
+	if fileLocation == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, fileLocation)
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {
