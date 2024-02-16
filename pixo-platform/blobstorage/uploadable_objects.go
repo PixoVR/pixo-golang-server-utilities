@@ -1,4 +1,6 @@
-package client
+package blobstorage
+
+import "os"
 
 type BasicUploadable struct {
 	BucketName        string
@@ -25,4 +27,16 @@ func (p PathUploadable) GetBucketName() string {
 
 func (p PathUploadable) GetFileLocation() string {
 	return p.Filepath
+}
+
+type DefaultPublicUploadable struct {
+	Path string
+}
+
+func (p DefaultPublicUploadable) GetBucketName() string {
+	return os.Getenv("GOOGLE_STORAGE_PUBLIC")
+}
+
+func (p DefaultPublicUploadable) GetFileLocation() string {
+	return ParseFileLocationFromLink(p.Path)
 }

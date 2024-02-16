@@ -1,4 +1,4 @@
-package client
+package blobstorage
 
 import (
 	"fmt"
@@ -43,4 +43,19 @@ func SanitizeFilename(timestamp int64, originalFilename string) (sanitizedFilena
 	}
 
 	return sanitizedFilename
+}
+
+func ParseFileLocationFromLink(link string) string {
+	if !strings.Contains(link, "https://") {
+		return link
+	}
+
+	splitLink := strings.Split(link, "https://")
+	if len(splitLink) < 2 {
+		return ""
+	}
+
+	filePath := strings.Split(splitLink[1], "/")
+	filePath = filePath[1:]
+	return strings.Join(filePath, "/")
 }
