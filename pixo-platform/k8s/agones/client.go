@@ -9,7 +9,7 @@ import (
 
 type Client struct {
 	*versioned.Clientset
-	client     rest.Interface
+	//client     rest.Interface
 	BaseClient base.Client
 }
 

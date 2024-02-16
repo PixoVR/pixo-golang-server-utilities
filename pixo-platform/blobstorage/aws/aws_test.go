@@ -67,15 +67,16 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 
 		It("can upload a file to s3", func() {
 			fileReader, err := os.Open(localFilepath)
+			Expect(err).NotTo(HaveOccurred())
 
 			locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
 			uploadedObject = storage.PathUploadable{
 				BucketName: config.BucketName,
 				Filepath:   locationInBucket,
 			}
-
-			Expect(err).NotTo(HaveOccurred())
-			Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
 		})
 
 		It("can copy a file", func() {
@@ -177,6 +178,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 
 		It("can upload a file to s3", func() {
 			fileReader, err := os.Open(localFilepath)
+			Expect(err).NotTo(HaveOccurred())
 
 			locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
 			uploadedObject = storage.PathUploadable{
@@ -203,7 +205,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fileReader).NotTo(BeNil())
 			bytes := make([]byte, 7)
-			n, err := fileReader.Read(bytes)
+			n, _ := fileReader.Read(bytes)
 			//Expect(err).NotTo(HaveOccurred()) // TODO: This is returning an EOF error, but the file is still being read...
 			Expect(n).To(Equal(7))
 			Expect(string(bytes)).To(ContainSubstring("Go Blue"))

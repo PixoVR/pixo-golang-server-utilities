@@ -23,9 +23,9 @@ type UploadableObject interface {
 }
 
 type SignedURLPartsRequest struct {
-	ID        int    `json:"id,required"`
-	Filename  string `json:"filename,required"`
-	NumChunks int    `json:"numChunks,omitempty"`
+	ID        int    `json:"id" binding:"required"`
+	Filename  string `json:"filename" binding:"required"`
+	NumChunks int    `json:"numChunks" binding:"required"`
 }
 
 type ResumableUploadResponse struct {

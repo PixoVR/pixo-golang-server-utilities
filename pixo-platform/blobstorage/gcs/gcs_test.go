@@ -34,7 +34,12 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	)
 
 	BeforeAll(func() {
-		var err error
+		file, err := os.Create(localFilepath)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = file.WriteString("Go Blue")
+		Expect(err).NotTo(HaveOccurred())
+		defer file.Close()
+
 		storageClient, err = gcs.NewClient(gcs.Config{BucketName: bucketName})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(storageClient).NotTo(BeNil())
