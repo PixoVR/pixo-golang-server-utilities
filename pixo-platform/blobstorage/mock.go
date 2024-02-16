@@ -16,6 +16,7 @@ type MockStorageClient struct {
 	UploadFileError          error
 
 	FileExistsNumTimesCalled int
+	FileShouldExist          bool
 	FileExistsError          error
 
 	CopyNumTimesCalled int
@@ -72,7 +73,7 @@ func (f *MockStorageClient) FileExists(ctx context.Context, object UploadableObj
 		return false, f.FileExistsError
 	}
 
-	return true, nil
+	return f.FileShouldExist, nil
 }
 
 func (f *MockStorageClient) Copy(ctx context.Context, source, destination UploadableObject) error {
