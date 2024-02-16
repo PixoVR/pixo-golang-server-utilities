@@ -36,6 +36,33 @@ func NewMockStorageClient() *MockStorageClient {
 	return &MockStorageClient{FileShouldExist: true}
 }
 
+func (f *MockStorageClient) Reset() {
+	f.GetPublicURLNumTimesCalled = 0
+	f.GetPublicURLError = nil
+
+	f.GetSignedURLNumTimesCalled = 0
+	f.GetSignedURLError = nil
+
+	f.UploadFileNumTimesCalled = 0
+	f.UploadFileError = nil
+
+	f.FileExistsNumTimesCalled = 0
+	f.FileShouldExist = true
+	f.FileExistsError = nil
+
+	f.CopyNumTimesCalled = 0
+	f.CopyError = nil
+
+	f.ReadFileNumTimesCalled = 0
+	f.ReadFileError = nil
+
+	f.DeleteFileNumTimesCalled = 0
+	f.DeleteFileError = nil
+
+	f.InitResumableUploadNumTimesCalled = 0
+	f.InitResumableUploadError = nil
+}
+
 func (f *MockStorageClient) GetPublicURL(object UploadableObject) string {
 	f.GetPublicURLNumTimesCalled++
 
