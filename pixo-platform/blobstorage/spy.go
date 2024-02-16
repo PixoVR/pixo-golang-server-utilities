@@ -10,6 +10,7 @@ type StorageClientSpy struct {
 	GetSignedURLNumTimesCalled        int
 	UploadFileNumTimesCalled          int
 	FileExistsNumTimesCalled          int
+	CopyNumTimesCalled                int
 	ReadFileNumTimesCalled            int
 	DeleteFileNumTimesCalled          int
 	InitResumableUploadNumTimesCalled int
@@ -37,6 +38,11 @@ func (f *StorageClientSpy) UploadFile(ctx context.Context, object UploadableObje
 func (f *StorageClientSpy) FileExists(ctx context.Context, object UploadableObject) (bool, error) {
 	f.FileExistsNumTimesCalled++
 	return true, nil
+}
+
+func (f *StorageClientSpy) Copy(ctx context.Context, source, destination UploadableObject) error {
+	f.CopyNumTimesCalled++
+	return nil
 }
 
 func (f *StorageClientSpy) ReadFile(ctx context.Context, object UploadableObject) (io.ReadCloser, error) {
