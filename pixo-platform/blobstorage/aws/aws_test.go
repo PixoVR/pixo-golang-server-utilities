@@ -3,7 +3,7 @@ package aws_test
 import (
 	"context"
 	"fmt"
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	storage "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -30,12 +30,12 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			}
 			expectedSignedURLValue = "X-Amz-Algorithm=AWS4-HMAC-SHA256"
 
-			object = client.BasicUploadable{
+			object = storage.BasicUploadable{
 				BucketName:        config.BucketName,
 				UploadDestination: bucketFilePath,
 				Filename:          filename,
 			}
-			uploadedObject client.PathUploadable
+			uploadedObject storage.PathUploadable
 		)
 
 		BeforeAll(func() {
@@ -51,7 +51,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 		})
 
 		It("can return empty string if object is empty", func() {
-			publicURL := storageClient.GetPublicURL(client.PathUploadable{})
+			publicURL := storageClient.GetPublicURL(storage.PathUploadable{})
 			Expect(publicURL).To(Equal(""))
 		})
 
@@ -69,7 +69,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			fileReader, err := os.Open(localFilepath)
 
 			locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
-			uploadedObject = client.PathUploadable{
+			uploadedObject = storage.PathUploadable{
 				BucketName: config.BucketName,
 				Filepath:   locationInBucket,
 			}
@@ -79,7 +79,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 		})
 
 		It("can copy a file", func() {
-			destinationObject := client.PathUploadable{
+			destinationObject := storage.PathUploadable{
 				BucketName: config.BucketName,
 				Filepath:   "testdata/copied-file.txt",
 			}
@@ -120,7 +120,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(exists).To(BeTrue())
 
-			exists, err = storageClient.FileExists(ctx, client.BasicUploadable{
+			exists, err = storageClient.FileExists(ctx, storage.BasicUploadable{
 				BucketName:        config.BucketName,
 				UploadDestination: bucketFilePath,
 				Filename:          "nonexistent-file.txt",
@@ -160,12 +160,12 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			}
 			expectedSignedURLValue = "X-Amz-Algorithm=AWS4-HMAC-SHA256"
 
-			object = client.BasicUploadable{
+			object = storage.BasicUploadable{
 				BucketName:        config.BucketName,
 				UploadDestination: bucketFilePath,
 				Filename:          filename,
 			}
-			uploadedObject client.PathUploadable
+			uploadedObject storage.PathUploadable
 		)
 
 		BeforeAll(func() {
@@ -179,7 +179,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			fileReader, err := os.Open(localFilepath)
 
 			locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
-			uploadedObject = client.PathUploadable{
+			uploadedObject = storage.PathUploadable{
 				BucketName: config.BucketName,
 				Filepath:   locationInBucket,
 			}

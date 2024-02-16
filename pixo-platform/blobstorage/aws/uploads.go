@@ -2,7 +2,7 @@ package aws
 
 import (
 	"context"
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	storage "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, fileReader io.Reader) (string, error) {
+func (c Client) UploadFile(ctx context.Context, object storage.UploadableObject, fileReader io.Reader) (string, error) {
 
 	s3Client, err := c.getClient(ctx)
 	if err != nil {
@@ -32,7 +32,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 	return sanitizedFileLocation, nil
 }
 
-func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {
+func (c Client) InitResumableUpload(ctx context.Context, object storage.UploadableObject) (*storage.ResumableUploadResponse, error) {
 
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.region))
 	if err != nil {
@@ -52,7 +52,7 @@ func (c Client) InitResumableUpload(ctx context.Context, object client.Uploadabl
 		panic("failed to presign request, " + err.Error())
 	}
 
-	var uploadRes client.ResumableUploadResponse
+	var uploadRes storage.ResumableUploadResponse
 
 	uploadRes.SignedHeader = res.SignedHeader
 	uploadRes.UploadURL = res.URL

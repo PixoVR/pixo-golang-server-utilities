@@ -3,7 +3,7 @@ package gcs_test
 import (
 	"context"
 	"fmt"
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	storage "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/gcs"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -23,14 +23,14 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		storageClient          gcs.Client
 		expectedSignedURLValue = "X-Goog-Algorithm=GOOG4-RSA-SHA256"
 
-		object = client.BasicUploadable{
+		object = storage.BasicUploadable{
 			BucketName:        bucketName,
 			UploadDestination: bucketFilepath,
 			Filename:          filename,
 		}
 		ctx = context.Background()
 
-		uploadedObject client.PathUploadable
+		uploadedObject storage.PathUploadable
 	)
 
 	BeforeAll(func() {
@@ -41,7 +41,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can return empty string if object is empty", func() {
-		publicURL := storageClient.GetPublicURL(client.PathUploadable{})
+		publicURL := storageClient.GetPublicURL(storage.PathUploadable{})
 		Expect(publicURL).To(Equal(""))
 	})
 
@@ -61,7 +61,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
-		uploadedObject = client.PathUploadable{
+		uploadedObject = storage.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   locationInBucket,
 		}
@@ -71,7 +71,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can copy a file", func() {
-		destinationObject := client.PathUploadable{
+		destinationObject := storage.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   "testdata/copied-file.txt",
 		}
@@ -90,7 +90,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(exists).To(BeTrue())
 
-		exists, err = storageClient.FileExists(ctx, client.PathUploadable{
+		exists, err = storageClient.FileExists(ctx, storage.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   "testdata/does-not-exist.txt",
 		})
