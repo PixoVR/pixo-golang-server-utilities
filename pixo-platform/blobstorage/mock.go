@@ -33,7 +33,7 @@ type MockStorageClient struct {
 }
 
 func NewMockStorageClient() *MockStorageClient {
-	return &MockStorageClient{}
+	return &MockStorageClient{FileShouldExist: true}
 }
 
 func (f *MockStorageClient) GetPublicURL(object UploadableObject) string {
