@@ -2,11 +2,12 @@ package aws
 
 import (
 	"context"
-	"io"
-
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"io"
+	"log"
 )
 
 func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, fileReader io.Reader) (string, error) {
@@ -33,25 +34,29 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 
 func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {
 
-	presignClient := s3.NewPresignClient(s3.New(s3.Options{
-		Region: "us-east-1",
-	}))
-
-	input := &s3.GetObjectInput{
-		Bucket: aws.String(c.getBucketName(object)),
-		Key:    aws.String(object.GetFileLocation()),
-	}
-
-	presignedResponse, err := GetPresignedURL(ctx, presignClient, input)
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.region))
 	if err != nil {
-		return nil, err
+		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
-	res := &client.ResumableUploadResponse{
-		UploadURL:    presignedResponse.URL,
-		Method:       presignedResponse.Method,
-		SignedHeader: presignedResponse.SignedHeader,
+	s3Client := s3.NewFromConfig(cfg)
+	presignClient := s3.NewPresignClient(s3Client)
+
+	sanitizedFileLocation := c.SanitizeFilename(object.GetFileLocation())
+
+	res, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(c.getBucketName(object)),
+		Key:    aws.String(sanitizedFileLocation),
+	})
+	if err != nil {
+		panic("failed to presign request, " + err.Error())
 	}
 
-	return res, nil
+	var uploadRes client.ResumableUploadResponse
+
+	uploadRes.SignedHeader = res.SignedHeader
+	uploadRes.UploadURL = res.URL
+	uploadRes.Method = res.Method
+
+	return &uploadRes, nil
 }

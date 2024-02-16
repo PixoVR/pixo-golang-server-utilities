@@ -5,6 +5,7 @@ import (
 	"fmt"
 	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"time"
 )
 
 func (c Client) GetPublicURL(object client.UploadableObject) string {
@@ -32,9 +33,9 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		Key:    &destination,
 	}
 
-	psClient := s3.NewPresignClient(s3Client)
+	presignClient := s3.NewPresignClient(s3Client)
 
-	resp, err := GetPresignedURL(ctx, psClient, input)
+	resp, err := presignClient.PresignGetObject(ctx, input, func(options *s3.PresignOptions) { options.Expires = time.Second * 3600 })
 	if err != nil {
 		return "", err
 	}

@@ -20,7 +20,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		bucketName     = "dev-apex-primary-api-modules"
 		bucketFilepath = "testdata"
 
-		gcsClient              gcs.Client
+		storageClient          gcs.Client
 		expectedSignedURLValue = "X-Goog-Algorithm=GOOG4-RSA-SHA256"
 
 		object = client.BasicUploadable{
@@ -35,32 +35,32 @@ var _ = Describe("Blob Storage", Ordered, func() {
 
 	BeforeAll(func() {
 		var err error
-		gcsClient, err = gcs.NewClient(gcs.Config{BucketName: bucketName})
+		storageClient, err = gcs.NewClient(gcs.Config{BucketName: bucketName})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(gcsClient).NotTo(BeNil())
+		Expect(storageClient).NotTo(BeNil())
 	})
 
 	It("can return empty string if object is empty", func() {
-		publicURL := gcsClient.GetPublicURL(client.PathUploadable{})
+		publicURL := storageClient.GetPublicURL(client.PathUploadable{})
 		Expect(publicURL).To(Equal(""))
 	})
 
 	It("can format a public url", func() {
-		publicURL := gcsClient.GetPublicURL(object)
+		publicURL := storageClient.GetPublicURL(object)
 		Expect(publicURL).To(Equal("https://storage.googleapis.com/dev-apex-primary-api-modules/testdata/test-file.txt"))
 	})
 
 	It("can sanitize a filename", func() {
-		Expect(gcsClient.SanitizeFilename(filename)).To(MatchRegexp(`^blob_\d+.txt$`))
-		Expect(gcsClient.SanitizeFilename("model/thumbnails/")).To(MatchRegexp(`^model/thumbnails/blob_\d+$`))
-		Expect(gcsClient.SanitizeFilename("model/thumbnails/file.txt")).To(MatchRegexp(`^model/thumbnails/blob_\d+.txt$`))
+		Expect(storageClient.SanitizeFilename(filename)).To(MatchRegexp(`^blob_\d+.txt$`))
+		Expect(storageClient.SanitizeFilename("model/thumbnails/")).To(MatchRegexp(`^model/thumbnails/blob_\d+$`))
+		Expect(storageClient.SanitizeFilename("model/thumbnails/file.txt")).To(MatchRegexp(`^model/thumbnails/blob_\d+.txt$`))
 	})
 
 	It("can upload a file", func() {
 		fileReader, err := os.Open(localFilepath)
 		Expect(err).NotTo(HaveOccurred())
 
-		locationInBucket, err := gcsClient.UploadFile(ctx, object, fileReader)
+		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
 		uploadedObject = client.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   locationInBucket,
@@ -70,12 +70,27 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
 	})
 
-	It("can check if a file exists", func() {
-		exists, err := gcsClient.FileExists(ctx, uploadedObject)
+	It("can copy a file", func() {
+		destinationObject := client.PathUploadable{
+			BucketName: bucketName,
+			Filepath:   "testdata/copied-file.txt",
+		}
+
+		err := storageClient.Copy(ctx, uploadedObject, destinationObject)
+
+		Expect(err).NotTo(HaveOccurred())
+		exists, err := storageClient.FileExists(ctx, destinationObject)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(exists).To(BeTrue())
 
-		exists, err = gcsClient.FileExists(ctx, client.PathUploadable{
+	})
+
+	It("can check if a file exists", func() {
+		exists, err := storageClient.FileExists(ctx, uploadedObject)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exists).To(BeTrue())
+
+		exists, err = storageClient.FileExists(ctx, client.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   "testdata/does-not-exist.txt",
 		})
@@ -84,7 +99,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can get the signed url for the previously uploaded file", func() {
-		signedURL, err := gcsClient.GetSignedURL(ctx, uploadedObject)
+		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
@@ -94,7 +109,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can read a file", func() {
-		fileReader, err := gcsClient.ReadFile(ctx, uploadedObject)
+		fileReader, err := storageClient.ReadFile(ctx, uploadedObject)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fileReader).NotTo(BeNil())
 
@@ -108,15 +123,15 @@ var _ = Describe("Blob Storage", Ordered, func() {
 
 	It("can delete a file", func() {
 		time.Sleep(1 * time.Second) // wait 1 second to allow for retention policy to be met
-		err := gcsClient.DeleteFile(ctx, uploadedObject)
+		err := storageClient.DeleteFile(ctx, uploadedObject)
 		Expect(err).NotTo(HaveOccurred())
-		fileReader, err := gcsClient.ReadFile(ctx, uploadedObject)
+		fileReader, err := storageClient.ReadFile(ctx, uploadedObject)
 		Expect(err).To(HaveOccurred())
 		Expect(fileReader).To(BeNil())
 	})
 
 	It("can initiate a multipart upload", func() {
-		res, err := gcsClient.InitResumableUpload(ctx, object)
+		res, err := storageClient.InitResumableUpload(ctx, object)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res).NotTo(BeNil())
