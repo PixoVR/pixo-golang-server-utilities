@@ -18,7 +18,6 @@ type Client struct {
 }
 
 func NewClient(config Config) (Client, error) {
-
 	if config.BucketName == "" {
 		config.BucketName = os.Getenv("GOOGLE_STORAGE_BUCKET")
 	}

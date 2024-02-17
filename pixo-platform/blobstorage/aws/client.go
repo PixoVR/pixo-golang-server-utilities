@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"errors"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"os"
 
@@ -45,10 +44,6 @@ func NewClient(config Config) (Client, error) {
 }
 
 func (c Client) getClient(ctx context.Context) (*s3.Client, error) {
-	if c.bucketName == "" {
-		return nil, errors.New("bucket is empty")
-	}
-
 	if c.region == "" {
 		c.region = "us-east-1"
 	}
