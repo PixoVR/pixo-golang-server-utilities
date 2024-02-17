@@ -2,6 +2,7 @@ package blobstorage_test
 
 import (
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/aws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -26,7 +27,7 @@ var _ = Describe("Sanitize", func() {
 	})
 
 	It("can parse the path for an image field object", func() {
-		pathUploadable := blobstorage.DefaultPublicUploadable{
+		pathUploadable := aws.DefaultPublicUploadable{
 			Path: "https://bucket.s3.amazonaws.com/images/modules/distributor/image.png",
 		}
 		Expect(pathUploadable.GetFileLocation()).To(Equal("images/modules/distributor/image.png"))
