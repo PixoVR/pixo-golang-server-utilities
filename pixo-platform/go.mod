@@ -29,7 +29,7 @@ require (
 	golang.org/x/oauth2 v0.17.0
 	google.golang.org/api v0.166.0
 	google.golang.org/protobuf v1.32.0
-	helm.sh/helm/v3 v3.14.1
+	helm.sh/helm/v3 v3.14.2
 	k8s.io/api v0.29.2
 	k8s.io/apimachinery v0.29.2
 	k8s.io/cli-runtime v0.29.2
