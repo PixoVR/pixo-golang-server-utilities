@@ -28,7 +28,7 @@ func (c ContextRequest) String() string {
 }
 
 func GetGinContext(ctx context.Context) *gin.Context {
-	ginContext, ok := ctx.Value(ContextRequestGin).(*gin.Context)
+	ginContext, ok := ctx.Value(ContextRequestGin.String()).(*gin.Context)
 	if !ok {
 		return nil
 	}
