@@ -36,17 +36,17 @@ func GetGinContext(ctx context.Context) *gin.Context {
 	return ginContext
 }
 
-func GetIPAddress(userContext context.Context) string {
-	ipAddress, ok := userContext.Value(ContextRequestHost).(string)
+func GetIPAddress(ctx context.Context) string {
+	ipAddress, ok := ctx.Value(ContextRequestHost.String()).(string)
 	if !ok {
-		return "127.0.0.1"
+		return ""
 	}
 
 	return ipAddress
 }
 
 func GetCurrentUserID(userContext context.Context) int {
-	user, ok := userContext.Value(ContextRequestAuthentication).(*platform.User)
+	user, ok := userContext.Value(ContextRequestAuthentication.String()).(*platform.User)
 	if !ok {
 		return 0
 	}
@@ -55,7 +55,7 @@ func GetCurrentUserID(userContext context.Context) int {
 }
 
 func GetAuthorizationEnforcer(userContext context.Context) *casbin.Enforcer {
-	enforcer, ok := userContext.Value(ContextRequestAuthorization).(*casbin.Enforcer)
+	enforcer, ok := userContext.Value(ContextRequestAuthorization.String()).(*casbin.Enforcer)
 	if !ok {
 		return nil
 	}

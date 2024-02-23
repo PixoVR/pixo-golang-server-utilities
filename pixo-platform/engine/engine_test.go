@@ -2,7 +2,9 @@ package engine_test
 
 import (
 	"fmt"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/engine"
+	"github.com/gin-gonic/gin"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"net/http"
@@ -11,25 +13,23 @@ import (
 
 var _ = Describe("Engine", func() {
 
-	var w *httptest.ResponseRecorder
+	var (
+		e *engine.CustomEngine
+		w *httptest.ResponseRecorder
+	)
 
 	BeforeEach(func() {
 		w = httptest.NewRecorder()
-	})
-
-	It("can create an engine with defaults", func() {
-		config := engine.Config{}
-
-		e := engine.NewEngine(config)
-
+		e = engine.NewEngine(engine.Config{})
 		Expect(e).NotTo(BeNil())
 		Expect(e.Port()).To(Equal(engine.DefaultPort))
 		Expect(e.PortString()).To(Equal(fmt.Sprintf(":%d", engine.DefaultPort)))
 		Expect(e.BasePath()).To(Equal(engine.DefaultBasePath))
+	})
 
+	It("can create an engine with defaults", func() {
 		internalEngine := e.Engine()
 		Expect(e).NotTo(BeNil())
-
 		req, err := http.NewRequest(http.MethodGet, "/api/health", nil)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -49,9 +49,7 @@ var _ = Describe("Engine", func() {
 			InternalRoutes:    true,
 			ExternalRoutes:    true,
 		}
-
 		engine := engine.NewEngine(config)
-
 		Expect(engine).NotTo(BeNil())
 		Expect(engine.Port()).To(Equal(config.Port))
 		Expect(engine.BasePath()).To(Equal(config.BasePath))
@@ -68,6 +66,19 @@ var _ = Describe("Engine", func() {
 		e.ServeHTTP(w, req)
 
 		Expect(err).To(BeNil())
+		Expect(w.Code).To(Equal(http.StatusOK))
+	})
+
+	It("uses middleware to add a host to the context", func() {
+		ip := "127.0.0.1"
+		e.Engine().GET("/test", func(c *gin.Context) {
+			Expect(config.GetIPAddress(c)).To(Equal(ip))
+		})
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.RemoteAddr = "127.0.0.1:8000"
+
+		e.Engine().ServeHTTP(w, req)
+
 		Expect(w.Code).To(Equal(http.StatusOK))
 	})
 
