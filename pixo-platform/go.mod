@@ -27,7 +27,7 @@ require (
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	golang.org/x/oauth2 v0.17.0
-	google.golang.org/api v0.166.0
+	google.golang.org/api v0.167.0
 	google.golang.org/protobuf v1.32.0
 	helm.sh/helm/v3 v3.14.2
 	k8s.io/api v0.29.2
