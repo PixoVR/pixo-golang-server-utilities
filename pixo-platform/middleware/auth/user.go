@@ -7,7 +7,7 @@ import (
 )
 
 func GetUser(ctx context.Context) *platform.User {
-	user, ok := ctx.Value(config.ContextRequestAuthentication.String()).(*platform.User)
+	user, ok := ctx.Value(config.ContextRequestAuthentication).(*platform.User)
 	if !ok {
 		return nil
 	}
