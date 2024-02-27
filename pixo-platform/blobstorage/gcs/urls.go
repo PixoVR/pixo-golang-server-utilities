@@ -42,8 +42,7 @@ func (c Client) GetPublicURL(object client.UploadableObject) string {
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {
-	jsonKeyPath := os.Getenv("GOOGLE_JSON_KEY")
-	data, err := os.ReadFile(jsonKeyPath)
+	data, err := os.ReadFile(os.Getenv("GOOGLE_JSON_KEY"))
 	if err != nil {
 		return "", err
 	}
@@ -66,10 +65,5 @@ func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject
 		PrivateKey:     conf.PrivateKey,
 	}
 
-	url, err := storageClient.Bucket(c.getBucketName(object)).SignedURL(object.GetFileLocation(), opts)
-	if err != nil {
-		return "", err
-	}
-
-	return url, nil
+	return storageClient.Bucket(c.getBucketName(object)).SignedURL(object.GetFileLocation(), opts)
 }

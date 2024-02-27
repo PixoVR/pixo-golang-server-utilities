@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestAws(t *testing.T) {
+func TestS3(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "S3 Storage Suite")
 }

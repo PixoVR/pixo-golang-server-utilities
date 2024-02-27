@@ -1,22 +1,23 @@
 package gcs_test
 
 import (
+	"bytes"
 	"context"
-	"fmt"
 	storage "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/gcs"
+	"github.com/go-resty/resty/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"io"
+	"net/http"
 	"os"
 	"time"
 )
 
-var _ = Describe("Blob Storage", Ordered, func() {
+var _ = Describe("Google Cloud Storage", Ordered, func() {
 
 	var (
-		localTestDir   = "../testdata"
 		filename       = "test-file.txt"
-		localFilepath  = fmt.Sprintf("%s/%s", localTestDir, filename)
 		bucketName     = "dev-apex-primary-api-modules"
 		bucketFilepath = "testdata"
 
@@ -34,7 +35,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	)
 
 	BeforeAll(func() {
-		file, err := os.Create(localFilepath)
+		file, err := os.Create(filename)
 		Expect(err).NotTo(HaveOccurred())
 		_, err = file.WriteString("Go Blue")
 		Expect(err).NotTo(HaveOccurred())
@@ -43,6 +44,10 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		storageClient, err = gcs.NewClient(gcs.Config{BucketName: bucketName})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(storageClient).NotTo(BeNil())
+	})
+
+	AfterAll(func() {
+		Expect(os.Remove(filename)).NotTo(HaveOccurred())
 	})
 
 	It("can return empty string if object is empty", func() {
@@ -62,7 +67,7 @@ var _ = Describe("Blob Storage", Ordered, func() {
 	})
 
 	It("can upload a file", func() {
-		fileReader, err := os.Open(localFilepath)
+		fileReader, err := os.Open(filename)
 		Expect(err).NotTo(HaveOccurred())
 
 		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
@@ -111,6 +116,16 @@ var _ = Describe("Blob Storage", Ordered, func() {
 		Expect(signedURL).To(ContainSubstring(bucketName))
 		Expect(signedURL).To(ContainSubstring(bucketFilepath))
 		Expect(signedURL).NotTo(ContainSubstring(filename))
+		httpClient := resty.New()
+		response, err := httpClient.R().Get(signedURL)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(response).NotTo(BeNil())
+		Expect(response.StatusCode()).To(Equal(http.StatusOK))
+		reader := bytes.NewReader(response.Body())
+		Expect(reader).NotTo(BeNil())
+		data, err := io.ReadAll(reader)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(data)).To(Equal("Go Blue"))
 	})
 
 	It("can read a file", func() {

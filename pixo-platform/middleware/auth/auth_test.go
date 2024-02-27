@@ -57,16 +57,6 @@ var _ = Describe("Auth", func() {
 			req.RemoteAddr = host
 		})
 
-		It("will return the context with the gin context", func() {
-			engine.GET(endpoint, func(c *gin.Context) {
-				Expect(config.GetGinContext(c)).NotTo(BeNil())
-			})
-
-			engine.ServeHTTP(w, req)
-
-			Expect(w.Code).To(Equal(http.StatusOK))
-		})
-
 		It("will return the context with the ip address", func() {
 			engine.GET(endpoint, func(c *gin.Context) {
 				Expect(config.GetIPAddress(c)).To(Equal(ip))

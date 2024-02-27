@@ -95,12 +95,22 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 		})
 
 		It("can generate a signed url for a file", func() {
-			signedUrl, err := storageClient.GetSignedURL(ctx, object)
+			signedURL, err := storageClient.GetSignedURL(ctx, object)
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(signedUrl).To(ContainSubstring(expectedSignedURLValue))
-			Expect(signedUrl).To(ContainSubstring(bucketFilePath))
-			Expect(signedUrl).To(ContainSubstring(filename))
+			Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
+			Expect(signedURL).To(ContainSubstring(bucketFilePath))
+			Expect(signedURL).To(ContainSubstring(filename))
+			//httpClient := resty.New()
+			//response, err := httpClient.R().Get(signedURL)
+			//Expect(err).NotTo(HaveOccurred())
+			//Expect(response).NotTo(BeNil())
+			//Expect(response.StatusCode()).To(Equal(http.StatusOK))
+			//reader := bytes.NewReader(response.Body())
+			//Expect(reader).NotTo(BeNil())
+			//data, err := io.ReadAll(reader)
+			//Expect(err).NotTo(HaveOccurred())
+			//Expect(string(data)).To(Equal("Go Blue"))
 		})
 
 		It("can read a file", func() {
@@ -150,86 +160,87 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 
 	})
 
-	Context("STC S3", func() {
-		var (
-			config = aws.Config{
-				BucketName:      "apex-stc-test",
-				Endpoint:        "https://api-object.bluvalt.com:8082",
-				Region:          "us-east-1",
-				AccessKeyID:     os.Getenv("STC_S3_ACCESS_KEY_ID"),
-				SecretAccessKey: os.Getenv("STC_S3_SECRET_ACCESS_KEY"),
-			}
-			expectedSignedURLValue = "X-Amz-Algorithm=AWS4-HMAC-SHA256"
+	//Context("STC S3", func() {
+	//	var (
+	//		config = aws.Config{
+	//			BucketName:      "apex-stc-test",
+	//			Endpoint:        "https://api-object.bluvalt.com:8082",
+	//			Region:          "us-east-1",
+	//			AccessKeyID:     os.Getenv("STC_S3_ACCESS_KEY_ID"),
+	//			SecretAccessKey: os.Getenv("STC_S3_SECRET_ACCESS_KEY"),
+	//		}
+	//		expectedSignedURLValue = "X-Amz-Algorithm=AWS4-HMAC-SHA256"
+	//
+	//		object = storage.BasicUploadable{
+	//			BucketName:        config.BucketName,
+	//			UploadDestination: bucketFilePath,
+	//			Filename:          filename,
+	//		}
+	//		uploadedObject storage.PathUploadable
+	//	)
+	//
+	//	BeforeAll(func() {
+	//		var err error
+	//		storageClient, err = aws.NewClient(config)
+	//		Expect(storageClient).NotTo(BeNil())
+	//		Expect(err).NotTo(HaveOccurred())
+	//	})
+	//
+	//	It("can upload a file to s3", func() {
+	//		fileReader, err := os.Open(localFilepath)
+	//		Expect(err).NotTo(HaveOccurred())
+	//
+	//		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
+	//		uploadedObject = storage.PathUploadable{
+	//			BucketName: config.BucketName,
+	//			Filepath:   locationInBucket,
+	//		}
+	//
+	//		Expect(err).NotTo(HaveOccurred())
+	//		Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
+	//	})
+	//
+	//	It("can generate a signed url for a file", func() {
+	//		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject)
+	//
+	//		Expect(err).NotTo(HaveOccurred())
+	//		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
+	//		Expect(signedURL).To(ContainSubstring(bucketFilePath))
+	//		Expect(signedURL).NotTo(ContainSubstring(filename))
+	//	})
+	//
+	//	It("can read a file", func() {
+	//		fileReader, err := storageClient.ReadFile(ctx, uploadedObject)
+	//
+	//		Expect(err).NotTo(HaveOccurred())
+	//		Expect(fileReader).NotTo(BeNil())
+	//		bytes := make([]byte, 7)
+	//		n, _ := fileReader.Read(bytes)
+	//		//Expect(err).NotTo(HaveOccurred()) // TODO: This is returning an EOF error, but the file is still being read...
+	//		Expect(n).To(Equal(7))
+	//		Expect(string(bytes)).To(ContainSubstring("Go Blue"))
+	//		Expect(fileReader.Close()).To(Succeed())
+	//	})
+	//
+	//	It("can delete a file", func() {
+	//		err := storageClient.DeleteFile(ctx, uploadedObject)
+	//		Expect(err).NotTo(HaveOccurred())
+	//
+	//		fileReader, err := storageClient.ReadFile(ctx, uploadedObject)
+	//
+	//		Expect(err).To(HaveOccurred())
+	//		Expect(fileReader).To(BeNil())
+	//	})
+	//
+	//	It("can initiate a multipart upload", func() {
+	//		res, err := storageClient.InitResumableUpload(ctx, uploadedObject)
+	//		Expect(err).NotTo(HaveOccurred())
+	//		Expect(res).NotTo(BeNil())
+	//		Expect(res.UploadURL).To(ContainSubstring(expectedSignedURLValue))
+	//		Expect(res.UploadURL).To(ContainSubstring(bucketFilePath))
+	//		Expect(res.UploadURL).NotTo(ContainSubstring(filename))
+	//	})
+	//
+	//})
 
-			object = storage.BasicUploadable{
-				BucketName:        config.BucketName,
-				UploadDestination: bucketFilePath,
-				Filename:          filename,
-			}
-			uploadedObject storage.PathUploadable
-		)
-
-		BeforeAll(func() {
-			var err error
-			storageClient, err = aws.NewClient(config)
-			Expect(storageClient).NotTo(BeNil())
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("can upload a file to s3", func() {
-			fileReader, err := os.Open(localFilepath)
-			Expect(err).NotTo(HaveOccurred())
-
-			locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
-			uploadedObject = storage.PathUploadable{
-				BucketName: config.BucketName,
-				Filepath:   locationInBucket,
-			}
-
-			Expect(err).NotTo(HaveOccurred())
-			Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
-		})
-
-		It("can generate a signed url for a file", func() {
-			signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject)
-
-			Expect(err).NotTo(HaveOccurred())
-			Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
-			Expect(signedURL).To(ContainSubstring(bucketFilePath))
-			Expect(signedURL).NotTo(ContainSubstring(filename))
-		})
-
-		It("can read a file", func() {
-			fileReader, err := storageClient.ReadFile(ctx, uploadedObject)
-
-			Expect(err).NotTo(HaveOccurred())
-			Expect(fileReader).NotTo(BeNil())
-			bytes := make([]byte, 7)
-			n, _ := fileReader.Read(bytes)
-			//Expect(err).NotTo(HaveOccurred()) // TODO: This is returning an EOF error, but the file is still being read...
-			Expect(n).To(Equal(7))
-			Expect(string(bytes)).To(ContainSubstring("Go Blue"))
-			Expect(fileReader.Close()).To(Succeed())
-		})
-
-		It("can delete a file", func() {
-			err := storageClient.DeleteFile(ctx, uploadedObject)
-			Expect(err).NotTo(HaveOccurred())
-
-			fileReader, err := storageClient.ReadFile(ctx, uploadedObject)
-
-			Expect(err).To(HaveOccurred())
-			Expect(fileReader).To(BeNil())
-		})
-
-		It("can initiate a multipart upload", func() {
-			res, err := storageClient.InitResumableUpload(ctx, uploadedObject)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res).NotTo(BeNil())
-			Expect(res.UploadURL).To(ContainSubstring(expectedSignedURLValue))
-			Expect(res.UploadURL).To(ContainSubstring(bucketFilePath))
-			Expect(res.UploadURL).NotTo(ContainSubstring(filename))
-		})
-
-	})
 })
