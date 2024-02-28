@@ -118,6 +118,10 @@ func (f *MockStorageClient) FindFilesWithName(ctx context.Context, bucketName, p
 		return nil, f.FindFilesWithNameError
 	}
 
+	if filename == "" {
+		return nil, nil
+	}
+
 	return []string{"one/" + filename, "two/" + filename}, nil
 }
 
