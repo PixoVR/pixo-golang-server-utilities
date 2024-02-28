@@ -25,12 +25,17 @@ type MockStorageClient struct {
 	ReadFileNumTimesCalled int
 	ReadFileError          error
 
+	FindFilesWithNameNumTimesCalled int
+	FindFilesWithNameError          error
+
 	DeleteFileNumTimesCalled int
 	DeleteFileError          error
 
 	InitResumableUploadNumTimesCalled int
 	InitResumableUploadError          error
 }
+
+var _ StorageClient = (*MockStorageClient)(nil)
 
 func NewMockStorageClient() *MockStorageClient {
 	return &MockStorageClient{FileShouldExist: true}
@@ -55,6 +60,9 @@ func (f *MockStorageClient) Reset() {
 
 	f.ReadFileNumTimesCalled = 0
 	f.ReadFileError = nil
+
+	f.FindFilesWithNameNumTimesCalled = 0
+	f.FindFilesWithNameError = nil
 
 	f.DeleteFileNumTimesCalled = 0
 	f.DeleteFileError = nil
@@ -101,6 +109,16 @@ func (f *MockStorageClient) FileExists(ctx context.Context, object UploadableObj
 	}
 
 	return f.FileShouldExist, nil
+}
+
+func (f *MockStorageClient) FindFilesWithName(ctx context.Context, bucketName, prefix, filename string) ([]string, error) {
+	f.FindFilesWithNameNumTimesCalled++
+
+	if f.FindFilesWithNameError != nil {
+		return nil, f.FindFilesWithNameError
+	}
+
+	return []string{"one/" + filename, "two/" + filename}, nil
 }
 
 func (f *MockStorageClient) Copy(ctx context.Context, source, destination UploadableObject) error {
