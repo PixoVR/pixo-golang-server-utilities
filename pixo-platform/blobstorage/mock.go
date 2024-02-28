@@ -26,6 +26,7 @@ type MockStorageClient struct {
 	ReadFileError          error
 
 	FindFilesWithNameNumTimesCalled int
+	FindFilesWithNameEmpty          bool
 	FindFilesWithNameError          error
 
 	DeleteFileNumTimesCalled int
@@ -118,7 +119,7 @@ func (f *MockStorageClient) FindFilesWithName(ctx context.Context, bucketName, p
 		return nil, f.FindFilesWithNameError
 	}
 
-	if filename == "" {
+	if f.FindFilesWithNameEmpty {
 		return nil, nil
 	}
 
