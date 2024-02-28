@@ -7,6 +7,7 @@ import (
 )
 
 type StorageClient interface {
+	FindFilesWithName(ctx context.Context, bucketName, prefix, filename string) ([]string, error)
 	GetPublicURL(object UploadableObject) string
 	GetSignedURL(ctx context.Context, object UploadableObject) (string, error)
 	FileExists(ctx context.Context, object UploadableObject) (bool, error)

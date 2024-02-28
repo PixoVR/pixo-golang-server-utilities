@@ -1,11 +1,11 @@
 package gcs
 
 import (
-	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"os"
 )
 
-var _ client.StorageClient = (*Client)(nil)
+var _ blobstorage.StorageClient = (*Client)(nil)
 
 type Config struct {
 	BucketName string

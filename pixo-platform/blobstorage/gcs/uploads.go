@@ -4,12 +4,12 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
-	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"io"
 	"net/http"
 )
 
-func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, fileReader io.Reader) (string, error) {
+func (c Client) UploadFile(ctx context.Context, object blobstorage.UploadableObject, fileReader io.Reader) (string, error) {
 
 	storageClient, err := storage.NewClient(ctx)
 	if err != nil {
@@ -37,7 +37,7 @@ func (c Client) UploadFile(ctx context.Context, object client.UploadableObject, 
 	return sanitizedFileLocation, nil
 }
 
-func (c Client) InitResumableUpload(ctx context.Context, object client.UploadableObject) (*client.ResumableUploadResponse, error) {
+func (c Client) InitResumableUpload(ctx context.Context, object blobstorage.UploadableObject) (*blobstorage.ResumableUploadResponse, error) {
 	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.getBucketName(object), object.GetFileLocation())
 
 	request, err := http.NewRequestWithContext(ctx, "POST", url, nil)
@@ -67,7 +67,7 @@ func (c Client) InitResumableUpload(ctx context.Context, object client.Uploadabl
 		return nil, fmt.Errorf("unable to initiate multipart upload: %s", bodyString)
 	}
 
-	return &client.ResumableUploadResponse{
+	return &blobstorage.ResumableUploadResponse{
 		UploadURL: response.Header.Get("Location"),
 		Method:    http.MethodPut,
 	}, nil

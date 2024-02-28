@@ -26,6 +26,11 @@ var _ = Describe("Sanitize", func() {
 		})
 	})
 
+	It("can parse the filename from a file location", func() {
+		filename := blobstorage.GetFilenameFromLocation("images/modules/distributor/file.png")
+		Expect(filename).To(Equal("file.png"))
+	})
+
 	It("can parse the path for an image field object", func() {
 		pathUploadable := aws.DefaultPublicUploadable{
 			Path: "https://bucket.s3.amazonaws.com/images/modules/distributor/image.png",

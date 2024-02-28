@@ -14,12 +14,23 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 
 	var (
 		bucketFilePath = "testdata"
-		localFileDir   = "../testdata"
 		filename       = "test-file.txt"
-		localFilepath  = fmt.Sprintf("%s/%s", localFileDir, filename)
 		storageClient  aws.Client
 		ctx            = context.Background()
 	)
+
+	BeforeAll(func() {
+		file, err := os.Create(filename)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = file.WriteString("Go Blue")
+		Expect(err).NotTo(HaveOccurred())
+		defer file.Close()
+	})
+
+	AfterAll(func() {
+		Expect(os.Remove(filename)).NotTo(HaveOccurred())
+	})
+
 	Context("General S3", func() {
 		var (
 			config = aws.Config{
@@ -66,7 +77,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 		})
 
 		It("can upload a file to s3", func() {
-			fileReader, err := os.Open(localFilepath)
+			fileReader, err := os.Open(filename)
 			Expect(err).NotTo(HaveOccurred())
 
 			locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
@@ -140,6 +151,16 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 			Expect(exists).To(BeFalse())
 		})
 
+		It("can crawl the bucket to find a file by filename", func() {
+			filename := storage.GetFilenameFromLocation(uploadedObject.Filepath)
+
+			locations, err := storageClient.FindFilesWithName(ctx, uploadedObject.BucketName, "", filename)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(locations).To(HaveLen(1))
+			Expect(locations[0]).To(Equal(uploadedObject.Filepath))
+		})
+
 		It("can delete a file", func() {
 			err := storageClient.DeleteFile(ctx, uploadedObject)
 
@@ -180,24 +201,29 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 	//	)
 	//
 	//	BeforeAll(func() {
-	//		var err error
+	//		file, err := os.Create(filename)
+	//		Expect(err).NotTo(HaveOccurred())
+	//		_, err = file.WriteString("Go Blue")
+	//		Expect(err).NotTo(HaveOccurred())
+	//		defer file.Close()
+	//
 	//		storageClient, err = aws.NewClient(config)
 	//		Expect(storageClient).NotTo(BeNil())
 	//		Expect(err).NotTo(HaveOccurred())
 	//	})
 	//
 	//	It("can upload a file to s3", func() {
-	//		fileReader, err := os.Open(localFilepath)
+	//		fileReader, err := os.Open(filename)
 	//		Expect(err).NotTo(HaveOccurred())
 	//
 	//		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
+	//
+	//		Expect(err).NotTo(HaveOccurred())
+	//		Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
 	//		uploadedObject = storage.PathUploadable{
 	//			BucketName: config.BucketName,
 	//			Filepath:   locationInBucket,
 	//		}
-	//
-	//		Expect(err).NotTo(HaveOccurred())
-	//		Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
 	//	})
 	//
 	//	It("can generate a signed url for a file", func() {

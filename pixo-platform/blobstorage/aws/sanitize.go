@@ -1,10 +1,10 @@
 package aws
 
 import (
-	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"time"
 )
 
 func (c Client) SanitizeFilename(filename string) string {
-	return client.SanitizeFilename(time.Now().Unix(), filename)
+	return blobstorage.SanitizeFilename(time.Now().Unix(), filename)
 }

@@ -59,3 +59,11 @@ func ParseFileLocationFromLink(link string) string {
 	filePath = filePath[1:]
 	return strings.Join(filePath, "/")
 }
+
+func GetFilenameFromLocation(location string) string {
+	parts := strings.Split(location, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	return parts[len(parts)-1]
+}

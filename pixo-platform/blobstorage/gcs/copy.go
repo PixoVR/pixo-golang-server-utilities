@@ -3,14 +3,15 @@ package gcs
 import (
 	"cloud.google.com/go/storage"
 	"context"
-	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 )
 
-func (c Client) Copy(ctx context.Context, src, dst client.UploadableObject) error {
+func (c Client) Copy(ctx context.Context, src, dst blobstorage.UploadableObject) error {
 	storageClient, err := storage.NewClient(ctx)
 	if err != nil {
 		return err
 	}
+	defer storageClient.Close()
 
 	srcBucketName := c.getBucketName(src)
 	srcFileLocation := src.GetFileLocation()

@@ -71,13 +71,13 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
 		uploadedObject = storage.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   locationInBucket,
 		}
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
 	})
 
 	It("can copy a file", func() {
@@ -104,8 +104,19 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 			BucketName: bucketName,
 			Filepath:   "testdata/does-not-exist.txt",
 		})
+
 		Expect(err).NotTo(HaveOccurred())
 		Expect(exists).To(BeFalse())
+	})
+
+	It("can crawl the bucket to find a file by filename", func() {
+		filename := storage.GetFilenameFromLocation(uploadedObject.Filepath)
+
+		locations, err := storageClient.FindFilesWithName(ctx, uploadedObject.BucketName, "", filename)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(locations).To(HaveLen(1))
+		Expect(locations[0]).To(Equal(uploadedObject.Filepath))
 	})
 
 	It("can get the signed url for the previously uploaded file", func() {
@@ -130,9 +141,9 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 
 	It("can read a file", func() {
 		fileReader, err := storageClient.ReadFile(ctx, uploadedObject)
+
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fileReader).NotTo(BeNil())
-
 		bytes := make([]byte, 7)
 		n, err := fileReader.Read(bytes)
 		Expect(err).NotTo(HaveOccurred())
@@ -143,7 +154,9 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 
 	It("can delete a file", func() {
 		time.Sleep(1 * time.Second) // wait 1 second to allow for retention policy to be met
+
 		err := storageClient.DeleteFile(ctx, uploadedObject)
+
 		Expect(err).NotTo(HaveOccurred())
 		fileReader, err := storageClient.ReadFile(ctx, uploadedObject)
 		Expect(err).To(HaveOccurred())

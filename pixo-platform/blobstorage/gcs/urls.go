@@ -4,7 +4,7 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
-	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"net/http"
@@ -16,7 +16,7 @@ var (
 	expireDuration = 120 * time.Minute
 )
 
-func (c Client) getBucketName(object client.UploadableObject) string {
+func (c Client) getBucketName(object blobstorage.UploadableObject) string {
 
 	bucketName := object.GetBucketName()
 	if bucketName != "" {
@@ -30,7 +30,7 @@ func (c Client) getBucketName(object client.UploadableObject) string {
 	return c.bucketName
 }
 
-func (c Client) GetPublicURL(object client.UploadableObject) string {
+func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
 	bucketName := c.getBucketName(object)
 
 	fileLocation := object.GetFileLocation()
@@ -41,7 +41,7 @@ func (c Client) GetPublicURL(object client.UploadableObject) string {
 	return fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, fileLocation)
 }
 
-func (c Client) GetSignedURL(ctx context.Context, object client.UploadableObject) (string, error) {
+func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableObject) (string, error) {
 	data, err := os.ReadFile(os.Getenv("GOOGLE_JSON_KEY"))
 	if err != nil {
 		return "", err

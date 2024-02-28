@@ -3,11 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
-	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func (c Client) Copy(ctx context.Context, src, dst client.UploadableObject) error {
+func (c Client) Copy(ctx context.Context, src, dst blobstorage.UploadableObject) error {
 	s3Client, err := c.getClient(ctx)
 	if err != nil {
 		return err

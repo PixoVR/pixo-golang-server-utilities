@@ -5,13 +5,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"os"
 
-	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-var _ client.StorageClient = (*Client)(nil)
+var _ blobstorage.StorageClient = (*Client)(nil)
 
 type Config struct {
 	BucketName      string
@@ -72,7 +72,7 @@ func (c Client) getClient(ctx context.Context) (*s3.Client, error) {
 	return s3.NewFromConfig(cfg), nil
 }
 
-func (c Client) getBucketName(object client.UploadableObject) string {
+func (c Client) getBucketName(object blobstorage.UploadableObject) string {
 	bucketName := object.GetBucketName()
 	if bucketName != "" {
 		return bucketName
