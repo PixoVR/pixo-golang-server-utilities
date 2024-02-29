@@ -14,10 +14,6 @@ func (a Archive) GetBucketName() string {
 	return a.BucketName
 }
 
-func (a Archive) GetUploadDestination() string {
-	return fmt.Sprintf("%s/%s", a.WorkflowName, a.PodName)
-}
-
-func (a Archive) GetFilename() string {
-	return "main.log"
+func (a Archive) GetFileLocation() string {
+	return fmt.Sprintf("%s/%s/main.log", a.WorkflowName, a.PodName)
 }

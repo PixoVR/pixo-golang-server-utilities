@@ -2,7 +2,6 @@ package gcs
 
 import (
 	"context"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -21,13 +20,11 @@ func getAccessToken() (string, error) {
 
 	credentials, err := google.FindDefaultCredentials(ctx, scopes...)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to find default credentials")
 		return "", err
 	}
 
 	token, err = credentials.TokenSource.Token()
 	if err != nil {
-		log.Error().Err(err).Msg("unable to get token credentials")
 		return "", err
 	}
 

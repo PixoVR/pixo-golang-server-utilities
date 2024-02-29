@@ -2,15 +2,13 @@ package profile_test
 
 import (
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/matchmaking/profile"
-	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/anypb"
 	"math/rand"
 	"open-match.dev/open-match/pkg/pb"
-	"time"
-
-	"github.com/golang/protobuf/ptypes/any"
 )
 
 var _ = Describe("Matchmaking Profile", func() {
@@ -21,10 +19,9 @@ var _ = Describe("Matchmaking Profile", func() {
 	)
 
 	BeforeEach(func() {
-		rand.Seed(time.Now().UnixNano())
 		maxNumberOfPlayers = rand.Intn(25) + 1
 
-		val, err := ptypes.MarshalAny(&wrappers.Int32Value{Value: int32(maxNumberOfPlayers)})
+		val, err := anypb.New(&wrappers.Int32Value{Value: int32(maxNumberOfPlayers)})
 		if err != nil {
 			Expect(err).NotTo(HaveOccurred())
 		}

@@ -2,18 +2,16 @@ package aws
 
 import (
 	"context"
-	"errors"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"os"
 
-	client "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/rs/zerolog/log"
 )
 
-var value = interface{}(Client{}).(client.StorageClient)
+var _ blobstorage.StorageClient = (*Client)(nil)
 
 type Config struct {
 	BucketName      string
@@ -33,7 +31,7 @@ type Client struct {
 
 func NewClient(config Config) (Client, error) {
 	if config.BucketName == "" {
-		return Client{}, errors.New("no bucket name given")
+		config.BucketName = os.Getenv("S3_BUCKET_NAME")
 	}
 
 	return Client{
@@ -46,12 +44,6 @@ func NewClient(config Config) (Client, error) {
 }
 
 func (c Client) getClient(ctx context.Context) (*s3.Client, error) {
-	if c.bucketName == "" {
-		err := errors.New("bucket is empty")
-		log.Err(err).Msg("unable to get presigned url")
-		return nil, err
-	}
-
 	if c.region == "" {
 		c.region = "us-east-1"
 	}
@@ -74,14 +66,13 @@ func (c Client) getClient(ctx context.Context) (*s3.Client, error) {
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(c.accessKeyID, c.secretAccessKey, "")),
 	)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to get presigned url")
 		return nil, err
 	}
 
 	return s3.NewFromConfig(cfg), nil
 }
 
-func (c Client) getBucketName(object client.UploadableObject) string {
+func (c Client) getBucketName(object blobstorage.UploadableObject) string {
 	bucketName := object.GetBucketName()
 	if bucketName != "" {
 		return bucketName

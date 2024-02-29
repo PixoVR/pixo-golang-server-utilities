@@ -15,9 +15,7 @@ func init() {
 func LoadEnvVars(differential ...string) {
 	envPath := filepath.Join(GetProjectRoot(differential...), ".env")
 
-	if err := godotenv.Load(envPath); err != nil {
-		log.Debug().Msgf("No .env file loaded: %s", err)
-	}
+	_ = godotenv.Load(envPath)
 }
 
 func GetEnvOrReturn(key string, fallback string) string {
@@ -45,7 +43,7 @@ func GetDomain() string {
 }
 
 func GetRegion() string {
-	region := strings.ToLower(GetEnvOrCrash("REGION"))
+	region := strings.ToLower(GetEnvOrReturn("REGION", "us-central1"))
 	if strings.Contains(region, "me-central") || strings.Contains(region, "saudi") {
 		return "saudi"
 	}

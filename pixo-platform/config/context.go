@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	platform "github.com/PixoVR/pixo-golang-clients/pixo-platform/primary-api"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 )
@@ -16,11 +17,9 @@ const (
 	ContextRequestGin            = ContextRequest(ginContextKey)
 	ContextRequestAuthorization  = ContextRequest(authorizationContextKey)
 	ContextRequestAuthentication = ContextRequest(authenticationContextKey)
-	ContextRequestIPAddress      = ContextRequest(ipAddressContextKey)
+	ContextRequestHost           = ContextRequest(ipAddressContextKey)
 	ContextRequestCustom         = ContextRequest(customContextKey)
 )
-
-type User struct{ ID int }
 
 type ContextRequest string
 
@@ -37,17 +36,17 @@ func GetGinContext(ctx context.Context) *gin.Context {
 	return ginContext
 }
 
-func GetIPAddress(userContext context.Context) string {
-	ipAddress, ok := userContext.Value(ContextRequestIPAddress).(string)
+func GetIPAddress(ctx context.Context) string {
+	ipAddress, ok := ctx.Value(ContextRequestHost.String()).(string)
 	if !ok {
-		return "127.0.0.1"
+		return ""
 	}
 
 	return ipAddress
 }
 
-func GetCurrentUserID(userContext context.Context) int {
-	user, ok := userContext.Value(ContextRequestAuthentication).(*User)
+func GetCurrentUserID(ctx context.Context) int {
+	user, ok := ctx.Value(ContextRequestAuthentication).(*platform.User)
 	if !ok {
 		return 0
 	}
@@ -55,8 +54,8 @@ func GetCurrentUserID(userContext context.Context) int {
 	return user.ID
 }
 
-func GetAuthorizationEnforcer(userContext context.Context) *casbin.Enforcer {
-	enforcer, ok := userContext.Value(ContextRequestAuthorization).(*casbin.Enforcer)
+func GetAuthorizationEnforcer(ctx context.Context) *casbin.Enforcer {
+	enforcer, ok := ctx.Value(ContextRequestAuthorization).(*casbin.Enforcer)
 	if !ok {
 		return nil
 	}

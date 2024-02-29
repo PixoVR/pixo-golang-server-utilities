@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestBlobstorage(t *testing.T) {
+func TestGCS(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Blobstorage Suite")
+	RunSpecs(t, "GCS Suite")
 }

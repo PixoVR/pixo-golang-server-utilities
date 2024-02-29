@@ -75,11 +75,11 @@ func (c Client) DeleteGameServer(ctx context.Context, namespace, name string) er
 }
 
 func (c Client) AddLabelToGameServer(ctx context.Context, gameserver *v1.GameServer, key, value string) (*v1.GameServer, error) {
-	log.Debug().Msgf("Adding label %s=%s to game server %s", key, value, gameserver.GetName())
-
 	if gameserver == nil {
 		return nil, errors.New("gameserver is nil")
 	}
+
+	log.Debug().Msgf("Adding label %s=%s to game server %s", key, value, gameserver.GetName())
 
 	retrievedGameserver, err := c.GetGameServer(ctx, gameserver.Namespace, gameserver.Name)
 	if err != nil {

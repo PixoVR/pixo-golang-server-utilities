@@ -1,7 +1,7 @@
 package auth
 
 const (
-	UserKey             = "USER"
-	SecretKeyHeader     = "x-access-token"
 	AuthorizationHeader = "Authorization"
+	SecretKeyHeader     = "x-access-token"
+	APIKeyHeader        = "x-api-key"
 )

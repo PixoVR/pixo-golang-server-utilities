@@ -1,0 +1,15 @@
+
+profile: cover.out
+
+local-prefix: "github.com/PixoVR/pixo-golang-server-utilities"
+
+threshold:
+#  file: 70
+
+#  package: 70
+
+  total: 75
+
+exclude:
+  paths:
+#    - ^src/testutils

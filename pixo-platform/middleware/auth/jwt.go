@@ -23,6 +23,7 @@ type RawToken struct {
 	JTI           string  `json:"jti"`
 	EmailVerified bool    `json:"email_verified"`
 	Hd            string  `json:"hd"`
+	Data          string  `json:"data"`
 }
 
 func ParseJWT(tokenString string) (RawToken, error) {
@@ -100,6 +101,10 @@ func ParseJWT(tokenString string) (RawToken, error) {
 
 	if hd, ok := extractClaim(claims, "hd").(string); ok {
 		rawToken.Hd = hd
+	}
+
+	if data, ok := extractClaim(claims, "data").(string); ok {
+		rawToken.Data = data
 	}
 
 	return rawToken, nil

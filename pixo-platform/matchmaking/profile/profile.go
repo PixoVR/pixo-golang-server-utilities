@@ -1,9 +1,10 @@
 package profile
 
 import (
-	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 	"open-match.dev/open-match/pkg/pb"
 )
 
@@ -21,7 +22,7 @@ func NewOpenMatchProfile(p *pb.MatchProfile) *OpenMatchProfile {
 
 func (p *OpenMatchProfile) GetMaxPlayersPerMatch() int {
 	var val wrappers.Int32Value
-	if err := ptypes.UnmarshalAny(p.MatchProfile.GetExtensions()[MaxPlayersExtensionKey], &val); err != nil {
+	if err := anypb.UnmarshalTo(p.MatchProfile.GetExtensions()[MaxPlayersExtensionKey], &val, proto.UnmarshalOptions{}); err != nil {
 		log.Error().Err(err).Msg("Cannot retrieve number of players per match")
 		return 100
 	} else {

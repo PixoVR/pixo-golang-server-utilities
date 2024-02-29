@@ -66,6 +66,8 @@ func NewEngine(config Config) *CustomEngine {
 	}
 
 	e.engine = gin.New()
+	e.engine.Use(gin.Recovery())
+	e.engine.Use(platformAuth.HostMiddleware())
 
 	if config.Tracing {
 		if config.CollectorEndpoint == "" {
