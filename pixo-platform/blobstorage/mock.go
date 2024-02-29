@@ -82,7 +82,7 @@ func (f *MockStorageClient) GetPublicURL(object UploadableObject) string {
 	return "https://storage.googleapis.com/bucket/test-file.txt"
 }
 
-func (f *MockStorageClient) GetSignedURL(ctx context.Context, object UploadableObject) (string, error) {
+func (f *MockStorageClient) GetSignedURL(ctx context.Context, object UploadableObject, options ...Option) (string, error) {
 	f.GetSignedURLNumTimesCalled++
 
 	if f.GetSignedURLError != nil {

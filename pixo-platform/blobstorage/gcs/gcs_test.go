@@ -3,19 +3,20 @@ package gcs_test
 import (
 	"bytes"
 	"context"
+	"io"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	storage "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/gcs"
 	"github.com/go-resty/resty/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"io"
-	"net/http"
-	"os"
-	"time"
 )
 
 var _ = Describe("Google Cloud Storage", Ordered, func() {
-
 	var (
 		filename       = "test-file.txt"
 		bucketName     = "dev-apex-primary-api-modules"
@@ -92,7 +93,6 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		exists, err := storageClient.FileExists(ctx, destinationObject)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(exists).To(BeTrue())
-
 	})
 
 	It("can check if a file exists", func() {
@@ -173,5 +173,31 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(res.UploadURL).To(ContainSubstring(bucketFilepath))
 		Expect(res.UploadURL).To(ContainSubstring(filename))
 	})
+	It("can set the content disposition in the signed url", func() {
+		options := []blobstorage.Option{
+			{
+				ContentDisposition: "attachment",
+			},
+		}
+		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject, options...)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
+		Expect(signedURL).To(ContainSubstring(bucketName))
+		Expect(signedURL).To(ContainSubstring("attachment"))
+	})
 
+	It("can set the expiration for the signed url", func() {
+		expireTime := time.Now().Add(5 * time.Hour)
+		expectedTime := expireTime.Format("20060102T150405Z")
+		options := []blobstorage.Option{
+			{
+				Expires: &expireTime,
+			},
+		}
+		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject, options...)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
+		Expect(signedURL).To(ContainSubstring(bucketName))
+		Expect(signedURL).To(ContainSubstring(expectedTime))
+	})
 })
