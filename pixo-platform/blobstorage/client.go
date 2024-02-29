@@ -4,18 +4,25 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"time"
 )
 
 type StorageClient interface {
 	FindFilesWithName(ctx context.Context, bucketName, prefix, filename string) ([]string, error)
 	GetPublicURL(object UploadableObject) string
-	GetSignedURL(ctx context.Context, object UploadableObject) (string, error)
+	GetSignedURL(ctx context.Context, object UploadableObject, options ...Option) (string, error)
 	FileExists(ctx context.Context, object UploadableObject) (bool, error)
 	UploadFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error)
 	Copy(ctx context.Context, src UploadableObject, dest UploadableObject) error
 	ReadFile(ctx context.Context, object UploadableObject) (io.ReadCloser, error)
 	DeleteFile(ctx context.Context, object UploadableObject) error
 	InitResumableUpload(ctx context.Context, object UploadableObject) (*ResumableUploadResponse, error)
+}
+
+type Option struct {
+	ContentDisposition string
+	Expires            *time.Time
+	Method             string
 }
 
 type UploadableObject interface {

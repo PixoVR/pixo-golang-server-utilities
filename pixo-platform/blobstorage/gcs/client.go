@@ -1,8 +1,9 @@
 package gcs
 
 import (
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"os"
+
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 )
 
 var _ blobstorage.StorageClient = (*Client)(nil)

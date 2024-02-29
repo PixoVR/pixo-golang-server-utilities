@@ -1,23 +1,23 @@
 package gcs
 
 import (
-	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"os"
+	"time"
+
+	"cloud.google.com/go/storage"
+
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
-	"net/http"
-	"os"
-	"time"
 )
 
-var (
-	expireDuration = 120 * time.Minute
-)
+var expireDuration = 120 * time.Minute
 
 func (c Client) getBucketName(object blobstorage.UploadableObject) string {
-
 	bucketName := object.GetBucketName()
 	if bucketName != "" {
 		return bucketName
@@ -41,7 +41,7 @@ func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
 	return fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, fileLocation)
 }
 
-func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableObject) (string, error) {
+func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableObject, options ...blobstorage.Option) (string, error) {
 	data, err := os.ReadFile(os.Getenv("GOOGLE_JSON_KEY"))
 	if err != nil {
 		return "", err
@@ -63,6 +63,23 @@ func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableO
 		Expires:        time.Now().Add(expireDuration),
 		GoogleAccessID: conf.Email,
 		PrivateKey:     conf.PrivateKey,
+	}
+	if len(options) > 0 {
+		option := options[0]
+
+		if option.ContentDisposition != "" {
+			opts.QueryParameters = url.Values{
+				"response-content-disposition": {option.ContentDisposition},
+			}
+		}
+
+		if option.Expires != nil {
+			opts.Expires = *option.Expires
+		}
+
+		if option.Method != "" {
+			opts.Method = option.Method
+		}
 	}
 
 	return storageClient.Bucket(c.getBucketName(object)).SignedURL(object.GetFileLocation(), opts)

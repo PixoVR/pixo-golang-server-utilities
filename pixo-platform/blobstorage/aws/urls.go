@@ -3,9 +3,10 @@ package aws
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"time"
 )
 
 func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
@@ -18,8 +19,7 @@ func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
 	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, fileLocation)
 }
 
-func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableObject) (string, error) {
-
+func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableObject, options ...blobstorage.Option) (string, error) {
 	s3Client, err := c.getClient(ctx)
 	if err != nil {
 		return "", err
