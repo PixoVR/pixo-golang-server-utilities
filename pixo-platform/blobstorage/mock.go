@@ -11,6 +11,7 @@ type MockStorageClient struct {
 
 	GetSignedURLNumTimesCalled int
 	GetSignedURLError          error
+	GetSignedURLOptions        []Option
 
 	UploadFileNumTimesCalled int
 	UploadFileError          error
@@ -84,6 +85,8 @@ func (f *MockStorageClient) GetPublicURL(object UploadableObject) string {
 
 func (f *MockStorageClient) GetSignedURL(ctx context.Context, object UploadableObject, options ...Option) (string, error) {
 	f.GetSignedURLNumTimesCalled++
+
+	f.GetSignedURLOptions = options
 
 	if f.GetSignedURLError != nil {
 		return "", f.GetSignedURLError
