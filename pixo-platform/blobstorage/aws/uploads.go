@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"io"
 	"log"
+	"time"
 )
 
 func (c Client) UploadFile(ctx context.Context, object storage.UploadableObject, fileReader io.Reader) (string, error) {
@@ -17,7 +18,7 @@ func (c Client) UploadFile(ctx context.Context, object storage.UploadableObject,
 		return "", err
 	}
 
-	sanitizedFileLocation := c.SanitizeFilename(object.GetFileLocation())
+	sanitizedFileLocation := c.SanitizeFilename(object.GetFileLocation(), time.Now().Unix())
 
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(c.getBucketName(object)),
@@ -42,7 +43,7 @@ func (c Client) InitResumableUpload(ctx context.Context, object storage.Uploadab
 	s3Client := s3.NewFromConfig(cfg)
 	presignClient := s3.NewPresignClient(s3Client)
 
-	sanitizedFileLocation := c.SanitizeFilename(object.GetFileLocation())
+	sanitizedFileLocation := c.SanitizeFilename(object.GetFileLocation(), time.Now().Unix())
 
 	res, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(c.getBucketName(object)),

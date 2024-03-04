@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"os"
+	"time"
 )
 
 var _ = Describe("S3 Blob Storage", Ordered, func() {
@@ -72,7 +73,7 @@ var _ = Describe("S3 Blob Storage", Ordered, func() {
 		})
 
 		It("can sanitize a filename", func() {
-			sanitizedName := storageClient.SanitizeFilename(filename)
+			sanitizedName := storageClient.SanitizeFilename(filename, time.Now().Unix())
 			Expect(sanitizedName).To(MatchRegexp(`^blob_\d+.txt$`))
 		})
 

@@ -7,6 +7,7 @@ import (
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"io"
 	"net/http"
+	"time"
 )
 
 func (c Client) UploadFile(ctx context.Context, object blobstorage.UploadableObject, fileReader io.Reader) (string, error) {
@@ -19,7 +20,7 @@ func (c Client) UploadFile(ctx context.Context, object blobstorage.UploadableObj
 	bucketName := c.getBucketName(object)
 	fileLocation := object.GetFileLocation()
 
-	sanitizedFileLocation := c.SanitizeFilename(fileLocation)
+	sanitizedFileLocation := c.SanitizeFilename(fileLocation, time.Now().Unix())
 
 	sw := storageClient.
 		Bucket(bucketName).

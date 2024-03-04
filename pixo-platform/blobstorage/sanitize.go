@@ -10,7 +10,7 @@ const (
 	filenameOverride = "blob"
 )
 
-func SanitizeFilename(timestamp int64, originalFilename string) (sanitizedFilename string) {
+func SanitizeFilename(originalFilename string, timestamp int64) (sanitizedFilename string) {
 
 	if originalFilename == "" {
 		randomInt := rand.Intn(100000)
@@ -25,7 +25,7 @@ func SanitizeFilename(timestamp int64, originalFilename string) (sanitizedFilena
 	nameParts := strings.Split(originalFilename, ".")
 
 	if len(nameParts) < 2 {
-		sanitizedFilename = fmt.Sprintf("%s_%d", originalFilename, timestamp)
+		sanitizedFilename = formatFilename(originalFilename, timestamp)
 	} else {
 		pathParts := strings.Split(nameParts[0], "/")
 		path := strings.Join(pathParts[:len(pathParts)-1], "/")
@@ -39,10 +39,18 @@ func SanitizeFilename(timestamp int64, originalFilename string) (sanitizedFilena
 
 		fileExtension := nameParts[len(nameParts)-1]
 
-		sanitizedFilename = fmt.Sprintf("%s_%d.%s", filename, timestamp, fileExtension)
+		sanitizedFilename = fmt.Sprintf("%s.%s", formatFilename(filename, timestamp), fileExtension)
 	}
 
 	return sanitizedFilename
+}
+
+func formatFilename(filename string, timestamp int64) string {
+	if timestamp == 0 {
+		return filename
+	}
+
+	return fmt.Sprintf("%s_%d", filename, timestamp)
 }
 
 func ParseFileLocationFromLink(link string) string {
