@@ -3,7 +3,6 @@ package aws
 import (
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"os"
-	"strings"
 )
 
 type DefaultPublicUploadable struct {
@@ -19,7 +18,7 @@ func (p DefaultPublicUploadable) GetBucketName() string {
 }
 
 func (p DefaultPublicUploadable) GetFileLocation() string {
-	return strings.ReplaceAll(blobstorage.ParseFileLocationFromLink(p.Path), p.GetBucketName(), "")
+	return blobstorage.ParseFileLocationFromLink(p.Path)
 }
 
 type DefaultPrivateUploadable struct {
