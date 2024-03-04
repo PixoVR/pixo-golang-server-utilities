@@ -5,6 +5,9 @@ import (
 	"os"
 )
 
+var _ blobstorage.UploadableObject = (*DefaultPublicUploadable)(nil)
+var _ blobstorage.UploadableObject = (*DefaultPrivateUploadable)(nil)
+
 type DefaultPublicUploadable struct {
 	Path string
 }
@@ -21,6 +24,10 @@ func (p DefaultPublicUploadable) GetFileLocation() string {
 	return blobstorage.ParseFileLocationFromLink(p.Path)
 }
 
+func (p DefaultPublicUploadable) GetTimestamp() int64 {
+	return 0
+}
+
 type DefaultPrivateUploadable struct {
 	DefaultPublicUploadable
 }
@@ -31,8 +38,4 @@ func PrivateUploadable(fileLocation string) DefaultPrivateUploadable {
 
 func (p DefaultPrivateUploadable) GetBucketName() string {
 	return os.Getenv("S3_STORAGE_PRIVATE")
-}
-
-func (p DefaultPrivateUploadable) GetTimestamp() int64 {
-	return 0
 }

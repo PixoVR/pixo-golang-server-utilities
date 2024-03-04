@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+var _ blobstorage.UploadableObject = (*DefaultPublicUploadable)(nil)
+
 type DefaultPublicUploadable struct {
 	Path string
 }
