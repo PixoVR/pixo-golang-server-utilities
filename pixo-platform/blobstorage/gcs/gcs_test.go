@@ -74,7 +74,7 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
+		Expect(locationInBucket).To(Equal("testdata/blob.txt"))
 		uploadedObject = storage.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   locationInBucket,

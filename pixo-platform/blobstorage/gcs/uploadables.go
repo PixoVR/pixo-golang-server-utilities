@@ -20,3 +20,7 @@ func (p DefaultPublicUploadable) GetBucketName() string {
 func (p DefaultPublicUploadable) GetFileLocation() string {
 	return blobstorage.ParseFileLocationFromLink(p.Path)
 }
+
+func (p DefaultPublicUploadable) GetTimestamp() int64 {
+	return 0
+}

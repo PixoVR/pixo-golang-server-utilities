@@ -28,6 +28,7 @@ type Option struct {
 type UploadableObject interface {
 	GetBucketName() string
 	GetFileLocation() string
+	GetTimestamp() int64
 }
 
 type SignedURLPartsRequest struct {

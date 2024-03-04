@@ -32,3 +32,7 @@ func PrivateUploadable(fileLocation string) DefaultPrivateUploadable {
 func (p DefaultPrivateUploadable) GetBucketName() string {
 	return os.Getenv("S3_STORAGE_PRIVATE")
 }
+
+func (p DefaultPrivateUploadable) GetTimestamp() int64 {
+	return 0
+}
