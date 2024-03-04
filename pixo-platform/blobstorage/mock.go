@@ -6,6 +6,9 @@ import (
 )
 
 type MockStorageClient struct {
+	LastCallObject    UploadableObject
+	LastCallObjectSrc UploadableObject
+
 	GetPublicURLNumTimesCalled int
 	GetPublicURLError          error
 
@@ -44,6 +47,8 @@ func NewMockStorageClient() *MockStorageClient {
 }
 
 func (f *MockStorageClient) Reset() {
+	f.LastCallObject = nil
+
 	f.GetPublicURLNumTimesCalled = 0
 	f.GetPublicURLError = nil
 
@@ -75,6 +80,7 @@ func (f *MockStorageClient) Reset() {
 
 func (f *MockStorageClient) GetPublicURL(object UploadableObject) string {
 	f.GetPublicURLNumTimesCalled++
+	f.LastCallObject = object
 
 	if f.GetPublicURLError != nil {
 		return ""
@@ -85,7 +91,7 @@ func (f *MockStorageClient) GetPublicURL(object UploadableObject) string {
 
 func (f *MockStorageClient) GetSignedURL(ctx context.Context, object UploadableObject, options ...Option) (string, error) {
 	f.GetSignedURLNumTimesCalled++
-
+	f.LastCallObject = object
 	f.GetSignedURLOptions = options
 
 	if f.GetSignedURLError != nil {
@@ -97,6 +103,7 @@ func (f *MockStorageClient) GetSignedURL(ctx context.Context, object UploadableO
 
 func (f *MockStorageClient) UploadFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error) {
 	f.UploadFileNumTimesCalled++
+	f.LastCallObject = object
 
 	if f.UploadFileError != nil {
 		return "", f.UploadFileError
@@ -107,6 +114,7 @@ func (f *MockStorageClient) UploadFile(ctx context.Context, object UploadableObj
 
 func (f *MockStorageClient) FileExists(ctx context.Context, object UploadableObject) (bool, error) {
 	f.FileExistsNumTimesCalled++
+	f.LastCallObject = object
 
 	if f.FileExistsError != nil {
 		return false, f.FileExistsError
@@ -129,8 +137,10 @@ func (f *MockStorageClient) FindFilesWithName(ctx context.Context, bucketName, p
 	return []string{"one/" + filename, "two/" + filename}, nil
 }
 
-func (f *MockStorageClient) Copy(ctx context.Context, source, destination UploadableObject) error {
+func (f *MockStorageClient) Copy(ctx context.Context, src, dest UploadableObject) error {
 	f.CopyNumTimesCalled++
+	f.LastCallObject = dest
+	f.LastCallObjectSrc = src
 
 	if f.CopyError != nil {
 		return f.CopyError
@@ -141,6 +151,7 @@ func (f *MockStorageClient) Copy(ctx context.Context, source, destination Upload
 
 func (f *MockStorageClient) ReadFile(ctx context.Context, object UploadableObject) (io.ReadCloser, error) {
 	f.ReadFileNumTimesCalled++
+	f.LastCallObject = object
 
 	if f.ReadFileError != nil {
 		return nil, f.ReadFileError
@@ -151,6 +162,7 @@ func (f *MockStorageClient) ReadFile(ctx context.Context, object UploadableObjec
 
 func (f *MockStorageClient) DeleteFile(ctx context.Context, object UploadableObject) error {
 	f.DeleteFileNumTimesCalled++
+	f.LastCallObject = object
 
 	if f.DeleteFileError != nil {
 		return f.DeleteFileError
@@ -161,6 +173,7 @@ func (f *MockStorageClient) DeleteFile(ctx context.Context, object UploadableObj
 
 func (f *MockStorageClient) InitResumableUpload(ctx context.Context, object UploadableObject) (*ResumableUploadResponse, error) {
 	f.InitResumableUploadNumTimesCalled++
+	f.LastCallObject = object
 
 	if f.InitResumableUploadError != nil {
 		return nil, f.InitResumableUploadError
