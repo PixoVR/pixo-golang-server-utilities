@@ -3,7 +3,7 @@ module github.com/PixoVR/pixo-golang-server-utilities/pixo-platform
 go 1.21
 
 require (
-	agones.dev/agones v1.38.0
+	agones.dev/agones v1.39.0
 	cloud.google.com/go/storage v1.39.1
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240116083330-857aed31f2d8
 	github.com/alicebob/miniredis/v2 v2.31.1
@@ -145,7 +145,6 @@ require (
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattbaird/jsonpatch v0.0.0-20230413205102-771768614e91 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
@@ -215,6 +214,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.17.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240304161311-37d4d3c04a78 // indirect
