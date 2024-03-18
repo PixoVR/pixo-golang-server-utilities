@@ -31,10 +31,10 @@ require (
 	google.golang.org/api v0.170.0
 	google.golang.org/protobuf v1.33.0
 	helm.sh/helm/v3 v3.14.3
-	k8s.io/api v0.29.2
-	k8s.io/apimachinery v0.29.2
+	k8s.io/api v0.29.3
+	k8s.io/apimachinery v0.29.3
 	k8s.io/cli-runtime v0.29.2
-	k8s.io/client-go v0.29.2
+	k8s.io/client-go v0.29.3
 	open-match.dev/open-match v1.8.1
 )
 
