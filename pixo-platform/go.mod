@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.8
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.8
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.0
-	github.com/casbin/casbin/v2 v2.84.1
+	github.com/casbin/casbin/v2 v2.85.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/go-resty/resty/v2 v2.12.0
