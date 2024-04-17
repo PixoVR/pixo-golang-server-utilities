@@ -32,7 +32,7 @@ require (
 	google.golang.org/protobuf v1.33.0
 	helm.sh/helm/v3 v3.14.4
 	k8s.io/api v0.29.3
-	k8s.io/apimachinery v0.29.3
+	k8s.io/apimachinery v0.29.4
 	k8s.io/cli-runtime v0.29.3
 	k8s.io/client-go v0.29.3
 	open-match.dev/open-match v1.8.1
@@ -207,7 +207,7 @@ require (
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/net v0.22.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
