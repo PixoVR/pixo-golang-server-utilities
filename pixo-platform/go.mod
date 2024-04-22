@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/storage v1.40.0
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240116083330-857aed31f2d8
 	github.com/alicebob/miniredis/v2 v2.32.1
-	github.com/argoproj/argo-workflows/v3 v3.5.5
+	github.com/argoproj/argo-workflows/v3 v3.5.6
 	github.com/aws/aws-sdk-go-v2 v1.26.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.11
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.11
