@@ -4,7 +4,7 @@ go 1.21
 toolchain go1.22.2
 
 require (
-	agones.dev/agones v1.39.0
+	agones.dev/agones v1.40.0
 	cloud.google.com/go/storage v1.40.0
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240116083330-857aed31f2d8
 	github.com/alicebob/miniredis/v2 v2.32.1
