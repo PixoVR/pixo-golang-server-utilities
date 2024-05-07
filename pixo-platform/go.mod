@@ -30,7 +30,7 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	golang.org/x/oauth2 v0.19.0
 	google.golang.org/api v0.177.0
-	google.golang.org/protobuf v1.34.0
+	google.golang.org/protobuf v1.34.1
 	helm.sh/helm/v3 v3.14.4
 	k8s.io/api v0.30.0
 	k8s.io/apimachinery v0.30.0
