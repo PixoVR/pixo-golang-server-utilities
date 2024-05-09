@@ -16,7 +16,7 @@ require (
 	github.com/casbin/casbin/v2 v2.89.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-jose/go-jose/v3 v3.0.3
-	github.com/go-resty/resty/v2 v2.12.0
+	github.com/go-resty/resty/v2 v2.13.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/protobuf v1.5.4
 	github.com/joho/godotenv v1.5.1
