@@ -9,7 +9,7 @@ require (
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240116083330-857aed31f2d8
 	github.com/alicebob/miniredis/v2 v2.32.1
 	github.com/argoproj/argo-workflows/v3 v3.5.6
-	github.com/aws/aws-sdk-go-v2 v1.26.2
+	github.com/aws/aws-sdk-go-v2 v1.27.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.14
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.1
