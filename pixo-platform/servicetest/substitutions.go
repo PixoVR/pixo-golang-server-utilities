@@ -24,7 +24,7 @@ func (s *ServerTestFeature) performSubstitutions(data []byte) []byte {
 
 	for key, value := range s.dynamicSubstitutions {
 		if value != nil && reflect.ValueOf(value).Kind() == reflect.Func {
-			data = []byte(strings.ReplaceAll(string(data), key, value()))
+			data = []byte(strings.ReplaceAll(string(data), key, string(value(data))))
 		}
 	}
 

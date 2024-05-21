@@ -10,7 +10,7 @@ import (
 
 type ServerTestFeature struct {
 	staticSubstitutions  map[string]string
-	dynamicSubstitutions map[string]func() string
+	dynamicSubstitutions map[string]SubstitutionFunc
 
 	Engine   *gin.Engine
 	Recorder *httptest.ResponseRecorder
@@ -36,11 +36,13 @@ type ServerTestFeature struct {
 	GraphQLResponse   map[string]interface{}
 }
 
+type SubstitutionFunc func(data []byte) []byte
+
 func NewServerTestFeature() *ServerTestFeature {
 	return &ServerTestFeature{
 		Client:               resty.New(),
 		staticSubstitutions:  make(map[string]string),
-		dynamicSubstitutions: make(map[string]func() string),
+		dynamicSubstitutions: make(map[string]SubstitutionFunc),
 	}
 }
 
@@ -48,7 +50,7 @@ func (s *ServerTestFeature) AddStaticSubstitution(key, value string) {
 	s.staticSubstitutions[key] = value
 }
 
-func (s *ServerTestFeature) AddDynamicSubstitution(key string, value func() string) {
+func (s *ServerTestFeature) AddDynamicSubstitution(key string, value SubstitutionFunc) {
 	s.dynamicSubstitutions[key] = value
 }
 

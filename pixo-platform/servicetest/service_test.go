@@ -46,8 +46,8 @@ func TestMain(m *testing.M) {
 
 	suite.AddSteps(goodbyeStep)
 
-	suite.Feature.AddStaticSubstitution("$STATIC_ID", "1234")
-	suite.Feature.AddDynamicSubstitution("$DYNAMIC_ID", func() string { return "4321" })
+	suite.Feature.AddStaticSubstitution("$STATIC_VAL", "ok")
+	suite.Feature.AddDynamicSubstitution("$DYNAMIC_VAL", func(data []byte) []byte { return []byte("ok") })
 
 	suite.Feature.ServiceClient = heartbeat.NewClient(urlfinder.ClientConfig{
 		Region:    "na",
