@@ -55,7 +55,6 @@ func NewSuite(serviceClient abstract_client.AbstractClient, opts ...Options) *Se
 }
 
 func (s *ServerTestSuite) Run() {
-
 	gomega.RegisterFailHandler(func(message string, _ ...int) {
 		log.Panic().Msg(message)
 	})
@@ -82,6 +81,14 @@ func (s *ServerTestSuite) setup() {
 
 	viper.SetDefault("lifecycle", "local")
 	viper.SetDefault("region", "na")
+
+	pflag.StringP("region", "r", viper.GetString("region"), "region to run tests against (options: na, saudi)")
+	pflag.StringP("lifecycle", "l", viper.GetString("lifecycle"), "lifecycle to run tests against (options: local, dev, stage, prod)")
+	pflag.Parse()
+
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatal().Err(err).Msg("Failed to bind flags")
+	}
 
 	if err := viper.ReadInConfig(); err != nil {
 		if errors.As(err, &viper.ConfigFileNotFoundError{}) {
@@ -113,14 +120,6 @@ func (s *ServerTestSuite) loadEnv() {
 func initLogger() {
 	var enableDebug bool
 	pflag.BoolVarP(&enableDebug, "debug", "z", true, "enable debug logging")
-
-	pflag.StringP("region", "r", viper.GetString("region"), "region to run tests against (options: na, saudi)")
-	pflag.StringP("lifecycle", "l", viper.GetString("lifecycle"), "lifecycle to run tests against (options: local, dev, stage, prod)")
-	pflag.Parse()
-
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		log.Fatal().Err(err).Msg("Failed to bind flags")
-	}
 
 	if enableDebug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
