@@ -36,6 +36,7 @@ type SuiteConfig struct {
 	Opts          *godog.Options
 	ServiceClient graphql_api.PlatformClient
 	Engine        *gin.Engine
+	BeforeRequest func(body []byte)
 	Reset         func(sc *godog.Scenario)
 	Steps         []Step
 }

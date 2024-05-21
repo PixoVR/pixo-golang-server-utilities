@@ -36,10 +36,15 @@ func TestMain(m *testing.M) {
 	config := engine.Config{BasePath: "/heartbeat"}
 	e := engine.NewEngine(config)
 
+	beforeRequest := func(body []byte) {
+		log.Info().Msg("Before request")
+	}
+
 	suiteConfig := &SuiteConfig{
-		Engine: e.Engine(),
-		Reset:  resetFunc,
-		Steps:  []Step{helloStep},
+		Engine:        e.Engine(),
+		BeforeRequest: beforeRequest,
+		Reset:         resetFunc,
+		Steps:         []Step{helloStep},
 	}
 
 	suite := NewSuite(suiteConfig)
@@ -48,6 +53,9 @@ func TestMain(m *testing.M) {
 
 	suite.Feature.AddStaticSubstitution("$STATIC_VAL", "ok")
 	suite.Feature.AddDynamicSubstitution("$DYNAMIC_VAL", func(data []byte) []byte { return []byte("ok") })
+	suite.Feature.BeforeRequest = func(body []byte) {
+		log.Info().Msgf("Before request: %s", string(body))
+	}
 
 	suite.Feature.ServiceClient = heartbeat.NewClient(urlfinder.ClientConfig{
 		Region:    "na",

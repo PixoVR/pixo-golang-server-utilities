@@ -41,7 +41,12 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte)
 
 	body = s.performSubstitutions(body)
 
+	if s.BeforeRequest != nil {
+		s.BeforeRequest(body)
+	}
+
 	currentLifecycle := strings.ToLower(viper.GetString("lifecycle"))
+
 	if currentLifecycle == "" || currentLifecycle == "local" {
 		url := fmt.Sprintf("/%s%s", s.ServiceClient.Path(), endpoint)
 		req, err := http.NewRequest(method, url, bytes.NewReader(body))

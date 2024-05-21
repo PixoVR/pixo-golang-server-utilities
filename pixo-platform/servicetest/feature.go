@@ -12,9 +12,10 @@ type ServerTestFeature struct {
 	staticSubstitutions  map[string]string
 	dynamicSubstitutions map[string]SubstitutionFunc
 
-	Engine   *gin.Engine
-	Recorder *httptest.ResponseRecorder
-	Client   *resty.Client
+	BeforeRequest func(body []byte)
+	Engine        *gin.Engine
+	Recorder      *httptest.ResponseRecorder
+	Client        *resty.Client
 
 	ServiceClient abstract_client.AbstractClient
 
