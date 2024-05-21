@@ -15,6 +15,11 @@ import (
 	"time"
 )
 
+type Step struct {
+	Expression string
+	Handler    interface{}
+}
+
 func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		s.Reset(sc)
@@ -24,7 +29,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I use the id "([^"]*)" for the following requests$`, s.UseID)
 	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)"$`, s.SendRequest)
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data$`, s.SendRequestWithData)
-	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGqlRequestWithVariables)
+	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGQLRequestWithVariables)
 
 	ctx.Step(`^the response code should be "([^"]*)"$`, s.TheResponseCodeShouldBe)
 	ctx.Step(`^the response code should be (\d+)$`, s.TheResponseCodeShouldBe)
@@ -48,7 +53,7 @@ func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, 
 	s.MakeRequest(method, endpoint, body)
 }
 
-func (s *ServerTestFeature) SendGqlRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {
+func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {
 	s.GraphQLOperation = gqlMethodName
 	if s.DirectoryFilePath == "" {
 		return errors.New("cannot read graphql operation from file")

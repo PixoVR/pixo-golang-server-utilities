@@ -1,8 +1,8 @@
 package servicetest
 
 import (
+	"context"
 	"errors"
-	abstract_client "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 	"github.com/gin-gonic/gin"
@@ -26,15 +26,17 @@ type ServerTestSuite struct {
 	EnvFilePath *string
 	Feature     *ServerTestFeature
 
-	opts Options
+	config *SuiteConfig
 }
 
-type Options struct {
-	GodogOpts *godog.Options
-	Engine    *gin.Engine
+type SuiteConfig struct {
+	Opts   *godog.Options
+	Engine *gin.Engine
+	Reset  func(sc *godog.Scenario)
+	Steps  []Step
 }
 
-func NewSuite(serviceClient abstract_client.AbstractClient, opts ...Options) *ServerTestSuite {
+func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	viper.SetDefault("lifecycle", "local")
 	viper.SetDefault("region", "na")
 
@@ -46,19 +48,12 @@ func NewSuite(serviceClient abstract_client.AbstractClient, opts ...Options) *Se
 	}
 
 	suite := &ServerTestSuite{
-		Feature: &ServerTestFeature{
-			ServiceClient: serviceClient,
-		},
-		opts: Options{},
+		Feature: &ServerTestFeature{Engine: config.Engine},
+		config:  config,
 	}
 
-	if len(opts) > 0 {
-		suite.opts = opts[0]
-		suite.Feature.Engine = suite.opts.Engine
-	}
-
-	if suite.opts.GodogOpts == nil {
-		suite.opts.GodogOpts = &godog.Options{
+	if suite.config.Opts == nil {
+		suite.config.Opts = &godog.Options{
 			Output:    colors.Colored(os.Stdout),
 			Randomize: time.Now().UTC().UnixNano(),
 			Format:    "pretty",
@@ -76,15 +71,30 @@ func (s *ServerTestSuite) Run() {
 	})
 
 	status := godog.TestSuite{
-		ScenarioInitializer: s.Feature.InitializeScenario,
-		Options:             s.opts.GodogOpts,
+		ScenarioInitializer: s.InitializeScenario,
+		Options:             s.config.Opts,
 	}.Run()
 
 	os.Exit(status)
 }
 
+func (s *ServerTestSuite) InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+		if s.config.Reset != nil {
+			s.config.Reset(sc)
+		}
+		return ctx, nil
+	})
+
+	for _, step := range s.config.Steps {
+		ctx.Step(step.Expression, step.Handler)
+	}
+
+	s.Feature.InitializeScenario(ctx)
+}
+
 func (s *ServerTestSuite) setup() {
-	godog.BindCommandLineFlags("godog.", s.opts.GodogOpts)
+	godog.BindCommandLineFlags("godog.", s.config.Opts)
 	pflag.Parse()
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix

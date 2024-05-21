@@ -1,10 +1,10 @@
 package servicetest_test
 
 import (
-	graphql_api "github.com/PixoVR/pixo-golang-clients/pixo-platform/graphql-api"
-	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/engine"
 	. "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/servicetest"
+	"github.com/cucumber/godog"
+	"github.com/rs/zerolog/log"
 	"testing"
 )
 
@@ -12,10 +12,22 @@ func TestMain(m *testing.M) {
 	config := engine.Config{BasePath: "/api"}
 	e := engine.NewEngine(config)
 
-	serviceClient := graphql_api.NewClient(urlfinder.ClientConfig{Lifecycle: "dev"})
+	suiteConfig := &SuiteConfig{
+		Engine: e.Engine(),
+		Reset: func(sc *godog.Scenario) {
+			log.Info().Msg("Resetting scenario")
+		},
+		Steps: []Step{
+			{
+				Expression: "I can say hello$",
+				Handler: func() error {
+					log.Info().Msg("I can say hello")
+					return nil
+				},
+			},
+		},
+	}
 
-	opts := Options{Engine: e.Engine()}
-
-	suite := NewSuite(serviceClient, opts)
+	suite := NewSuite(suiteConfig)
 	suite.Run()
 }

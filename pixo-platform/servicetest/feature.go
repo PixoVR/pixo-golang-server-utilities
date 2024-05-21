@@ -36,8 +36,10 @@ type ServerTestFeature struct {
 func (s *ServerTestFeature) Reset(interface{}) {
 	s.Recorder = httptest.NewRecorder()
 
-	s.ServiceClient.SetToken("")
-	s.ServiceClient.SetAPIKey("")
+	if s.ServiceClient != nil {
+		s.ServiceClient.SetToken("")
+		s.ServiceClient.SetAPIKey("")
+	}
 
 	s.Response = nil
 	s.ResponseString = ""
