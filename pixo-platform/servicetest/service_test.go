@@ -9,16 +9,12 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	config := engine.Config{
-		BasePath:       "/api",
-		InternalRoutes: true,
-		ExternalRoutes: true,
-	}
+	config := engine.Config{BasePath: "/api"}
 	e := engine.NewEngine(config)
 
 	serviceClient := graphql_api.NewClient(urlfinder.ClientConfig{Lifecycle: "dev"})
 
-	opts := Options{CustomEngine: e}
+	opts := Options{Engine: e.Engine()}
 
 	suite := NewSuite(serviceClient, opts)
 	suite.Run()

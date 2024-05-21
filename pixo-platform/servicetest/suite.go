@@ -3,9 +3,9 @@ package servicetest
 import (
 	"errors"
 	abstract_client "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
-	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/engine"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/onsi/gomega"
 	"github.com/rs/zerolog"
@@ -24,8 +24,8 @@ type ServerTestSuite struct {
 }
 
 type Options struct {
-	GodogOpts    *godog.Options
-	CustomEngine *engine.CustomEngine
+	GodogOpts *godog.Options
+	Engine    *gin.Engine
 }
 
 func NewSuite(serviceClient abstract_client.AbstractClient, opts ...Options) *ServerTestSuite {
@@ -38,9 +38,7 @@ func NewSuite(serviceClient abstract_client.AbstractClient, opts ...Options) *Se
 
 	if len(opts) > 0 {
 		suite.opts = opts[0]
-		if suite.opts.CustomEngine != nil {
-			suite.Feature.Engine = suite.opts.CustomEngine.Engine()
-		}
+		suite.Feature.Engine = suite.opts.Engine
 	}
 
 	if suite.opts.GodogOpts == nil {
