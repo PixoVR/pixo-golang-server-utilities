@@ -5,6 +5,7 @@ import (
 	abstract_client "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/engine"
 	"github.com/cucumber/godog"
+	"github.com/cucumber/godog/colors"
 	"github.com/joho/godotenv"
 	"github.com/onsi/gomega"
 	"github.com/rs/zerolog"
@@ -23,20 +24,31 @@ type ServerTestSuite struct {
 }
 
 type Options struct {
-	GodogOpts    godog.Options
+	GodogOpts    *godog.Options
 	CustomEngine *engine.CustomEngine
 }
 
-func NewSuite(opts Options, serviceClient abstract_client.AbstractClient) *ServerTestSuite {
+func NewSuite(serviceClient abstract_client.AbstractClient, opts ...Options) *ServerTestSuite {
 	suite := &ServerTestSuite{
-		opts: opts,
 		Feature: &ServerTestFeature{
 			ServiceClient: serviceClient,
 		},
+		opts: Options{},
 	}
 
-	if opts.CustomEngine != nil {
-		suite.Feature.Engine = opts.CustomEngine.Engine()
+	if len(opts) > 0 {
+		suite.opts = opts[0]
+		if suite.opts.CustomEngine != nil {
+			suite.Feature.Engine = suite.opts.CustomEngine.Engine()
+		}
+	}
+
+	if suite.opts.GodogOpts == nil {
+		suite.opts.GodogOpts = &godog.Options{
+			Output:    colors.Colored(os.Stdout),
+			Randomize: time.Now().UTC().UnixNano(),
+			Format:    "pretty",
+		}
 	}
 
 	suite.setup()
@@ -47,14 +59,14 @@ func NewSuite(opts Options, serviceClient abstract_client.AbstractClient) *Serve
 func (s *ServerTestSuite) Run() {
 	status := godog.TestSuite{
 		ScenarioInitializer: s.Feature.InitializeScenario,
-		Options:             &s.opts.GodogOpts,
+		Options:             s.opts.GodogOpts,
 	}.Run()
 
 	os.Exit(status)
 }
 
 func (s *ServerTestSuite) setup() {
-	godog.BindCommandLineFlags("godog.", &s.opts.GodogOpts)
+	godog.BindCommandLineFlags("godog.", s.opts.GodogOpts)
 	pflag.Parse()
 
 	gomega.RegisterFailHandler(func(message string, _ ...int) {

@@ -5,23 +5,12 @@ import (
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/engine"
 	. "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/servicetest"
-	"os"
 	"testing"
-	"time"
-
-	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/colors"
 )
-
-var godogOpts = godog.Options{
-	Output:    colors.Colored(os.Stdout),
-	Randomize: time.Now().UTC().UnixNano(),
-	Format:    "pretty",
-}
 
 func TestMain(m *testing.M) {
 	config := engine.Config{
-		BasePath:       "/v2",
+		BasePath:       "/api",
 		InternalRoutes: true,
 		ExternalRoutes: true,
 	}
@@ -29,11 +18,8 @@ func TestMain(m *testing.M) {
 
 	serviceClient := graphql_api.NewClient(urlfinder.ClientConfig{Lifecycle: "dev"})
 
-	opts := Options{
-		CustomEngine: e,
-		GodogOpts:    godogOpts,
-	}
+	opts := Options{CustomEngine: e}
 
-	suite := NewSuite(opts, serviceClient)
+	suite := NewSuite(serviceClient, opts)
 	suite.Run()
 }
