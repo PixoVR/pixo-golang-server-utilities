@@ -19,7 +19,7 @@ func (c Client) UploadFile(ctx context.Context, object blobstorage.UploadableObj
 	bucketName := c.getBucketName(object)
 	fileLocation := object.GetFileLocation()
 
-	sanitizedFileLocation := c.SanitizeFilename(fileLocation)
+	sanitizedFileLocation := c.SanitizeFilename(fileLocation, object.GetTimestamp())
 
 	sw := storageClient.
 		Bucket(bucketName).

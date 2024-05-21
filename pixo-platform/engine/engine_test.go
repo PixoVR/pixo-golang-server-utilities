@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 )
 
-var _ = Describe("Engine", func() {
+var _ = Describe("CustomEngine", func() {
 
 	var (
 		e *engine.CustomEngine

@@ -62,9 +62,9 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 	})
 
 	It("can sanitize a filename", func() {
-		Expect(storageClient.SanitizeFilename(filename)).To(MatchRegexp(`^blob_\d+.txt$`))
-		Expect(storageClient.SanitizeFilename("model/thumbnails/")).To(MatchRegexp(`^model/thumbnails/blob_\d+$`))
-		Expect(storageClient.SanitizeFilename("model/thumbnails/file.txt")).To(MatchRegexp(`^model/thumbnails/blob_\d+.txt$`))
+		Expect(storageClient.SanitizeFilename(filename, time.Now().Unix())).To(MatchRegexp(`^blob_\d+.txt$`))
+		Expect(storageClient.SanitizeFilename("model/thumbnails/", time.Now().Unix())).To(MatchRegexp(`^model/thumbnails/blob_\d+$`))
+		Expect(storageClient.SanitizeFilename("model/thumbnails/file.txt", time.Now().Unix())).To(MatchRegexp(`^model/thumbnails/blob_\d+.txt$`))
 	})
 
 	It("can upload a file", func() {
@@ -74,7 +74,7 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(locationInBucket).To(MatchRegexp(`^testdata/blob_\d+.txt$`))
+		Expect(locationInBucket).To(Equal("testdata/blob.txt"))
 		uploadedObject = storage.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   locationInBucket,

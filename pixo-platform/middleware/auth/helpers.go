@@ -2,11 +2,13 @@ package auth
 
 import (
 	"errors"
-	"github.com/rs/zerolog/log"
 	"net/http"
+
+	platform "github.com/PixoVR/pixo-golang-clients/pixo-platform/primary-api"
+	"github.com/rs/zerolog/log"
 )
 
-func GetParsedJWT(req *http.Request) (*RawToken, error) {
+func GetParsedJWT(req *http.Request) (*platform.User, error) {
 	tokenString := ExtractToken(req)
 
 	if tokenString == "" {
@@ -20,5 +22,14 @@ func GetParsedJWT(req *http.Request) (*RawToken, error) {
 		return nil, err
 	}
 
-	return &rawToken, nil
+	user := platform.User{
+		ID:        rawToken.UserID,
+		Email:     rawToken.Email,
+		FirstName: rawToken.FirstName,
+		LastName:  rawToken.LastName,
+		Role:      rawToken.Role,
+		OrgID:     rawToken.OrgID,
+	}
+
+	return &user, nil
 }
