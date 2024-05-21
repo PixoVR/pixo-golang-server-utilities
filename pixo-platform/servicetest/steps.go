@@ -26,7 +26,6 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 
-	ctx.Step(`^I use the id "([^"]*)" for the following requests$`, s.UseID)
 	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)"$`, s.SendRequest)
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data$`, s.SendRequestWithData)
 	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGQLRequestWithVariables)
@@ -233,10 +232,6 @@ func (s *ServerTestFeature) WaitForSeconds(seconds int) {
 
 func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string) {
 	Expect(s.ResponseString).To(ContainSubstring(fmt.Sprintf("\"%s\":\"%s\"", property, value)))
-}
-
-func (s *ServerTestFeature) UseID(id string) {
-	s.ID = string(ReplaceRandomID([]byte(id)))
 }
 
 func (s *ServerTestFeature) SetFilePath(filename string, directory string) error {

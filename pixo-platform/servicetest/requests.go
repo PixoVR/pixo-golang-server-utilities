@@ -37,7 +37,8 @@ func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *go
 }
 
 func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte) {
-	lifecycle := viper.GetString("lifecycle")
+
+	body = s.replaceSubstitutions(body)
 
 	if lifecycle == "" || strings.ToLower(lifecycle) == "local" {
 		req, err := http.NewRequest(method, endpoint, bytes.NewReader(body))
@@ -82,6 +83,8 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte)
 
 func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body string) error {
 	req := s.Client.R()
+
+	body = string(s.replaceSubstitutions([]byte(body)))
 
 	if s.SendFileKey != "" && s.SendFile != "" {
 		req.FormData.Add("operations", body)

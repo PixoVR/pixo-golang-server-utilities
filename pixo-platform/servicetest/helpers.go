@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"math/rand"
 	"strings"
@@ -23,7 +24,12 @@ func GenerateRandomString(length int) string {
 	return randomID
 }
 
-func GetRandomID() string {
+func generateRandomUUID() string {
+	id := uuid.New()
+	return id.String()
+}
+
+func generateRandomID() string {
 	return fmt.Sprint(rand.Intn(1000))
 }
 
