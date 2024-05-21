@@ -16,6 +16,12 @@ import (
 	"time"
 )
 
+var (
+	lifecycle string
+	region    string
+	debug     bool
+)
+
 type ServerTestSuite struct {
 	EnvFilePath *string
 	Feature     *ServerTestFeature
@@ -29,6 +35,16 @@ type Options struct {
 }
 
 func NewSuite(serviceClient abstract_client.AbstractClient, opts ...Options) *ServerTestSuite {
+	viper.SetDefault("lifecycle", "local")
+	viper.SetDefault("region", "na")
+
+	pflag.StringVarP(&region, "region", "r", viper.GetString("region"), "region to run tests against (options: na, saudi)")
+	pflag.StringVarP(&lifecycle, "lifecycle", "l", viper.GetString("lifecycle"), "lifecycle to run tests against (options: local, dev, stage, prod)")
+	pflag.Parse()
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatal().Err(err).Msg("Failed to bind flags")
+	}
+
 	suite := &ServerTestSuite{
 		Feature: &ServerTestFeature{
 			ServiceClient: serviceClient,
@@ -79,17 +95,6 @@ func (s *ServerTestSuite) setup() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 
-	viper.SetDefault("lifecycle", "local")
-	viper.SetDefault("region", "na")
-
-	pflag.StringP("region", "r", viper.GetString("region"), "region to run tests against (options: na, saudi)")
-	pflag.StringP("lifecycle", "l", viper.GetString("lifecycle"), "lifecycle to run tests against (options: local, dev, stage, prod)")
-	pflag.Parse()
-
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		log.Fatal().Err(err).Msg("Failed to bind flags")
-	}
-
 	if err := viper.ReadInConfig(); err != nil {
 		if errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			log.Warn().Msg("Config file not found; ignore error if desired")
@@ -118,10 +123,8 @@ func (s *ServerTestSuite) loadEnv() {
 }
 
 func initLogger() {
-	var enableDebug bool
-	pflag.BoolVarP(&enableDebug, "debug", "z", true, "enable debug logging")
-
-	if enableDebug {
+	pflag.BoolVarP(&debug, "debug", "z", true, "enable debug logging")
+	if debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	} else {
 		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
