@@ -71,6 +71,10 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	return suite
 }
 
+func (s *ServerTestSuite) AddSteps(steps ...Step) {
+	s.config.Steps = append(s.config.Steps, steps...)
+}
+
 func (s *ServerTestSuite) Run() {
 	RegisterFailHandler(func(message string, _ ...int) {
 		log.Panic().Msg(message)

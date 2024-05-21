@@ -8,11 +8,8 @@ import (
 	"testing"
 )
 
-func TestMain(m *testing.M) {
-	config := engine.Config{BasePath: "/api"}
-	e := engine.NewEngine(config)
-
-	helloStep := Step{
+var (
+	helloStep = Step{
 		Expression: "I can say hello$",
 		Handler: func() error {
 			log.Info().Msg("I can say hello")
@@ -20,9 +17,22 @@ func TestMain(m *testing.M) {
 		},
 	}
 
-	resetFunc := func(sc *godog.Scenario) {
+	goodbyeStep = Step{
+		Expression: "I can say goodbye$",
+		Handler: func() error {
+			log.Info().Msg("I can say goodbye")
+			return nil
+		},
+	}
+
+	resetFunc = func(sc *godog.Scenario) {
 		log.Info().Msg("Resetting scenario")
 	}
+)
+
+func TestMain(m *testing.M) {
+	config := engine.Config{BasePath: "/api"}
+	e := engine.NewEngine(config)
 
 	suiteConfig := &SuiteConfig{
 		Engine: e.Engine(),
@@ -31,6 +41,8 @@ func TestMain(m *testing.M) {
 	}
 
 	suite := NewSuite(suiteConfig)
+
+	suite.AddSteps(goodbyeStep)
 
 	if suite.Lifecycle == "" {
 		log.Fatal().Msg("Failed to get lifecycle")
