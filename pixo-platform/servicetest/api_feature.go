@@ -14,11 +14,13 @@ type ServerTestFeature struct {
 	Client   *resty.Client
 	Response *http.Response
 
-	ID     string
-	UserID int
-	APIKey string
-	Err    error
-	Token  string
+	ID             string
+	UserID         int
+	APIKey         string
+	Err            error
+	Token          string
+	ResponseString string
+	StatusCode     int
 
 	DirectoryFilePath string
 	GraphQLOperation  string
