@@ -55,6 +55,11 @@ func NewSuite(serviceClient abstract_client.AbstractClient, opts ...Options) *Se
 }
 
 func (s *ServerTestSuite) Run() {
+
+	gomega.RegisterFailHandler(func(message string, _ ...int) {
+		log.Panic().Msg(message)
+	})
+
 	status := godog.TestSuite{
 		ScenarioInitializer: s.Feature.InitializeScenario,
 		Options:             s.opts.GodogOpts,
@@ -66,10 +71,6 @@ func (s *ServerTestSuite) Run() {
 func (s *ServerTestSuite) setup() {
 	godog.BindCommandLineFlags("godog.", s.opts.GodogOpts)
 	pflag.Parse()
-
-	gomega.RegisterFailHandler(func(message string, _ ...int) {
-		log.Panic().Msg(message)
-	})
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})

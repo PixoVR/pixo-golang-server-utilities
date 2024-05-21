@@ -2,6 +2,7 @@ package servicetest
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,35 @@ import (
 	"strings"
 	"time"
 )
+
+func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+		s.Reset(sc)
+		return ctx, nil
+	})
+
+	ctx.Step(`^I use the id "([^"]*)" for the following requests$`, s.UseID)
+	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)"$`, s.SendRequest)
+	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data$`, s.SendRequestWithData)
+	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGqlRequestWithVariables)
+
+	ctx.Step(`^the response code should be "([^"]*)"$`, s.TheResponseCodeShouldBe)
+	ctx.Step(`^the response code should be (\d+)$`, s.TheResponseCodeShouldBe)
+	ctx.Step(`^the response should match json$`, s.TheResponseShouldMatchJSON)
+	ctx.Step(`^the response should contain$`, s.TheResponseShouldContain)
+	ctx.Step(`^the response should contain a "([^"]*)" header with value "([^"]*)"$`, s.TheResponseHeadersShouldContain)
+	ctx.Step(`^the response should contain a "([^"]*)"$`, s.TheResponseShouldContainA)
+	ctx.Step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
+	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
+
+	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory$`, s.SetFilePath)
+	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
+
+	ctx.Step(`^I wait for "([^"]*)" seconds$`, s.WaitForSeconds)
+	ctx.Step(`^the response should contain "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
+	ctx.Step(`^it should not contain "([^"]*)" for the path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
+	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
+}
 
 func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, body *godog.DocString) {
 	s.MakeRequest(method, endpoint, body)
