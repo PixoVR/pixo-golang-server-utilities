@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/antchfx/jsonquery"
 	"github.com/cucumber/godog"
@@ -53,9 +52,7 @@ func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, 
 
 func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {
 	s.GraphQLOperation = gqlMethodName
-	if s.DirectoryFilePath == "" {
-		return errors.New("cannot read graphql operation from file")
-	}
+	s.DirectoryFilePath = fmt.Sprintf("./gql/%s.gql", gqlMethodName)
 
 	fileContent, err := os.ReadFile(s.DirectoryFilePath)
 	if err != nil {
@@ -237,8 +234,6 @@ func (s *ServerTestFeature) FileToSendInRequest(filename, directory, key string)
 	if directory == "" && filename == "" {
 		return fmt.Errorf("directory and filename cannot be empty")
 	}
-
-	s.DirectoryFilePath = fmt.Sprintf("./%s/%s", directory, filename)
 	s.SendFileKey = key
 	s.SendFile = fmt.Sprintf("./%s/%s", directory, filename)
 
