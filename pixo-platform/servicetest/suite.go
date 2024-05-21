@@ -3,6 +3,7 @@ package servicetest
 import (
 	"context"
 	"errors"
+	graphql_api "github.com/PixoVR/pixo-golang-clients/pixo-platform/graphql-api"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 	"github.com/gin-gonic/gin"
@@ -32,10 +33,11 @@ type ServerTestSuite struct {
 }
 
 type SuiteConfig struct {
-	Opts   *godog.Options
-	Engine *gin.Engine
-	Reset  func(sc *godog.Scenario)
-	Steps  []Step
+	Opts          *godog.Options
+	ServiceClient graphql_api.PlatformClient
+	Engine        *gin.Engine
+	Reset         func(sc *godog.Scenario)
+	Steps         []Step
 }
 
 func NewSuite(config *SuiteConfig) *ServerTestSuite {

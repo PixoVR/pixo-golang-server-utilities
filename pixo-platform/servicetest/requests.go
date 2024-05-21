@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -40,12 +41,19 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte)
 
 	body = s.performSubstitutions(body)
 
-	if lifecycle == "" || strings.ToLower(lifecycle) == "local" {
-		req, err := http.NewRequest(method, endpoint, bytes.NewReader(body))
+	currentLifecycle := strings.ToLower(viper.GetString("lifecycle"))
+	if currentLifecycle == "" || currentLifecycle == "local" {
+		url := fmt.Sprintf("/%s%s", s.ServiceClient.Path(), endpoint)
+		req, err := http.NewRequest(method, url, bytes.NewReader(body))
 		Expect(err).NotTo(HaveOccurred())
 
 		if s.Token != "" {
 			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.Token))
+		}
+
+		if method == "POST" {
+			req.Header.Set("Content-Type", "application/json")
+			req.Body = io.NopCloser(bytes.NewReader(body))
 		}
 
 		s.Engine.ServeHTTP(s.Recorder, req)
@@ -55,14 +63,22 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte)
 		s.StatusCode = s.Recorder.Code
 		s.Err = nil
 	} else {
+		req := s.Client.R()
+
+		if s.Token != "" {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.Token))
+		}
+
+		url := fmt.Sprintf("%s%s", s.ServiceClient.GetURL(), endpoint)
+
 		var res *resty.Response
 		var err error
 		switch method {
 		case "GET":
-			res, err = s.ServiceClient.Get(endpoint)
-
+			res, err = req.Get(url)
 		case "POST":
-			res, err = s.ServiceClient.Post(endpoint, body)
+			req.SetBody(body)
+			res, err = req.Post(url)
 		}
 
 		Expect(err).NotTo(HaveOccurred())

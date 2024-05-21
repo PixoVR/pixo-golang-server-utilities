@@ -7,7 +7,7 @@ toolchain go1.22.2
 require (
 	agones.dev/agones v1.40.0
 	cloud.google.com/go/storage v1.41.0
-	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240424185248-10a9901e2f89
+	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240521090804-0eabe5aaa1ab
 	github.com/alicebob/miniredis/v2 v2.32.1
 	github.com/antchfx/jsonquery v1.3.4
 	github.com/argoproj/argo-workflows/v3 v3.5.6
@@ -22,6 +22,7 @@ require (
 	github.com/go-resty/resty/v2 v2.13.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang/protobuf v1.5.4
+	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/onsi/ginkgo/v2 v2.17.3
 	github.com/onsi/gomega v1.33.1
@@ -132,7 +133,6 @@ require (
 	github.com/google/pprof v0.0.0-20240424215950-a892ee059fd6 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.4 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect

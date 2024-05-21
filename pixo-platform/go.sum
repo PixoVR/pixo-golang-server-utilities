@@ -44,8 +44,8 @@ github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migc
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
 github.com/Microsoft/hcsshim v0.11.4 h1:68vKo2VN8DE9AdN4tnkWnmdhqdbpUFM8OF3Airm7fz8=
 github.com/Microsoft/hcsshim v0.11.4/go.mod h1:smjE4dvqPX9Zldna+t5FG3rnoHhaB7QYxPRqGcpAD9w=
-github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240424185248-10a9901e2f89 h1:nT0DDDkcnf3xdrQm3mRRShxET3mSlxrTibYOG4kctD8=
-github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240424185248-10a9901e2f89/go.mod h1:aGl2iXUd9TxTj4fu24/+Ya1ptOvieJulNwGyyK6aPGM=
+github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240521090804-0eabe5aaa1ab h1:Z6ZfNtuujuukxi5ohBva/wkhTnfa2QoFoXl/OPkQFKE=
+github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240521090804-0eabe5aaa1ab/go.mod h1:01b7JHycSW7zDvlX/6gqwZI11ZleTtDgVT/8n2puSi0=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d h1:UrqY+r/OJnIp5u0s1SbQ8dVfLCZJsnvazdBP5hS4iRs=

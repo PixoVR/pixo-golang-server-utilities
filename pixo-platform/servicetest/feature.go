@@ -38,6 +38,7 @@ type ServerTestFeature struct {
 
 func NewServerTestFeature() *ServerTestFeature {
 	return &ServerTestFeature{
+		Client:               resty.New(),
 		staticSubstitutions:  make(map[string]string),
 		dynamicSubstitutions: make(map[string]func() string),
 	}

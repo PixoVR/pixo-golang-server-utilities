@@ -1,6 +1,8 @@
 package servicetest_test
 
 import (
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/heartbeat"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/engine"
 	. "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/servicetest"
 	"github.com/cucumber/godog"
@@ -31,7 +33,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	config := engine.Config{BasePath: "/api"}
+	config := engine.Config{BasePath: "/heartbeat"}
 	e := engine.NewEngine(config)
 
 	suiteConfig := &SuiteConfig{
@@ -43,8 +45,14 @@ func TestMain(m *testing.M) {
 	suite := NewSuite(suiteConfig)
 
 	suite.AddSteps(goodbyeStep)
-	suite.Feature.AddStaticSubstitution("$SOME_ID", "1234")
-	suite.Feature.AddDynamicSubstitution("$SOME_ID", func() string { return "1234" })
+
+	suite.Feature.AddStaticSubstitution("$STATIC_ID", "1234")
+	suite.Feature.AddDynamicSubstitution("$DYNAMIC_ID", func() string { return "4321" })
+
+	suite.Feature.ServiceClient = heartbeat.NewClient(urlfinder.ClientConfig{
+		Region:    "na",
+		Lifecycle: "dev",
+	})
 
 	if suite.Lifecycle == "" {
 		log.Fatal().Msg("Failed to get lifecycle")
