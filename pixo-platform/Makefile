@@ -3,6 +3,11 @@ GO_BIN ?= $$(go env GOPATH)/bin
 
 all: lint test
 
+update:
+	@echo "🔄 Updating Pixo utilities..."
+	@go get github.com/PixoVR/pixo-golang-clients/pixo-platform@0.1.0
+	@go mod tidy
+
 lint:
 	@echo "🪮 Linting..."
 	@golangci-lint run --timeout 5m
