@@ -47,6 +47,9 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		log.Fatal().Err(err).Msg("Failed to bind flags")
 	}
 
+	viper.Set("region", region)
+	viper.Set("lifecycle", lifecycle)
+
 	suite := &ServerTestSuite{
 		Feature: &ServerTestFeature{Engine: config.Engine},
 		config:  config,
