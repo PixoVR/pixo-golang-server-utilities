@@ -11,16 +11,16 @@ type ServerTestFeature struct {
 	Engine   *gin.Engine
 	Recorder *httptest.ResponseRecorder
 
-	Client   *resty.Client
-	Response *http.Response
-
-	ID             string
-	UserID         int
-	APIKey         string
-	Err            error
-	Token          string
+	Client         *resty.Client
+	Response       *http.Response
 	ResponseString string
 	StatusCode     int
+
+	Token  string
+	ID     string
+	UserID int
+	APIKey string
+	Err    error
 
 	DirectoryFilePath string
 	GraphQLOperation  string
@@ -34,8 +34,12 @@ func (s *ServerTestFeature) Reset() {
 
 	s.Client = resty.New()
 	s.Response = nil
+	s.ResponseString = ""
+	s.StatusCode = 0
 
 	s.Token = ""
+	s.ID = ""
+	s.UserID = 0
 	s.APIKey = ""
 	s.Err = nil
 
