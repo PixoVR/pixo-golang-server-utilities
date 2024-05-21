@@ -29,7 +29,7 @@ type ServerTestFeature struct {
 	GraphQLResponse   map[string]interface{}
 }
 
-func (s *ServerTestFeature) resetResponse(interface{}) {
+func (s *ServerTestFeature) Reset() {
 	s.Recorder = httptest.NewRecorder()
 
 	s.Client = resty.New()
@@ -38,6 +38,7 @@ func (s *ServerTestFeature) resetResponse(interface{}) {
 	s.Token = ""
 	s.APIKey = ""
 	s.Err = nil
+
 	s.GraphQLResponse = make(map[string]interface{})
 	s.DirectoryFilePath = ""
 	s.SendFileKey = ""
