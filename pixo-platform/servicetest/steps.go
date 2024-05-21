@@ -39,7 +39,6 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
 	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
 
-	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory$`, s.SetFilePath)
 	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
 
 	ctx.Step(`^I wait for "([^"]*)" seconds$`, s.WaitForSeconds)
@@ -234,18 +233,12 @@ func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string
 	Expect(s.ResponseString).To(ContainSubstring(fmt.Sprintf("\"%s\":\"%s\"", property, value)))
 }
 
-func (s *ServerTestFeature) SetFilePath(filename string, directory string) error {
-	if directory == "" && filename == "" {
-		return fmt.Errorf("directory and filename cannot be empty")
-	}
-	s.DirectoryFilePath = fmt.Sprintf("./%s/%s", directory, filename)
-	return nil
-}
-
 func (s *ServerTestFeature) FileToSendInRequest(filename, directory, key string) error {
 	if directory == "" && filename == "" {
 		return fmt.Errorf("directory and filename cannot be empty")
 	}
+
+	s.DirectoryFilePath = fmt.Sprintf("./%s/%s", directory, filename)
 	s.SendFileKey = key
 	s.SendFile = fmt.Sprintf("./%s/%s", directory, filename)
 
