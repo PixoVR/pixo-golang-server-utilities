@@ -30,7 +30,6 @@ type ServerTestFeature struct {
 }
 
 func (s *ServerTestFeature) resetResponse(interface{}) {
-	s.Engine = gin.Default()
 	s.Recorder = httptest.NewRecorder()
 
 	s.Client = resty.New()
