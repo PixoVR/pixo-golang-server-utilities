@@ -2,6 +2,7 @@ package servicetest
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -17,8 +18,14 @@ func (s *ServerTestFeature) performSubstitutions(data []byte) []byte {
 		data = []byte(strings.ReplaceAll(string(data), key, value))
 	}
 
-	for key, value := range s.substitutions {
+	for key, value := range s.staticSubstitutions {
 		data = []byte(strings.ReplaceAll(string(data), key, value))
+	}
+
+	for key, value := range s.dynamicSubstitutions {
+		if value != nil && reflect.ValueOf(value).Kind() == reflect.Func {
+			data = []byte(strings.ReplaceAll(string(data), key, value()))
+		}
 	}
 
 	return data

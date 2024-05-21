@@ -44,6 +44,7 @@ func TestMain(m *testing.M) {
 
 	suite.AddSteps(goodbyeStep)
 	suite.Feature.AddStaticSubstitution("$SOME_ID", "1234")
+	suite.Feature.AddDynamicSubstitution("$SOME_ID", func() string { return "1234" })
 
 	if suite.Lifecycle == "" {
 		log.Fatal().Msg("Failed to get lifecycle")

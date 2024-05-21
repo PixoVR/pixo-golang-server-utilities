@@ -53,15 +53,14 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	viper.Set("lifecycle", lifecycle)
 
 	suite := &ServerTestSuite{
-		Feature: &ServerTestFeature{
-			Engine:        config.Engine,
-			substitutions: make(map[string]string),
-		},
+		Feature:   NewServerTestFeature(),
 		Lifecycle: lifecycle,
 		Region:    region,
 
 		config: config,
 	}
+
+	suite.Feature.Engine = config.Engine
 
 	if suite.config.Opts == nil {
 		suite.config.Opts = &godog.Options{
