@@ -7,7 +7,7 @@ import (
 	"github.com/cucumber/godog/colors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/pflag"
@@ -25,6 +25,8 @@ var (
 type ServerTestSuite struct {
 	EnvFilePath *string
 	Feature     *ServerTestFeature
+	Lifecycle   string
+	Region      string
 
 	config *SuiteConfig
 }
@@ -51,8 +53,10 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	viper.Set("lifecycle", lifecycle)
 
 	suite := &ServerTestSuite{
-		Feature: &ServerTestFeature{Engine: config.Engine},
-		config:  config,
+		Feature:   &ServerTestFeature{Engine: config.Engine},
+		config:    config,
+		Lifecycle: lifecycle,
+		Region:    region,
 	}
 
 	if suite.config.Opts == nil {
@@ -64,12 +68,11 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	}
 
 	suite.setup()
-
 	return suite
 }
 
 func (s *ServerTestSuite) Run() {
-	gomega.RegisterFailHandler(func(message string, _ ...int) {
+	RegisterFailHandler(func(message string, _ ...int) {
 		log.Panic().Msg(message)
 	})
 
