@@ -53,10 +53,14 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	viper.Set("lifecycle", lifecycle)
 
 	suite := &ServerTestSuite{
-		Feature:   &ServerTestFeature{Engine: config.Engine},
-		config:    config,
+		Feature: &ServerTestFeature{
+			Engine:        config.Engine,
+			substitutions: make(map[string]string),
+		},
 		Lifecycle: lifecycle,
 		Region:    region,
+
+		config: config,
 	}
 
 	if suite.config.Opts == nil {

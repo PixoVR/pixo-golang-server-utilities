@@ -43,6 +43,7 @@ func TestMain(m *testing.M) {
 	suite := NewSuite(suiteConfig)
 
 	suite.AddSteps(goodbyeStep)
+	suite.Feature.AddStaticSubstitution("$SOME_ID", "1234")
 
 	if suite.Lifecycle == "" {
 		log.Fatal().Msg("Failed to get lifecycle")

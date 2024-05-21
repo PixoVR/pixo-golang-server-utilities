@@ -9,9 +9,10 @@ import (
 )
 
 type ServerTestFeature struct {
-	Engine   *gin.Engine
-	Recorder *httptest.ResponseRecorder
-	Client   *resty.Client
+	substitutions map[string]string
+	Engine        *gin.Engine
+	Recorder      *httptest.ResponseRecorder
+	Client        *resty.Client
 
 	ServiceClient abstract_client.AbstractClient
 
@@ -31,6 +32,10 @@ type ServerTestFeature struct {
 	SendFileKey       string
 	SendFile          string
 	GraphQLResponse   map[string]interface{}
+}
+
+func (s *ServerTestFeature) AddStaticSubstitution(key, value string) {
+	s.substitutions[key] = value
 }
 
 func (s *ServerTestFeature) Reset(interface{}) {

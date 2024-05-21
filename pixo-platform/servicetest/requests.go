@@ -20,7 +20,7 @@ func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *go
 		bodyContent = []byte(body.Content)
 	}
 
-	bodyContent = s.replaceSubstitutions(bodyContent)
+	bodyContent = s.performSubstitutions(bodyContent)
 
 	s.PerformRequest(method, endpoint, bodyContent)
 
@@ -38,7 +38,7 @@ func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *go
 
 func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte) {
 
-	body = s.replaceSubstitutions(body)
+	body = s.performSubstitutions(body)
 
 	if lifecycle == "" || strings.ToLower(lifecycle) == "local" {
 		req, err := http.NewRequest(method, endpoint, bytes.NewReader(body))
@@ -84,7 +84,7 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte)
 func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body string) error {
 	req := s.Client.R()
 
-	body = string(s.replaceSubstitutions([]byte(body)))
+	body = string(s.performSubstitutions([]byte(body)))
 
 	if s.SendFileKey != "" && s.SendFile != "" {
 		req.FormData.Add("operations", body)
@@ -106,7 +106,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 		Lifecycle:   viper.GetString("lifecycle"),
 	}
 	url := serviceConfig.FormatURL() + endpoint
-	url = string(s.replaceSubstitutions([]byte(url)))
+	url = string(s.performSubstitutions([]byte(url)))
 
 	log.Info().Msgf("URL: %s: - Method %s", url, method)
 

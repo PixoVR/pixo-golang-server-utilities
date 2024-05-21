@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func (s *ServerTestFeature) replaceSubstitutions(data []byte) []byte {
+func (s *ServerTestFeature) performSubstitutions(data []byte) []byte {
 	substitutions := map[string]string{
 		"$ID":          fmt.Sprint(s.GraphQLResponse["id"]),
 		"$USER_ID":     fmt.Sprint(s.UserID),
@@ -14,6 +14,10 @@ func (s *ServerTestFeature) replaceSubstitutions(data []byte) []byte {
 	}
 
 	for key, value := range substitutions {
+		data = []byte(strings.ReplaceAll(string(data), key, value))
+	}
+
+	for key, value := range s.substitutions {
 		data = []byte(strings.ReplaceAll(string(data), key, value))
 	}
 

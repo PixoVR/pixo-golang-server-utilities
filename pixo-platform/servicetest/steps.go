@@ -79,7 +79,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 			variableBody.Content = strings.ReplaceAll(variableBody.Content, fmt.Sprintf("$%s", k), fmt.Sprintf("%v", v))
 		}
 
-		variableBody.Content = string(s.replaceSubstitutions([]byte(variableBody.Content)))
+		variableBody.Content = string(s.performSubstitutions([]byte(variableBody.Content)))
 		log.Debug().Msgf("GraphQL variables body: %s", variableBody.Content)
 
 		if err = json.Unmarshal([]byte(variableBody.Content), &variables); err != nil {
@@ -210,7 +210,7 @@ func (s *ServerTestFeature) TheResponseHeadersShouldContain(key, value string) {
 }
 
 func (s *ServerTestFeature) TheResponseShouldContainA(key string) {
-	key = string(s.replaceSubstitutions([]byte(key)))
+	key = string(s.performSubstitutions([]byte(key)))
 	actual := TrimString(s.ResponseString)
 	Expect(actual).To(ContainSubstring(key))
 }
