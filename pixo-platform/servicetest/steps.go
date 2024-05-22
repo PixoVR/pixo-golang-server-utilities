@@ -26,7 +26,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 
 	ctx.Step(`^I am signed in as a "([^"]*)"$`, s.SignedInAsA)
-	ctx.Step(`^I have the secret needed for api key authentication$`, s.UseSecretKey)
+	ctx.Step(`^I use the secret key for authentication$`, s.UseSecretKey)
 
 	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)"$`, s.SendRequest)
 	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)" with params$`, s.SendRequestWithParams)
