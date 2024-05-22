@@ -44,14 +44,27 @@ type SuiteConfig struct {
 }
 
 func NewSuite(config *SuiteConfig) *ServerTestSuite {
-	viper.SetDefault("lifecycle", "local")
-	viper.SetDefault("region", "na")
+	if config == nil {
+		config = &SuiteConfig{}
+	}
 
-	pflag.StringVarP(&region, "region", "r", viper.GetString("region"), "region to run tests against (options: na, saudi)")
-	pflag.StringVarP(&lifecycle, "lifecycle", "l", viper.GetString("lifecycle"), "lifecycle to run tests against (options: local, dev, stage, prod)")
+	if config.Opts == nil {
+		config.Opts = &godog.Options{
+			Output:    colors.Colored(os.Stdout),
+			Randomize: time.Now().UTC().UnixNano(),
+			Format:    "pretty",
+		}
+	}
+
+	pflag.StringVarP(&region, "region", "r", "na", "region to run tests against (options: na, saudi)")
+	pflag.StringVarP(&lifecycle, "lifecycle", "l", "local", "lifecycle to run tests against (options: local, dev, stage, prod)")
+
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		log.Fatal().Err(err).Msg("Failed to bind flags")
 	}
+
+	godog.BindCommandLineFlags("godog.", config.Opts)
+	pflag.Parse()
 
 	viper.Set("region", region)
 	viper.Set("lifecycle", lifecycle)
@@ -81,18 +94,8 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	}
 
 	suite.Feature.Engine = config.Engine
-
-	if suite.config.Opts == nil {
-		suite.config.Opts = &godog.Options{
-			Output:    colors.Colored(os.Stdout),
-			Randomize: time.Now().UTC().UnixNano(),
-			Format:    "pretty",
-		}
-	}
-
 	suite.setup()
 
-	pflag.Parse()
 	return suite
 }
 
@@ -129,8 +132,6 @@ func (s *ServerTestSuite) InitializeScenario(ctx *godog.ScenarioContext) {
 }
 
 func (s *ServerTestSuite) setup() {
-	godog.BindCommandLineFlags("godog.", s.config.Opts)
-
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 

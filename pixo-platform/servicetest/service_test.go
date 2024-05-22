@@ -59,8 +59,8 @@ func TestMain(m *testing.M) {
 	}
 
 	suite.Feature.ServiceClient = heartbeat.NewClient(urlfinder.ClientConfig{
-		Region:    "na",
-		Lifecycle: "dev",
+		Lifecycle: suite.Lifecycle,
+		Region:    suite.Region,
 	})
 
 	if suite.Lifecycle == "" {

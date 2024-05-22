@@ -1,6 +1,7 @@
 
 Feature: Acceptance Tests
 
+  @health
   Scenario: Basic health check
     When I send "GET" request to "/health"
     Then the response code should be "200"
