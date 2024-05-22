@@ -12,9 +12,6 @@ import (
 
 func (s *ServerTestFeature) OpenWebsocket(endpoint string) error {
 	s.WebsocketConn, s.Response, s.Err = s.ServiceClient.DialWebsocket(endpoint)
-	if s.Err != nil {
-		return fmt.Errorf("error connecting to websocket: %w", s.Err)
-	}
 
 	if s.Response != nil {
 		s.StatusCode = s.Response.StatusCode
