@@ -58,7 +58,9 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the websocket is not connected$`, s.WebsocketIsNotConnected)
 	ctx.Step(`^the message should contain a "([^"]*)"$`, s.TheMessageShouldContainA)
 	ctx.Step(`^the message should not contain a "([^"]*)"$`, s.TheMessageShouldNotContainA)
-	ctx.Step(`^I open a websocket with the "([^"]*)" service at "([^"]*)"$`, s.OpenWebsocket)
+
+	ctx.Step(`^I open a websocket at "([^"]*)"$`, s.OpenWebsocket)
+
 	ctx.Step(`^I send the following data to the open websocket:$`, s.SendWebsocketMessage)
 	ctx.Step(`^I read a message from the websocket$`, s.GetWebsocketMessage)
 	ctx.Step(`^the message should not be empty$`, s.CheckMessageNotEmpty)
