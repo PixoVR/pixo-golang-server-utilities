@@ -28,13 +28,17 @@ func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *go
 		return err
 	}
 
-	var responseBody map[string]interface{}
-	if err := json.Unmarshal([]byte(s.Recorder.Body.String()), &responseBody); err != nil {
-		return fmt.Errorf("failed to unmarshal response body: %s", err)
-	}
+	log.Debug().
+		Str("endpoint", endpoint).
+		Str("response", s.ResponseString).
+		Int("status_code", s.StatusCode).
+		Msg("HTTP RESPONSE")
 
-	if value, ok := responseBody["message"]; ok {
-		s.Message = value.(string)
+	var responseBody map[string]interface{}
+	if err := json.Unmarshal([]byte(s.ResponseString), &responseBody); err == nil {
+		if value, ok := responseBody["message"]; ok {
+			s.Message = value.(string)
+		}
 	}
 
 	return nil
@@ -123,12 +127,6 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 		s.StatusCode = res.StatusCode()
 		s.Err = err
 	}
-
-	log.Debug().
-		Str("endpoint", endpoint).
-		Str("response", s.ResponseString).
-		Int("status_code", s.StatusCode).
-		Msg("HTTP RESPONSE")
 
 	return nil
 }
