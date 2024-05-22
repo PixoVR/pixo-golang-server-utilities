@@ -43,7 +43,7 @@ func (s *ServerTestFeature) SignedInAsA(role string) error {
 		return fmt.Errorf("failed to login: %w", err)
 	}
 
-	s.Token = s.ServiceClient.GetToken()
+	s.Token = s.PlatformClient.GetToken()
 	if s.Token == "" {
 		return errors.New("token not found")
 	}
