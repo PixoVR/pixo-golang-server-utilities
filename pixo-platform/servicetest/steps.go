@@ -25,8 +25,15 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 
+	ctx.Step(`^I am signed in as a "([^"]*)"$`, s.SignedInAsA)
+	ctx.Step(`^I have the secret needed for api key authentication$`, s.UseSecretKey)
+
 	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)"$`, s.SendRequest)
+	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)" with params$`, s.SendRequestWithParams)
+	ctx.Step(`^I send "([^"]*)" request to "([^"]*)" with params string "([^"]*)"$`, s.SendRequestWithParamsString)
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data$`, s.SendRequestWithData)
+	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedData)
+
 	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGQLRequestWithVariables)
 
 	ctx.Step(`^the response code should be "([^"]*)"$`, s.TheResponseCodeShouldBe)
@@ -56,7 +63,23 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 }
 
 func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, body *godog.DocString) {
-	s.MakeRequest(method, endpoint, body)
+	s.MakeRequest(method, endpoint, body, nil)
+}
+
+func (s *ServerTestFeature) SendRequestWithEncodedData(method string, endpoint string, encodedPath string, body *godog.DocString) {
+	var data map[string]interface{}
+	err := json.Unmarshal(s.PerformSubstitutions([]byte(body.Content)), &data)
+	Expect(err).NotTo(HaveOccurred())
+
+	encodedData, err := EncodeData(data, encodedPath)
+	Expect(err).NotTo(HaveOccurred())
+
+	encodedBytes, err := json.Marshal(encodedData)
+	Expect(err).NotTo(HaveOccurred())
+
+	body.Content = string(encodedBytes)
+
+	s.MakeRequest(method, endpoint, body, nil)
 }
 
 func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {
@@ -84,7 +107,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 			variableBody.Content = strings.ReplaceAll(variableBody.Content, fmt.Sprintf("$%s", k), fmt.Sprintf("%v", v))
 		}
 
-		variableBody.Content = string(s.performSubstitutions([]byte(variableBody.Content)))
+		variableBody.Content = string(s.PerformSubstitutions([]byte(variableBody.Content)))
 		log.Debug().Msgf("GraphQL variables body: %s", variableBody.Content)
 
 		if err = json.Unmarshal([]byte(variableBody.Content), &variables); err != nil {
@@ -192,7 +215,27 @@ func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotNull(jsonQueryPath
 }
 
 func (s *ServerTestFeature) SendRequest(method, endpoint string) {
-	s.MakeRequest(method, endpoint, nil)
+	s.MakeRequest(method, endpoint, nil, nil)
+}
+
+func (s *ServerTestFeature) SendRequestWithParams(method, endpoint string, params *godog.DocString) {
+	var paramsMap map[string]string
+	if err := json.Unmarshal([]byte(params.Content), &paramsMap); err != nil {
+		log.Fatal().Err(err)
+	}
+
+	s.MakeRequest(method, endpoint, nil, paramsMap)
+}
+
+func (s *ServerTestFeature) SendRequestWithParamsString(method, endpoint, params string) error {
+	var paramsMap map[string]string
+
+	if err := json.Unmarshal([]byte(params), &paramsMap); err != nil {
+		return fmt.Errorf("error unmarshalling params: %w", err)
+	}
+
+	s.MakeRequest(method, endpoint, nil, paramsMap)
+	return nil
 }
 
 func (s *ServerTestFeature) TheResponseCodeShouldBe(statusCode int) error {
@@ -215,7 +258,7 @@ func (s *ServerTestFeature) TheResponseHeadersShouldContain(key, value string) {
 }
 
 func (s *ServerTestFeature) TheResponseShouldContainA(key string) {
-	key = string(s.performSubstitutions([]byte(key)))
+	key = string(s.PerformSubstitutions([]byte(key)))
 	actual := TrimString(s.ResponseString)
 	Expect(actual).To(ContainSubstring(key))
 }

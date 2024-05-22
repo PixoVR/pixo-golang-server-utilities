@@ -63,7 +63,7 @@ func (s *ServerTestFeature) SendWebsocketMessage(body *godog.DocString) error {
 		return err
 	}
 
-	if err := s.ServiceClient.WriteToWebsocket(s.performSubstitutions([]byte(body.Content))); err != nil {
+	if err := s.ServiceClient.WriteToWebsocket(s.PerformSubstitutions([]byte(body.Content))); err != nil {
 		return fmt.Errorf("error sending message to websocket: %w", err)
 	}
 
@@ -94,7 +94,7 @@ func (s *ServerTestFeature) CheckMessageNotEmpty() error {
 }
 
 func (s *ServerTestFeature) TheMessageShouldContainA(key string) error {
-	key = string(s.performSubstitutions([]byte(key)))
+	key = string(s.PerformSubstitutions([]byte(key)))
 	actual := TrimString(s.Message)
 	if !strings.Contains(actual, key) {
 		return fmt.Errorf("expected message to contain %s, but got %s", key, actual)
@@ -104,7 +104,7 @@ func (s *ServerTestFeature) TheMessageShouldContainA(key string) error {
 }
 
 func (s *ServerTestFeature) TheMessageShouldNotContainA(key string) error {
-	key = string(s.performSubstitutions([]byte(key)))
+	key = string(s.PerformSubstitutions([]byte(key)))
 	actual := TrimString(s.Message)
 	if strings.Contains(actual, key) {
 		return fmt.Errorf("expected message not to contain %s, but got %s", key, actual)

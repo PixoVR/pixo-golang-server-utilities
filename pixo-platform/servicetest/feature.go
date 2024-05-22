@@ -2,6 +2,7 @@ package servicetest
 
 import (
 	abstract_client "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
+	graphql_api "github.com/PixoVR/pixo-golang-clients/pixo-platform/graphql-api"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/gorilla/websocket"
@@ -24,18 +25,20 @@ type ServerTestFeature struct {
 	WebsocketConn        *websocket.Conn
 	WebsocketReadTimeout *time.Duration
 
-	ServiceClient abstract_client.AbstractClient
+	ServiceClient  abstract_client.AbstractClient
+	PlatformClient graphql_api.PlatformClient
 
 	Response       *http.Response
 	ResponseString string
 	StatusCode     int
 
-	Token   string
-	ID      string
-	UserID  int
-	APIKey  string
-	Message string
-	Err     error
+	SecretKey string
+	Token     string
+	ID        string
+	UserID    int
+	APIKey    string
+	Message   string
+	Err       error
 
 	DirectoryFilePath string
 	GraphQLOperation  string

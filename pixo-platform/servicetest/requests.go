@@ -15,15 +15,15 @@ import (
 	"strings"
 )
 
-func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *godog.DocString) {
+func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *godog.DocString, paramsMap map[string]string) {
 	var bodyContent []byte
 	if body != nil {
 		bodyContent = []byte(body.Content)
 	}
 
-	bodyContent = s.performSubstitutions(bodyContent)
+	bodyContent = s.PerformSubstitutions(bodyContent)
 
-	s.PerformRequest(method, endpoint, bodyContent)
+	s.PerformRequest(method, endpoint, bodyContent, paramsMap)
 
 	var responseBody map[string]interface{}
 	if err := json.Unmarshal([]byte(s.Recorder.Body.String()), &responseBody); err != nil {
@@ -37,9 +37,9 @@ func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *go
 	Expect(s.Err).NotTo(HaveOccurred())
 }
 
-func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte) {
+func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte, paramsMap map[string]string) {
 
-	body = s.performSubstitutions(body)
+	body = s.PerformSubstitutions(body)
 
 	if s.BeforeRequest != nil {
 		s.BeforeRequest(body)
@@ -74,6 +74,10 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte)
 			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.Token))
 		}
 
+		if paramsMap != nil {
+			req.SetQueryParams(paramsMap)
+		}
+
 		url := fmt.Sprintf("%s%s", s.ServiceClient.GetURL(), endpoint)
 
 		var res *resty.Response
@@ -105,7 +109,7 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte)
 func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body string) error {
 	req := s.Client.R()
 
-	body = string(s.performSubstitutions([]byte(body)))
+	body = string(s.PerformSubstitutions([]byte(body)))
 
 	if s.SendFileKey != "" && s.SendFile != "" {
 		req.FormData.Add("operations", body)
@@ -127,7 +131,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 		Lifecycle:   viper.GetString("lifecycle"),
 	}
 	url := serviceConfig.FormatURL() + endpoint
-	url = string(s.performSubstitutions([]byte(url)))
+	url = string(s.PerformSubstitutions([]byte(url)))
 
 	log.Info().Msgf("URL: %s: - Method %s", url, method)
 
