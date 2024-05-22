@@ -55,6 +55,8 @@ func (s *ServerTestFeature) SignedInAsA(role string) error {
 		return errors.New("token not found")
 	}
 
+	s.ServiceClient.SetToken(s.Token)
+
 	s.UserID = s.PlatformClient.ActiveUserID()
 	if s.UserID == 0 {
 		return errors.New("user id not found")
