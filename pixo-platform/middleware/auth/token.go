@@ -27,23 +27,27 @@ func TokenAuthMiddleware(validateUser ValidateUserFunc, validateAPIKey ValidateA
 				return
 			}
 
-			if err := validateUser(user.ID); err != nil {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-					"error": "unauthorized",
-				})
-				return
+			if validateUser != nil {
+				if err = validateUser(user.ID); err != nil {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+						"error": "unauthorized",
+					})
+					return
+				}
+				c.Set(config.ContextRequestAuthentication.String(), user)
 			}
-			c.Set(config.ContextRequestAuthentication.String(), user)
 		} else {
-			user, err := validateAPIKey(c.Request.Context(), ExtractToken(c.Request, APIKeyHeader))
-			if err != nil {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-					"error": "unauthorized",
-				})
-				return
-			}
+			if validateAPIKey != nil {
+				user, err := validateAPIKey(c.Request.Context(), ExtractToken(c.Request, APIKeyHeader))
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+						"error": "unauthorized",
+					})
+					return
+				}
 
-			c.Set(config.ContextRequestAuthentication.String(), user)
+				c.Set(config.ContextRequestAuthentication.String(), user)
+			}
 		}
 
 		c.Next()
