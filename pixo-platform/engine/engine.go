@@ -7,6 +7,8 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/uber/jaeger-client-go"
+	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"net/http"
 	"os"
 	"strconv"
@@ -70,36 +72,42 @@ func NewEngine(config Config) *CustomEngine {
 	e.engine.Use(platformAuth.HostMiddleware())
 
 	if config.Tracing {
-		if config.CollectorEndpoint == "" {
-			if strings.ToLower(config.Lifecycle) == "local" {
-				config.CollectorEndpoint = "http://localhost:16686"
+		if os.Getenv("DD_ENV") != "" {
+			e.engine.Use(gintrace.Middleware(strings.ReplaceAll(e.basePath, "/", "")))
+			tracer.Start(tracer.WithRuntimeMetrics())
+
+		} else {
+			if config.CollectorEndpoint == "" {
+				if strings.ToLower(config.Lifecycle) == "local" {
+					config.CollectorEndpoint = "http://localhost:16686"
+				}
+				config.CollectorEndpoint = "http://jaeger.linkerd-jaeger.svc:16686"
 			}
-			config.CollectorEndpoint = "http://jaeger.linkerd-jaeger.svc:16686"
-		}
 
-		cfg := &jaegerConfig.Configuration{
-			ServiceName: fmt.Sprintf("%s-service", e.basePath),
-			Sampler: &jaegerConfig.SamplerConfig{
-				Type:  "const",
-				Param: 1,
-			},
-			Reporter: &jaegerConfig.ReporterConfig{
-				LogSpans:          true,
-				CollectorEndpoint: config.CollectorEndpoint,
-			},
-			// Token configuration
-			//Tags: []opentracing.Tag{ // Set the tag, where information such as token can be stored.
-			//	{Key: "token", Value: token},
-			//},
-		}
+			cfg := &jaegerConfig.Configuration{
+				ServiceName: fmt.Sprintf("%s-service", e.basePath),
+				Sampler: &jaegerConfig.SamplerConfig{
+					Type:  "const",
+					Param: 1,
+				},
+				Reporter: &jaegerConfig.ReporterConfig{
+					LogSpans:          true,
+					CollectorEndpoint: config.CollectorEndpoint,
+				},
+				// Token configuration
+				//Tags: []opentracing.Tag{ // Set the tag, where information such as token can be stored.
+				//	{Key: "token", Value: token},
+				//},
+			}
 
-		tracer, _, err := cfg.NewTracer(jaegerConfig.Logger(jaeger.StdLogger))
-		if err != nil {
-			log.Fatal().Err(err).Msg("Unable to initialize tracer")
-		}
-		//defer closer.Close() // nolint: errcheck
+			t, _, err := cfg.NewTracer(jaegerConfig.Logger(jaeger.StdLogger))
+			if err != nil {
+				log.Fatal().Err(err).Msg("Unable to initialize tracer")
+			}
+			//defer closer.Close() // nolint: errcheck
 
-		e.engine.Use(ginhttp.Middleware(tracer))
+			e.engine.Use(ginhttp.Middleware(t))
+		}
 	}
 
 	if config.AddCustomContextMiddleware != nil {
