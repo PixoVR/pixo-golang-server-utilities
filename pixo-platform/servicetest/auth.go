@@ -21,6 +21,8 @@ func (s *ServerTestFeature) UseSecretKey() error {
 		return errors.New("secret key not found")
 	}
 
+	s.ServiceClient.SetToken(s.SecretKey)
+
 	return nil
 }
 
