@@ -4,8 +4,11 @@ import (
 	abstract_client "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"github.com/gorilla/websocket"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
 type ServerTestFeature struct {
@@ -16,6 +19,10 @@ type ServerTestFeature struct {
 	Engine        *gin.Engine
 	Recorder      *httptest.ResponseRecorder
 	Client        *resty.Client
+
+	UDPConn              *net.UDPConn
+	WebsocketConn        *websocket.Conn
+	WebsocketReadTimeout *time.Duration
 
 	ServiceClient abstract_client.AbstractClient
 

@@ -44,6 +44,15 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should contain "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
 	ctx.Step(`^it should not contain "([^"]*)" for the path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
 	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
+	ctx.Step(`^I set the websocket read timeout to "([^"]*)" seconds$`, s.SetWebsocketReadTimeout)
+	ctx.Step(`^the websocket is connected$`, s.WebsocketIsConnected)
+	ctx.Step(`^the websocket is not connected$`, s.WebsocketIsNotConnected)
+	ctx.Step(`^the message should contain a "([^"]*)"$`, s.TheMessageShouldContainA)
+	ctx.Step(`^the message should not contain a "([^"]*)"$`, s.TheMessageShouldNotContainA)
+	ctx.Step(`^I open a websocket with the "([^"]*)" service at "([^"]*)"$`, s.OpenWebsocket)
+	ctx.Step(`^I send the following data to the open websocket:$`, s.SendWebsocketMessage)
+	ctx.Step(`^I read a message from the websocket$`, s.GetWebsocketMessage)
+	ctx.Step(`^the message should not be empty$`, s.CheckMessageNotEmpty)
 }
 
 func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, body *godog.DocString) {
