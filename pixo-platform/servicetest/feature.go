@@ -49,7 +49,7 @@ type ServerTestFeature struct {
 	GraphQLResponse   map[string]interface{}
 }
 
-type SubstitutionFunc func(data []byte) []byte
+type SubstitutionFunc func(data []byte) string
 
 func NewServerTestFeature() *ServerTestFeature {
 	return &ServerTestFeature{

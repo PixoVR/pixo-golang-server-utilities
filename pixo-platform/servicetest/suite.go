@@ -136,7 +136,7 @@ func (s *ServerTestSuite) setup() {
 
 	s.loadEnv()
 
-	viper.SetConfigName("config")
+	viper.SetConfigName("test-config")
 	viper.AddConfigPath(".")
 
 	if err := viper.ReadInConfig(); err != nil {

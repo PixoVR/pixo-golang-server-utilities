@@ -264,15 +264,23 @@ func (s *ServerTestFeature) TheResponseHeadersShouldContain(key, value string) {
 	Expect(headerValue).To(ContainSubstring(value))
 }
 
-func (s *ServerTestFeature) TheResponseShouldContainA(key string) {
+func (s *ServerTestFeature) TheResponseShouldContainA(key string) error {
 	key = string(s.PerformSubstitutions([]byte(key)))
 	actual := TrimString(s.ResponseString)
-	Expect(actual).To(ContainSubstring(key))
+	if !strings.Contains(actual, key) {
+		return fmt.Errorf("expected response to contain %s, but got %s", key, actual)
+	}
+
+	return nil
 }
 
-func (s *ServerTestFeature) TheResponseShouldNotContainA(key string) {
+func (s *ServerTestFeature) TheResponseShouldNotContainA(key string) error {
 	actual := TrimString(s.ResponseString)
-	Expect(actual).NotTo(ContainSubstring(key))
+	if strings.Contains(actual, key) {
+		return fmt.Errorf("expected response to not contain %s, but got %s", key, actual)
+
+	}
+	return nil
 }
 
 func (s *ServerTestFeature) TheResponseShouldMatchJSON(body *godog.DocString) {
@@ -285,8 +293,11 @@ func (s *ServerTestFeature) WaitForSeconds(seconds int) {
 	time.Sleep(time.Duration(seconds) * time.Second)
 }
 
-func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string) {
-	Expect(s.ResponseString).To(ContainSubstring(fmt.Sprintf("\"%s\":\"%s\"", property, value)))
+func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string) error {
+	if !strings.Contains(s.ResponseString, fmt.Sprintf("\"%s\":\"%s\"", property, value)) {
+		return fmt.Errorf("expected response to contain %s set to %s", property, value)
+	}
+	return nil
 }
 
 func (s *ServerTestFeature) FileToSendInRequest(filename, directory, key string) error {

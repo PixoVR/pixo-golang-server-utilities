@@ -1,0 +1,4 @@
+
+substitutions:
+  - key: CUSTOM_VAL
+    value: ok

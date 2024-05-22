@@ -7,6 +7,7 @@ Feature: Acceptance Tests
     And the response should contain a "ok"
     And the response should contain a "$STATIC_VAL"
     And the response should contain a "$DYNAMIC_VAL"
+    And the response should contain a "$CUSTOM_VAL"
 
   Scenario: Not found
     When I send "GET" request to "/nonexistent"
