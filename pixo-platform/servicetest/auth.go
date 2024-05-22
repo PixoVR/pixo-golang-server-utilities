@@ -9,9 +9,14 @@ import (
 )
 
 func (s *ServerTestFeature) UseSecretKey() error {
-	key := strings.ToUpper(fmt.Sprintf("%s_%s", viper.GetString("lifecycle"), "SECRET_KEY"))
+	envKey := "SECRET_KEY"
 
-	s.SecretKey = os.Getenv(key)
+	currentLifecycle := viper.GetString("lifecycle")
+	if currentLifecycle != "" && currentLifecycle != "local" && currentLifecycle != "internal" {
+		envKey = strings.ToUpper(fmt.Sprintf("%s_%s", viper.GetString("lifecycle"), "SECRET_KEY"))
+	}
+
+	s.SecretKey = os.Getenv(envKey)
 	if s.SecretKey == "" {
 		return errors.New("secret key not found")
 	}
