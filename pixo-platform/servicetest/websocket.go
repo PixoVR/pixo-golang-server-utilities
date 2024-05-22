@@ -82,7 +82,7 @@ func (s *ServerTestFeature) GetWebsocketMessage() error {
 		return fmt.Errorf("error reading from websocket: %w", err)
 	}
 
-	s.Message = string(msg[:n])
+	s.Message = string(msg)
 	return nil
 }
 
