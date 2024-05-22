@@ -32,9 +32,13 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)"$`, s.SendRequest)
 	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)" with params$`, s.SendRequestWithParams)
-	ctx.Step(`^I send "([^"]*)" request to "([^"]*)" with params string "([^"]*)"$`, s.SendRequestWithParamsString)
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data$`, s.SendRequestWithData)
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedData)
+
+	ctx.Step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" service at "([^"]*)"$`, s.SendRequestToService)
+	ctx.Step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" service at "([^"]*)" with params$`, s.SendRequestWithParamsToService)
+	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" service at "([^"]*)" with data$`, s.SendRequestWithDataToService)
+	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" service at "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedDataToService)
 
 	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGQLRequestWithVariables)
 
@@ -67,11 +71,40 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 
 }
 
-func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, body *godog.DocString) error {
-	return s.MakeRequest(method, endpoint, body, nil)
+func (s *ServerTestFeature) SendRequest(method, endpoint string) error {
+	return s.SendRequestToService(method, "", endpoint)
 }
 
-func (s *ServerTestFeature) SendRequestWithEncodedData(method string, endpoint string, encodedPath string, body *godog.DocString) error {
+func (s *ServerTestFeature) SendRequestToService(method, service, endpoint string) error {
+	return s.MakeRequest(method, service, endpoint, nil, nil)
+}
+
+func (s *ServerTestFeature) SendRequestWithParams(method, endpoint string, params *godog.DocString) error {
+	return s.SendRequestWithParamsToService(method, "", endpoint, params)
+}
+
+func (s *ServerTestFeature) SendRequestWithParamsToService(method, service, endpoint string, params *godog.DocString) error {
+	var paramsMap map[string]string
+	if err := json.Unmarshal([]byte(params.Content), &paramsMap); err != nil {
+		log.Fatal().Err(err)
+	}
+
+	return s.MakeRequest(method, service, endpoint, nil, paramsMap)
+}
+
+func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, body *godog.DocString) error {
+	return s.SendRequestWithDataToService(method, "", endpoint, body)
+}
+
+func (s *ServerTestFeature) SendRequestWithDataToService(method, service, endpoint string, body *godog.DocString) error {
+	return s.MakeRequest(method, service, endpoint, body, nil)
+}
+
+func (s *ServerTestFeature) SendRequestWithEncodedData(method, endpoint, encodedPath string, body *godog.DocString) error {
+	return s.SendRequestWithEncodedDataToService(method, "", endpoint, encodedPath, body)
+}
+
+func (s *ServerTestFeature) SendRequestWithEncodedDataToService(method, service, endpoint, encodedPath string, body *godog.DocString) error {
 	var data map[string]interface{}
 	if err := json.Unmarshal(s.PerformSubstitutions([]byte(body.Content)), &data); err != nil {
 		return fmt.Errorf("error unmarshalling body: %w", err)
@@ -89,7 +122,7 @@ func (s *ServerTestFeature) SendRequestWithEncodedData(method string, endpoint s
 
 	body.Content = string(encodedBytes)
 
-	return s.MakeRequest(method, endpoint, body, nil)
+	return s.MakeRequest(method, service, endpoint, body, nil)
 }
 
 func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {
@@ -224,30 +257,6 @@ func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotNull(jsonQueryPath
 	return nil
 }
 
-func (s *ServerTestFeature) SendRequest(method, endpoint string) {
-	s.MakeRequest(method, endpoint, nil, nil)
-}
-
-func (s *ServerTestFeature) SendRequestWithParams(method, endpoint string, params *godog.DocString) {
-	var paramsMap map[string]string
-	if err := json.Unmarshal([]byte(params.Content), &paramsMap); err != nil {
-		log.Fatal().Err(err)
-	}
-
-	s.MakeRequest(method, endpoint, nil, paramsMap)
-}
-
-func (s *ServerTestFeature) SendRequestWithParamsString(method, endpoint, params string) error {
-	var paramsMap map[string]string
-
-	if err := json.Unmarshal([]byte(params), &paramsMap); err != nil {
-		return fmt.Errorf("error unmarshalling params: %w", err)
-	}
-
-	s.MakeRequest(method, endpoint, nil, paramsMap)
-	return nil
-}
-
 func (s *ServerTestFeature) TheResponseCodeShouldBe(statusCode int) error {
 	if s.StatusCode != statusCode {
 		return fmt.Errorf("expected response code %d, but got %d", statusCode, s.StatusCode)
@@ -256,20 +265,29 @@ func (s *ServerTestFeature) TheResponseCodeShouldBe(statusCode int) error {
 	return nil
 }
 
-func (s *ServerTestFeature) TheResponseShouldContain(body *godog.DocString) {
+func (s *ServerTestFeature) TheResponseShouldContain(body *godog.DocString) error {
 	actual := TrimString(s.ResponseString)
 	expected := TrimString(body.Content)
-	Expect(actual).To(ContainSubstring(expected))
+	if !strings.Contains(actual, expected) {
+		return fmt.Errorf("expected response to contain %s, but got %s", expected, actual)
+	}
+
+	return nil
 }
 
-func (s *ServerTestFeature) TheResponseHeadersShouldContain(key, value string) {
+func (s *ServerTestFeature) TheResponseHeadersShouldContain(key, value string) error {
 	headerValue := s.Response.Header.Get(key)
-	Expect(headerValue).To(ContainSubstring(value))
+	if !strings.Contains(headerValue, value) {
+		return fmt.Errorf("expected response header %s to contain %s, but got %s", key, value, headerValue)
+	}
+
+	return nil
 }
 
 func (s *ServerTestFeature) TheResponseShouldContainA(key string) error {
 	key = string(s.PerformSubstitutions([]byte(key)))
 	actual := TrimString(s.ResponseString)
+
 	if !strings.Contains(actual, key) {
 		return fmt.Errorf("expected response to contain %s, but got %s", key, actual)
 	}

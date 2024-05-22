@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *godog.DocString, paramsMap map[string]string) error {
+func (s *ServerTestFeature) MakeRequest(method, service, endpoint string, body *godog.DocString, paramsMap map[string]string) error {
 	var bodyContent []byte
 	if body != nil {
 		bodyContent = []byte(body.Content)
@@ -24,7 +24,7 @@ func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *go
 
 	bodyContent = s.PerformSubstitutions(bodyContent)
 
-	if err := s.PerformRequest(method, endpoint, bodyContent, paramsMap); err != nil {
+	if err := s.PerformRequest(method, service, endpoint, bodyContent, paramsMap); err != nil {
 		return err
 	}
 
@@ -44,7 +44,7 @@ func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *go
 	return nil
 }
 
-func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte, paramsMap map[string]string) error {
+func (s *ServerTestFeature) PerformRequest(method, service, endpoint string, body []byte, paramsMap map[string]string) error {
 
 	body = s.PerformSubstitutions(body)
 
@@ -54,7 +54,7 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 
 	currentLifecycle := strings.ToLower(viper.GetString("lifecycle"))
 
-	if currentLifecycle == "" || currentLifecycle == "local" {
+	if service == "" && (currentLifecycle == "" || currentLifecycle == "local") {
 		url := fmt.Sprintf("/%s%s", s.ServiceClient.Path(), endpoint)
 		req, err := http.NewRequest(method, url, bytes.NewReader(body))
 		if err != nil {
@@ -102,7 +102,16 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 			req.SetQueryParams(paramsMap)
 		}
 
-		url := fmt.Sprintf("%s%s", s.ServiceClient.GetURL(), endpoint)
+		url := s.ServiceClient.GetURL() + endpoint
+
+		if service != "" {
+			serviceConfig := urlfinder.ServiceConfig{
+				ServiceName: service,
+				Region:      viper.GetString("region"),
+				Lifecycle:   viper.GetString("lifecycle"),
+			}
+			url = serviceConfig.FormatURL() + endpoint
+		}
 
 		var res *resty.Response
 		var err error

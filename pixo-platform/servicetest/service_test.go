@@ -53,6 +53,7 @@ func TestMain(m *testing.M) {
 
 	suite.Feature.AddStaticSubstitution("STATIC_VAL", "ok")
 	suite.Feature.AddDynamicSubstitution("DYNAMIC_VAL", func(data []byte) string { return "ok" })
+
 	suite.Feature.BeforeRequest = func(body []byte) {
 		log.Info().Msgf("Before request: %s", string(body))
 	}
