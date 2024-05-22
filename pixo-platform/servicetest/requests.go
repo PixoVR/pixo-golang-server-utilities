@@ -66,6 +66,12 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 			req.Body = io.NopCloser(bytes.NewReader(body))
 		}
 
+		if paramsMap != nil {
+			for key, value := range paramsMap {
+				req.URL.Query().Add(key, value)
+			}
+		}
+
 		s.Engine.ServeHTTP(s.Recorder, req)
 
 		s.Response = s.Recorder.Result()
@@ -77,6 +83,10 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 
 		if s.Token != "" {
 			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.Token))
+		}
+
+		if s.SecretKey != "" {
+			req.Header.Set(auth.SecretKeyHeader, s.Token)
 		}
 
 		if paramsMap != nil {
