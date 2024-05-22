@@ -10,6 +10,7 @@ func (s *ServerTestFeature) PerformSubstitutions(data []byte) []byte {
 	substitutions := map[string]string{
 		"$ID":          fmt.Sprint(s.GraphQLResponse["id"]),
 		"$USER_ID":     fmt.Sprint(s.UserID),
+		"$RANDOM_INT":  fmt.Sprint(s.RandomInt),
 		"$RANDOM_ID":   generateRandomID(),
 		"$RANDOM_UUID": generateRandomUUID(),
 	}

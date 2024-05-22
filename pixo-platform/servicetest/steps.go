@@ -25,6 +25,8 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 
+	ctx.Step(`^I create a random id$`, s.CreateRandomID)
+
 	ctx.Step(`^I am signed in as a "([^"]*)"$`, s.SignedInAsA)
 	ctx.Step(`^I use the secret key for authentication$`, s.UseSecretKey)
 
@@ -62,24 +64,29 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the message should not be empty$`, s.CheckMessageNotEmpty)
 }
 
-func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, body *godog.DocString) {
-	s.MakeRequest(method, endpoint, body, nil)
+func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, body *godog.DocString) error {
+	return s.MakeRequest(method, endpoint, body, nil)
 }
 
-func (s *ServerTestFeature) SendRequestWithEncodedData(method string, endpoint string, encodedPath string, body *godog.DocString) {
+func (s *ServerTestFeature) SendRequestWithEncodedData(method string, endpoint string, encodedPath string, body *godog.DocString) error {
 	var data map[string]interface{}
-	err := json.Unmarshal(s.PerformSubstitutions([]byte(body.Content)), &data)
-	Expect(err).NotTo(HaveOccurred())
+	if err := json.Unmarshal(s.PerformSubstitutions([]byte(body.Content)), &data); err != nil {
+		return fmt.Errorf("error unmarshalling body: %w", err)
+	}
 
 	encodedData, err := EncodeData(data, encodedPath)
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		return fmt.Errorf("error encoding data: %w", err)
+	}
 
 	encodedBytes, err := json.Marshal(encodedData)
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		return fmt.Errorf("error marshalling encoded data: %w", err)
+	}
 
 	body.Content = string(encodedBytes)
 
-	s.MakeRequest(method, endpoint, body, nil)
+	return s.MakeRequest(method, endpoint, body, nil)
 }
 
 func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {

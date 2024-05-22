@@ -32,6 +32,8 @@ type ServerTestFeature struct {
 	ResponseString string
 	StatusCode     int
 
+	RandomInt int
+
 	SecretKey string
 	Token     string
 	ID        string

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/spf13/viper"
+	"math/rand"
 	"os"
 	"strings"
 )
@@ -24,6 +25,10 @@ func (s *ServerTestFeature) UseSecretKey() error {
 	s.ServiceClient.SetToken(s.SecretKey)
 
 	return nil
+}
+
+func (s *ServerTestFeature) CreateRandomID() {
+	s.RandomInt = rand.Int()
 }
 
 func (s *ServerTestFeature) SignedInAsA(role string) error {
