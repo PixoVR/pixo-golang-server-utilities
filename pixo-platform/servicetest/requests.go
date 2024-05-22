@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/middleware/auth"
 	"github.com/cucumber/godog"
 	"github.com/go-resty/resty/v2"
 	. "github.com/onsi/gomega"
@@ -53,7 +54,11 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 		Expect(err).NotTo(HaveOccurred())
 
 		if s.Token != "" {
-			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.Token))
+			req.Header.Set(auth.AuthorizationHeader, fmt.Sprintf("Bearer %s", s.Token))
+		}
+
+		if s.SecretKey != "" {
+			req.Header.Set(auth.SecretKeyHeader, s.Token)
 		}
 
 		if method == "POST" {
