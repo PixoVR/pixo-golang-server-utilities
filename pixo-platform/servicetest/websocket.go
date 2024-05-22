@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cucumber/godog"
+	"github.com/rs/zerolog/log"
 	"strconv"
 	"strings"
 	"time"
@@ -67,6 +68,7 @@ func (s *ServerTestFeature) SendWebsocketMessage(body *godog.DocString) error {
 		return fmt.Errorf("error sending message to websocket: %w", err)
 	}
 
+	log.Debug().Str("message", body.Content).Msg("Sent message to websocket")
 	return nil
 }
 
@@ -83,6 +85,7 @@ func (s *ServerTestFeature) GetWebsocketMessage() error {
 	}
 
 	s.Message = string(msg)
+	log.Debug().Str("message", s.Message).Msg("Received message from websocket")
 	return nil
 }
 
