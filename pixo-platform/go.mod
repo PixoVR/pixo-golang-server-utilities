@@ -7,7 +7,7 @@ toolchain go1.22.2
 require (
 	agones.dev/agones v1.40.0
 	cloud.google.com/go/storage v1.41.0
-	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240521090804-0eabe5aaa1ab
+	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240522152049-94d2da4ef4f3
 	github.com/alicebob/miniredis/v2 v2.32.1
 	github.com/antchfx/jsonquery v1.3.4
 	github.com/argoproj/argo-workflows/v3 v3.5.6
@@ -104,7 +104,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch v5.8.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
-	github.com/fatih/color v1.16.0 // indirect
+	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
