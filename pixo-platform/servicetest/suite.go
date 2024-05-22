@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	abstract_client "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
+	graphql_api "github.com/PixoVR/pixo-golang-clients/pixo-platform/graphql-api"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 	"github.com/gin-gonic/gin"
@@ -60,6 +62,22 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		Region:    region,
 
 		config: config,
+	}
+
+	if lifecycle == "" || lifecycle == "local" || lifecycle == "internal" {
+		suite.Feature.PlatformClient = &graphql_api.MockGraphQLClient{}
+
+		if suite.Lifecycle == "local" {
+			suite.Feature.PlatformClient = graphql_api.NewClient(urlfinder.ClientConfig{
+				Lifecycle: suite.Lifecycle,
+				APIKey:    os.Getenv("PIXO_API_KEY"),
+			})
+		}
+	} else {
+		suite.Feature.PlatformClient = graphql_api.NewClient(urlfinder.ClientConfig{
+			Lifecycle: suite.Lifecycle,
+			Region:    suite.Region,
+		})
 	}
 
 	suite.Feature.Engine = config.Engine

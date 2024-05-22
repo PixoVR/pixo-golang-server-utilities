@@ -114,6 +114,7 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 			res, err = req.Post(url)
 		}
 
+		s.Err = err
 		if err != nil {
 			return fmt.Errorf("failed to make request: %s", err)
 		}
@@ -125,7 +126,6 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 		s.Response = res.RawResponse
 		s.ResponseString = string(res.Body())
 		s.StatusCode = res.StatusCode()
-		s.Err = err
 	}
 
 	return nil
