@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *godog.DocString, paramsMap map[string]string) {
+func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *godog.DocString, paramsMap map[string]string) error {
 	var bodyContent []byte
 	if body != nil {
 		bodyContent = []byte(body.Content)
@@ -24,21 +24,23 @@ func (s *ServerTestFeature) MakeRequest(method string, endpoint string, body *go
 
 	bodyContent = s.PerformSubstitutions(bodyContent)
 
-	s.PerformRequest(method, endpoint, bodyContent, paramsMap)
+	if err := s.PerformRequest(method, endpoint, bodyContent, paramsMap); err != nil {
+		return err
+	}
 
 	var responseBody map[string]interface{}
 	if err := json.Unmarshal([]byte(s.Recorder.Body.String()), &responseBody); err != nil {
-		log.Debug().Err(err).Msg("Error parsing the response body")
+		return fmt.Errorf("failed to unmarshal response body: %s", err)
 	}
 
 	if value, ok := responseBody["message"]; ok {
 		s.Message = value.(string)
 	}
 
-	Expect(s.Err).NotTo(HaveOccurred())
+	return nil
 }
 
-func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte, paramsMap map[string]string) {
+func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte, paramsMap map[string]string) error {
 
 	body = s.PerformSubstitutions(body)
 
@@ -51,7 +53,9 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 	if currentLifecycle == "" || currentLifecycle == "local" {
 		url := fmt.Sprintf("/%s%s", s.ServiceClient.Path(), endpoint)
 		req, err := http.NewRequest(method, url, bytes.NewReader(body))
-		Expect(err).NotTo(HaveOccurred())
+		if err != nil {
+			return fmt.Errorf("failed to create request: %s", err)
+		}
 
 		if s.Token != "" {
 			req.Header.Set(auth.AuthorizationHeader, fmt.Sprintf("Bearer %s", s.Token))
@@ -82,7 +86,7 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 		req := s.Client.R()
 
 		if s.Token != "" {
-			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.Token))
+			req.Header.Set(auth.AuthorizationHeader, fmt.Sprintf("Bearer %s", s.Token))
 		}
 
 		if s.SecretKey != "" {
@@ -119,6 +123,8 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 		s.StatusCode = res.StatusCode()
 		s.Err = err
 	}
+
+	return nil
 }
 
 func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body string) error {

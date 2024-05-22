@@ -78,9 +78,11 @@ func (s *ServerTestFeature) Reset(interface{}) {
 	s.StatusCode = 0
 
 	s.Token = ""
+	s.SecretKey = ""
+	s.APIKey = ""
+
 	s.ID = ""
 	s.UserID = 0
-	s.APIKey = ""
 	s.Err = nil
 
 	s.GraphQLResponse = make(map[string]interface{})
