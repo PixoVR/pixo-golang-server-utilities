@@ -77,7 +77,7 @@ func (s *ServerTestFeature) GetWebsocketMessage() error {
 
 	s.Message = ""
 
-	n, msg, err := s.ServiceClient.ReadFromWebsocket()
+	_, msg, err := s.ServiceClient.ReadFromWebsocket()
 	if err != nil {
 		return fmt.Errorf("error reading from websocket: %w", err)
 	}
