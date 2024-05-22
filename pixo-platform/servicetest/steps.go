@@ -35,10 +35,10 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data$`, s.SendRequestWithData)
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedData)
 
-	ctx.Step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" service at "([^"]*)"$`, s.SendRequestToService)
-	ctx.Step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" service at "([^"]*)" with params$`, s.SendRequestWithParamsToService)
-	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" service at "([^"]*)" with data$`, s.SendRequestWithDataToService)
-	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" service at "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedDataToService)
+	ctx.Step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)"$`, s.SendRequestToService)
+	ctx.Step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with params$`, s.SendRequestWithParamsToService)
+	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with data$`, s.SendRequestWithDataToService)
+	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedDataToService)
 
 	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGQLRequestWithVariables)
 
@@ -72,39 +72,39 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 }
 
 func (s *ServerTestFeature) SendRequest(method, endpoint string) error {
-	return s.SendRequestToService(method, "", endpoint)
+	return s.SendRequestToService(method, "", "", endpoint)
 }
 
-func (s *ServerTestFeature) SendRequestToService(method, service, endpoint string) error {
-	return s.MakeRequest(method, service, endpoint, nil, nil)
+func (s *ServerTestFeature) SendRequestToService(method, tenant, service, endpoint string) error {
+	return s.MakeRequest(method, tenant, service, endpoint, nil, nil)
 }
 
 func (s *ServerTestFeature) SendRequestWithParams(method, endpoint string, params *godog.DocString) error {
-	return s.SendRequestWithParamsToService(method, "", endpoint, params)
+	return s.SendRequestWithParamsToService(method, "", "", endpoint, params)
 }
 
-func (s *ServerTestFeature) SendRequestWithParamsToService(method, service, endpoint string, params *godog.DocString) error {
+func (s *ServerTestFeature) SendRequestWithParamsToService(method, tenant, service, endpoint string, params *godog.DocString) error {
 	var paramsMap map[string]string
 	if err := json.Unmarshal([]byte(params.Content), &paramsMap); err != nil {
 		log.Fatal().Err(err)
 	}
 
-	return s.MakeRequest(method, service, endpoint, nil, paramsMap)
+	return s.MakeRequest(method, tenant, service, endpoint, nil, paramsMap)
 }
 
-func (s *ServerTestFeature) SendRequestWithData(method string, endpoint string, body *godog.DocString) error {
-	return s.SendRequestWithDataToService(method, "", endpoint, body)
+func (s *ServerTestFeature) SendRequestWithData(method, endpoint string, body *godog.DocString) error {
+	return s.SendRequestWithDataToService(method, "", "", endpoint, body)
 }
 
-func (s *ServerTestFeature) SendRequestWithDataToService(method, service, endpoint string, body *godog.DocString) error {
-	return s.MakeRequest(method, service, endpoint, body, nil)
+func (s *ServerTestFeature) SendRequestWithDataToService(method, tenant, service, endpoint string, body *godog.DocString) error {
+	return s.MakeRequest(method, tenant, service, endpoint, body, nil)
 }
 
 func (s *ServerTestFeature) SendRequestWithEncodedData(method, endpoint, encodedPath string, body *godog.DocString) error {
-	return s.SendRequestWithEncodedDataToService(method, "", endpoint, encodedPath, body)
+	return s.SendRequestWithEncodedDataToService(method, "", "", endpoint, encodedPath, body)
 }
 
-func (s *ServerTestFeature) SendRequestWithEncodedDataToService(method, service, endpoint, encodedPath string, body *godog.DocString) error {
+func (s *ServerTestFeature) SendRequestWithEncodedDataToService(method, tenant, service, endpoint, encodedPath string, body *godog.DocString) error {
 	var data map[string]interface{}
 	if err := json.Unmarshal(s.PerformSubstitutions([]byte(body.Content)), &data); err != nil {
 		return fmt.Errorf("error unmarshalling body: %w", err)
@@ -122,7 +122,7 @@ func (s *ServerTestFeature) SendRequestWithEncodedDataToService(method, service,
 
 	body.Content = string(encodedBytes)
 
-	return s.MakeRequest(method, service, endpoint, body, nil)
+	return s.MakeRequest(method, tenant, service, endpoint, body, nil)
 }
 
 func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {

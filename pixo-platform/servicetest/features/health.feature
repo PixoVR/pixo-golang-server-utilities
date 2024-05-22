@@ -12,8 +12,9 @@ Feature: Acceptance Tests
 
 
   Scenario: External health check
-    When I send "GET" request to the "allocator" service at "/health"
+    When I send "GET" request to the "multiplayer" "allocator" service at "/health"
     Then the response code should be "200"
+    And the response should not contain a "ok"
 
 
   Scenario: Not found

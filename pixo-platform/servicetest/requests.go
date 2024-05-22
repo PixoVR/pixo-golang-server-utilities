@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-func (s *ServerTestFeature) MakeRequest(method, service, endpoint string, body *godog.DocString, paramsMap map[string]string) error {
+func (s *ServerTestFeature) MakeRequest(method, tenant, service, endpoint string, body *godog.DocString, paramsMap map[string]string) error {
 	var bodyContent []byte
 	if body != nil {
 		bodyContent = []byte(body.Content)
@@ -24,7 +24,7 @@ func (s *ServerTestFeature) MakeRequest(method, service, endpoint string, body *
 
 	bodyContent = s.PerformSubstitutions(bodyContent)
 
-	if err := s.PerformRequest(method, service, endpoint, bodyContent, paramsMap); err != nil {
+	if err := s.PerformRequest(method, tenant, service, endpoint, bodyContent, paramsMap); err != nil {
 		return err
 	}
 
@@ -44,7 +44,7 @@ func (s *ServerTestFeature) MakeRequest(method, service, endpoint string, body *
 	return nil
 }
 
-func (s *ServerTestFeature) PerformRequest(method, service, endpoint string, body []byte, paramsMap map[string]string) error {
+func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint string, body []byte, paramsMap map[string]string) error {
 
 	body = s.PerformSubstitutions(body)
 
@@ -106,9 +106,10 @@ func (s *ServerTestFeature) PerformRequest(method, service, endpoint string, bod
 
 		if service != "" {
 			serviceConfig := urlfinder.ServiceConfig{
-				ServiceName: service,
-				Region:      viper.GetString("region"),
-				Lifecycle:   viper.GetString("lifecycle"),
+				Tenant:    tenant,
+				Service:   service,
+				Region:    viper.GetString("region"),
+				Lifecycle: viper.GetString("lifecycle"),
 			}
 			url = serviceConfig.FormatURL() + endpoint
 		}
