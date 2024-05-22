@@ -13,6 +13,10 @@ import (
 func (s *ServerTestFeature) OpenWebsocket(endpoint string) error {
 	s.WebsocketConn, s.Response, s.Err = s.ServiceClient.DialWebsocket(endpoint)
 	if s.Err != nil {
+		log.Debug().Err(s.Err).
+			Int("statusCode", s.Response.StatusCode).
+			Msg("Error connecting to websocket")
+
 		return fmt.Errorf("error connecting to websocket: %w", s.Err)
 	}
 
@@ -64,11 +68,12 @@ func (s *ServerTestFeature) SendWebsocketMessage(body *godog.DocString) error {
 		return err
 	}
 
-	if err := s.ServiceClient.WriteToWebsocket(s.PerformSubstitutions([]byte(body.Content))); err != nil {
+	msg := s.PerformSubstitutions([]byte(body.Content))
+	if err := s.ServiceClient.WriteToWebsocket(msg); err != nil {
 		return fmt.Errorf("error sending message to websocket: %w", err)
 	}
 
-	log.Debug().Str("message", body.Content).Msg("Sent message to websocket")
+	log.Debug().Str("message", string(msg)).Msg("Sent message to websocket")
 	return nil
 }
 
