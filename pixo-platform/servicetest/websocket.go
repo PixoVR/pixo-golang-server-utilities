@@ -13,10 +13,6 @@ import (
 func (s *ServerTestFeature) OpenWebsocket(endpoint string) error {
 	s.WebsocketConn, s.Response, s.Err = s.ServiceClient.DialWebsocket(endpoint)
 	if s.Err != nil {
-		log.Debug().Err(s.Err).
-			Int("statusCode", s.Response.StatusCode).
-			Msg("Error connecting to websocket")
-
 		return fmt.Errorf("error connecting to websocket: %w", s.Err)
 	}
 
