@@ -27,7 +27,7 @@ func (s *ServerTestFeature) UseSecretKey() error {
 	return nil
 }
 
-func (s *ServerTestFeature) CreateRandomID() {
+func (s *ServerTestFeature) CreateRandomInt() {
 	s.RandomInt = rand.Int()
 }
 

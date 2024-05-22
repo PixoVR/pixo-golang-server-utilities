@@ -25,7 +25,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 
-	ctx.Step(`^I create a random id$`, s.CreateRandomID)
+	ctx.Step(`^I create a random integer$`, s.CreateRandomInt)
 
 	ctx.Step(`^I am signed in as a "([^"]*)"$`, s.SignedInAsA)
 	ctx.Step(`^I use the secret key for authentication$`, s.UseSecretKey)
