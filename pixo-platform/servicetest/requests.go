@@ -3,12 +3,12 @@ package servicetest
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/middleware/auth"
 	"github.com/cucumber/godog"
 	"github.com/go-resty/resty/v2"
-	. "github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"io"
@@ -82,15 +82,16 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 		s.ResponseString = s.Recorder.Body.String()
 		s.StatusCode = s.Recorder.Code
 		s.Err = nil
+
 	} else {
 		req := s.Client.R()
 
 		if s.Token != "" {
-			req.Header.Set(auth.AuthorizationHeader, fmt.Sprintf("Bearer %s", s.Token))
+			req.SetAuthToken(s.Token)
 		}
 
 		if s.SecretKey != "" {
-			req.Header.Set(auth.SecretKeyHeader, s.SecretKey)
+			req.SetHeader(auth.SecretKeyHeader, s.SecretKey)
 		}
 
 		if paramsMap != nil {
@@ -109,20 +110,25 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 			res, err = req.Post(url)
 		}
 
-		Expect(err).NotTo(HaveOccurred())
-		Expect(res).NotTo(BeNil())
+		if err != nil {
+			return fmt.Errorf("failed to make request: %s", err)
+		}
 
-		log.Debug().
-			Str("endpoint", endpoint).
-			Str("response", string(res.Body())).
-			Int("status_code", res.StatusCode()).
-			Msg("HTTP RESPONSE")
+		if res == nil {
+			return errors.New("response is nil")
+		}
 
 		s.Response = res.RawResponse
 		s.ResponseString = string(res.Body())
 		s.StatusCode = res.StatusCode()
 		s.Err = err
 	}
+
+	log.Debug().
+		Str("endpoint", endpoint).
+		Str("response", s.ResponseString).
+		Int("status_code", s.StatusCode).
+		Msg("HTTP RESPONSE")
 
 	return nil
 }
