@@ -47,7 +47,6 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 
 	pflag.StringVarP(&region, "region", "r", viper.GetString("region"), "region to run tests against (options: na, saudi)")
 	pflag.StringVarP(&lifecycle, "lifecycle", "l", viper.GetString("lifecycle"), "lifecycle to run tests against (options: local, dev, stage, prod)")
-	pflag.Parse()
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		log.Fatal().Err(err).Msg("Failed to bind flags")
 	}
@@ -74,6 +73,8 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	}
 
 	suite.setup()
+
+	pflag.Parse()
 	return suite
 }
 
@@ -111,7 +112,6 @@ func (s *ServerTestSuite) InitializeScenario(ctx *godog.ScenarioContext) {
 
 func (s *ServerTestSuite) setup() {
 	godog.BindCommandLineFlags("godog.", s.config.Opts)
-	pflag.Parse()
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
