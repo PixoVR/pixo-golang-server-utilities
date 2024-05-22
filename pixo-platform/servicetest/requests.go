@@ -58,7 +58,7 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 		}
 
 		if s.SecretKey != "" {
-			req.Header.Set(auth.SecretKeyHeader, s.Token)
+			req.Header.Set(auth.SecretKeyHeader, s.SecretKey)
 		}
 
 		if method == "POST" {
@@ -86,7 +86,7 @@ func (s *ServerTestFeature) PerformRequest(method, endpoint string, body []byte,
 		}
 
 		if s.SecretKey != "" {
-			req.Header.Set(auth.SecretKeyHeader, s.Token)
+			req.Header.Set(auth.SecretKeyHeader, s.SecretKey)
 		}
 
 		if paramsMap != nil {
