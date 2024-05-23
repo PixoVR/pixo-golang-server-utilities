@@ -70,6 +70,10 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 		}
 
 		if method == "POST" {
+			log.Debug().
+				Str("url", url).
+				Str("method", method).
+				Str("body", string(body))
 			req.Header.Set("Content-Type", "application/json")
 			req.Body = io.NopCloser(bytes.NewReader(body))
 		}
@@ -118,8 +122,15 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 		var err error
 		switch method {
 		case "GET":
+			log.Debug().
+				Str("url", url).
+				Str("method", method)
 			res, err = req.Get(url)
 		case "POST":
+			log.Debug().
+				Str("url", url).
+				Str("method", method).
+				Str("body", string(body))
 			req.SetBody(body)
 			res, err = req.Post(url)
 		}
