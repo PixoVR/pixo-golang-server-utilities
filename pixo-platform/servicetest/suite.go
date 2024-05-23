@@ -77,23 +77,17 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		config: config,
 	}
 
-	if lifecycle == "" || lifecycle == "local" || lifecycle == "internal" {
+	if lifecycle == "" || lifecycle == "internal" {
 		suite.Feature.PlatformClient = &graphql_api.MockGraphQLClient{}
-
-		if suite.Lifecycle == "local" {
-			suite.Feature.PlatformClient = graphql_api.NewClient(urlfinder.ClientConfig{
-				Lifecycle: suite.Lifecycle,
-				APIKey:    os.Getenv("PIXO_API_KEY"),
-			})
-		}
+		suite.Feature.Engine = config.Engine
 	} else {
 		suite.Feature.PlatformClient = graphql_api.NewClient(urlfinder.ClientConfig{
 			Lifecycle: suite.Lifecycle,
 			Region:    suite.Region,
+			APIKey:    os.Getenv("PIXO_API_KEY"),
 		})
 	}
 
-	suite.Feature.Engine = config.Engine
 	suite.setup()
 
 	return suite

@@ -54,7 +54,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 
 	currentLifecycle := strings.ToLower(viper.GetString("lifecycle"))
 
-	if service == "" && (currentLifecycle == "" || currentLifecycle == "local") {
+	if service == "" && (currentLifecycle == "" || currentLifecycle == "internal") {
 		url := fmt.Sprintf("/%s%s", s.ServiceClient.Path(), endpoint)
 		req, err := http.NewRequest(method, url, bytes.NewReader(body))
 		if err != nil {
@@ -82,6 +82,10 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			for key, value := range paramsMap {
 				req.URL.Query().Add(key, value)
 			}
+		}
+
+		if s.Engine == nil {
+			return errors.New("engine is nil")
 		}
 
 		s.Engine.ServeHTTP(s.Recorder, req)
