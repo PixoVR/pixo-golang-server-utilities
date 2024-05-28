@@ -5,7 +5,7 @@ all: lint test
 
 update:
 	@echo "🔄 Updating Pixo utilities..."
-	@go get github.com/PixoVR/pixo-golang-clients/pixo-platform@0.1.5
+	@go get github.com/PixoVR/pixo-golang-clients/pixo-platform@0.1.6
 	@go mod tidy
 
 lint:
