@@ -46,8 +46,6 @@ func (s *ServerTestFeature) MakeRequest(method, tenant, service, endpoint string
 
 func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint string, body []byte, paramsMap map[string]string) error {
 
-	body = s.PerformSubstitutions(body)
-
 	if s.BeforeRequest != nil {
 		s.BeforeRequest(body)
 	}
