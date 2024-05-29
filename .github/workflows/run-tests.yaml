@@ -33,8 +33,55 @@ jobs:
           args: --timeout=30m
           working-directory: ./pixo-platform
 
+  setup-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Kind
+        run: |
+          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.12.0/kind-linux-amd64"
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+
+      - name: Create Kind Cluster
+        run: |
+          kind create cluster --name agones-argo-cluster
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      - name: Install Helm
+        run: |
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
+      - name: Add Helm Repositories
+        run: |
+          helm repo add agones https://agones.dev/chart/stable
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update
+
+      - name: Install Agones via Helm
+        run: |
+          helm install agones agones/agones --namespace agones-system --create-namespace
+
+      - name: Install Argo Workflows via Helm
+        run: |
+          helm install argo-workflows argo/argo-workflows --namespace argo --create-namespace
+
+      - name: Check Installation
+        run: |
+          kubectl get pods --all-namespaces
+
   test:
     runs-on: ubuntu-latest
+    needs: [ setup-cluster ]
     defaults:
       run:
         working-directory: ./pixo-platform
