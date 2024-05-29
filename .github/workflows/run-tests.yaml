@@ -75,7 +75,7 @@ jobs:
 
       - name: Install Argo Workflows via Helm
         run: |
-          helm install argo-workflows argo/argo-workflows --namespace argo --create-namespace
+          helm install argo-workflows argo/argo-workflows --namespace argo-workflows --create-namespace
 
       - name: Wait for Agones to be ready
         run: |
