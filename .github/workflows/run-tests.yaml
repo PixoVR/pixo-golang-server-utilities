@@ -35,11 +35,13 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./pixo-platform
-
+    strategy:
+      fail-fast: false
+      matrix:
+        containers: [ 1, 2, 3 ]
     steps:
       - uses: actions/checkout@v4
 
