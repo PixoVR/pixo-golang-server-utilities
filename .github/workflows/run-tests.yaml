@@ -50,6 +50,17 @@ jobs:
           kind create cluster --name test-cluster
           kind get kubeconfig --name test-cluster > $HOME/.kube/config
 
+      - name: Check Kubernetes API server availability
+        run: |
+          for i in {1..10}; do
+            kubectl get nodes && break || sleep 10
+          done
+
+      - name: Verify CRDs are ready
+        run: |
+          for crd in gameServers.agones.dev gameServerSets.agones.dev; do
+            kubectl wait --for=condition=established --timeout=300s crd/$crd
+          done
 
       - name: Install kubectl
         run: |
