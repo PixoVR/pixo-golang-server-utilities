@@ -47,7 +47,9 @@ jobs:
 
       - name: Create Kind Cluster
         run: |
-          kind create cluster --name agones-argo-cluster
+          kind create cluster --name test-cluster
+          kind get kubeconfig --name test-cluster > $HOME/.kube/config
+
 
       - name: Install kubectl
         run: |
