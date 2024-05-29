@@ -83,7 +83,7 @@ jobs:
 
       - name: Wait for Argo Workflows to be ready
         run: |
-          kubectl wait --namespace argo --for=condition=ready pod --selector=app.kubernetes.io/instance=argo-workflows --timeout=300s
+          kubectl wait --namespace argo-workflows --for=condition=ready pod --selector=app.kubernetes.io/instance=argo-workflows --timeout=300s
 
 
       - name: Check Installation
