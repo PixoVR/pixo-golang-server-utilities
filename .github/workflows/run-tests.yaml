@@ -58,7 +58,6 @@ jobs:
           k3d cluster create test-cluster
           echo "KUBECONFIG=$(k3d kubeconfig write test-cluster)" >> $GITHUB_ENV
 
-
       - name: Check cluster health
         run: |
           kubectl wait --for=condition=ready node --all --timeout=300s
@@ -136,9 +135,19 @@ jobs:
 #        with:
 #          config: pixo-platform/.coverage.yaml
 
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [ test ]
+    steps:
       - name: Cleanup
         run: |
           k3d cluster delete test-cluster
+          - name: Cleanup Kubeconfig
+
+      - name: Cleanup Kubeconfig
+        if: always()
+        run: |
+          rm -f $KUBECONFIG
 
 permissions:
   contents: read
