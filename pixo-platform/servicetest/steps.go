@@ -259,7 +259,7 @@ func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotNull(jsonQueryPath
 
 func (s *ServerTestFeature) TheResponseCodeShouldBe(statusCode int) error {
 	if s.StatusCode != statusCode {
-		return fmt.Errorf("expected response code %d, but got %d", statusCode, s.StatusCode)
+		return fmt.Errorf("expected response code %d, but got %d: %s", statusCode, s.StatusCode, s.ResponseString)
 	}
 
 	return nil
