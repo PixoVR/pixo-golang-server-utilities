@@ -39,28 +39,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Kind
+      - name: Install k3d
         run: |
-          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.12.0/kind-linux-amd64"
-          chmod +x ./kind
-          sudo mv ./kind /usr/local/bin/kind
+          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
 
-      - name: Create Kind Cluster
+      - name: Create k3d Cluster
         run: |
-          kind create cluster --name test-cluster
-          kind get kubeconfig --name test-cluster > $HOME/.kube/config
+          k3d cluster create test-cluster
 
-      - name: Check Kubernetes API server availability
+      - name: Check cluster health
         run: |
-          for i in {1..10}; do
-            kubectl get nodes && break || sleep 10
-          done
-
-      - name: Verify CRDs are ready
-        run: |
-          for crd in gameServers.agones.dev gameServerSets.agones.dev; do
-            kubectl wait --for=condition=established --timeout=300s crd/$crd
-          done
+          kubectl wait --for=condition=ready node --all --timeout=300s
 
       - name: Install kubectl
         run: |
@@ -84,6 +73,12 @@ jobs:
         run: |
           helm install agones agones/agones --namespace agones-system --create-namespace
 
+      - name: Verify CRDs are ready
+        run: |
+          for crd in gameServers.agones.dev gameServerSets.agones.dev; do
+            kubectl wait --for=condition=established --timeout=300s crd/$crd
+          done
+
       - name: Install Argo Workflows via Helm
         run: |
           helm install argo-workflows argo/argo-workflows --namespace argo-workflows --create-namespace
@@ -95,7 +90,6 @@ jobs:
       - name: Wait for Argo Workflows to be ready
         run: |
           kubectl wait --namespace argo-workflows --for=condition=ready pod --selector=app.kubernetes.io/instance=argo-workflows --timeout=300s
-
 
       - name: Check Installation
         run: |
@@ -129,6 +123,10 @@ jobs:
 #        uses: vladopajic/go-test-coverage@v2
 #        with:
 #          config: pixo-platform/.coverage.yaml
+
+      - name: Cleanup
+        run: |
+          k3d cluster delete test-cluster
 
 permissions:
   contents: read
