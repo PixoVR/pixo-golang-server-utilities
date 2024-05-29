@@ -58,15 +58,16 @@ jobs:
         run: |
           curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
 
-      - name: Create k3d Cluster
+      - name: Create k3d Cluster and Write Kubeconfig
         run: |
           k3d cluster create test-cluster
           mkdir -p $HOME/.kube
-          k3d kubeconfig write test-cluster > $HOME/.kube/config
+          k3d kubeconfig write test-cluster | tee $HOME/.kube/config
+          cat $HOME/.kube/config  # Debugging use only
+
+      - name: Set KUBECONFIG Environment Variable
+        run: |
           echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
-          echo "KUBECONFIG: $KUBECONFIG"
-          cat $HOME/.kube/config
-          cat $KUBECONFIG
 
       - name: Check cluster health
         run: |
