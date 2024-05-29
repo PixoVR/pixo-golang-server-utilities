@@ -77,6 +77,15 @@ jobs:
         run: |
           helm install argo-workflows argo/argo-workflows --namespace argo --create-namespace
 
+      - name: Wait for Agones to be ready
+        run: |
+          kubectl wait --namespace agones-system --for=condition=ready pod --selector=app=agones --timeout=300s
+
+      - name: Wait for Argo Workflows to be ready
+        run: |
+          kubectl wait --namespace argo --for=condition=ready pod --selector=app.kubernetes.io/instance=argo-workflows --timeout=300s
+
+
       - name: Check Installation
         run: |
           kubectl get pods --all-namespaces
