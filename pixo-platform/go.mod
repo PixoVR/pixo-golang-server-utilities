@@ -8,7 +8,7 @@ require (
 	agones.dev/agones v1.40.0
 	cloud.google.com/go/storage v1.41.0
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240529002133-bed4328df69f
-	github.com/alicebob/miniredis/v2 v2.32.1
+	github.com/alicebob/miniredis/v2 v2.33.0
 	github.com/antchfx/jsonquery v1.3.4
 	github.com/argoproj/argo-workflows/v3 v3.5.6
 	github.com/aws/aws-sdk-go-v2 v1.27.0
