@@ -65,6 +65,11 @@ jobs:
           k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
           mkdir -p $HOME/.kube
           cp $HOME/.config/kubeconfig-test-cluster.yaml $HOME/.kube/config
+          echo "KUBECONFIG: $KUBECONFIG"
+          echo "KUBECONFIG ENV VAR CONTENTS: $(cat $KUBECONFIG)"
+          echo "TEST-CLUSTER CONFIG CONTENTS: $(cat $HOME/.config/kubeconfig-test-cluster.yaml)"
+          echo "kube/config CONTENTS: $(cat $HOME/.kube/config)"
+          echo "runner kube/config CONTENTS: $(cat /home/runner/.kube/config)"
 
       - name: Check cluster health
         run: |
