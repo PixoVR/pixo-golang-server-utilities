@@ -64,6 +64,9 @@ jobs:
           mkdir -p $HOME/.kube
           k3d kubeconfig write test-cluster > $HOME/.kube/config
           echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
+          echo $KUBECONFIG
+          cat $HOME/.kube/config
+          cat $KUBECONFIG
 
       - name: Check cluster health
         run: |
