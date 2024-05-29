@@ -73,15 +73,15 @@ jobs:
         run: |
           helm install agones agones/agones --namespace agones-system --create-namespace
 
-      - name: Verify CRDs are ready
-        run: |
-          for crd in gameServers.agones.dev gameServerSets.agones.dev; do
-            kubectl wait --for=condition=established --timeout=300s crd/$crd
-          done
-
       - name: Install Argo Workflows via Helm
         run: |
           helm install argo-workflows argo/argo-workflows --namespace argo-workflows --create-namespace
+
+      - name: Verify CRDs are ready
+        run: |
+          for crd in gameservers.agones.dev gameserversets.agones.dev fleets.agones.dev fleetautoscalers.autoscaling.agones.dev; do
+            kubectl wait --for=condition=established --timeout=300s crd/$crd
+          done
 
       - name: Wait for Agones to be ready
         run: |
