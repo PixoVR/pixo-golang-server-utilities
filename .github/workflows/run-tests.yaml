@@ -45,7 +45,7 @@ jobs:
         run: |
           echo "$GOOGLE_JSON_KEY" > $HOME/google-key.json
           echo "GOOGLE_JSON_KEY=$HOME/google-key.json" >> $GITHUB_ENV
-          gcloud auth activate-service-account --key-file=$GOOGLE_JSON_KEY
+          gcloud auth activate-service-account --key-file=$HOME/google-key.json
 
 
       - name: Install k3d
