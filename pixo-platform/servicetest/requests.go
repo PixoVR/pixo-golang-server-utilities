@@ -76,10 +76,8 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			req.Body = io.NopCloser(bytes.NewReader(body))
 		}
 
-		if paramsMap != nil {
-			for key, value := range paramsMap {
-				req.URL.Query().Add(key, value)
-			}
+		for key, value := range paramsMap {
+			req.URL.Query().Add(key, value) //nolint:staticcheck
 		}
 
 		if s.Engine == nil {
