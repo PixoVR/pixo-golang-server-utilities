@@ -94,6 +94,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 		s.Err = nil
 
 	} else {
+		url := s.ServiceClient.GetURL() + endpoint
 		req := s.Client.R()
 
 		if s.Token != "" {
@@ -108,14 +109,12 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			req.SetQueryParams(paramsMap)
 		}
 
-		url := s.ServiceClient.GetURL() + endpoint
-
 		if service != "" {
 			serviceConfig := urlfinder.ServiceConfig{
 				Tenant:    tenant,
 				Service:   service,
 				Region:    viper.GetString("region"),
-				Lifecycle: viper.GetString("lifecycle"),
+				Lifecycle: currentLifecycle,
 			}
 			url = serviceConfig.FormatURL() + endpoint
 		}

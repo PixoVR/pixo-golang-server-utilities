@@ -14,7 +14,7 @@ func (s *ServerTestFeature) UseSecretKey() error {
 
 	currentLifecycle := viper.GetString("lifecycle")
 	if currentLifecycle != "" && currentLifecycle != "local" && currentLifecycle != "internal" {
-		envKey = strings.ToUpper(fmt.Sprintf("%s_%s", viper.GetString("lifecycle"), "SECRET_KEY"))
+		envKey = strings.ToUpper(fmt.Sprintf("%s_%s", currentLifecycle, "SECRET_KEY"))
 	}
 
 	s.SecretKey = os.Getenv(envKey)
