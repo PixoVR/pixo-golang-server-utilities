@@ -58,18 +58,10 @@ jobs:
         run: |
           curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
 
-      - name: Create k3d Cluster and Write Kubeconfig
+      - name: Create k3d Cluster and Set Kubeconfig
         run: |
           k3d cluster create test-cluster
-          echo "KUBECONFIG=$HOME/.config/kubeconfig-test-cluster.yaml" >> $GITHUB_ENV
           k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
-          mkdir -p $HOME/.kube
-          cp $HOME/.config/kubeconfig-test-cluster.yaml $HOME/.kube/config
-          echo "KUBECONFIG: $KUBECONFIG"
-          echo "KUBECONFIG ENV VAR CONTENTS: $(cat $KUBECONFIG)"
-          echo "TEST-CLUSTER CONFIG CONTENTS: $(cat $HOME/.config/kubeconfig-test-cluster.yaml)"
-          echo "kube/config CONTENTS: $(cat $HOME/.kube/config)"
-          echo "runner kube/config CONTENTS: $(cat /home/runner/.kube/config)"
 
       - name: Check cluster health
         run: |
@@ -115,10 +107,6 @@ jobs:
         run: |
           kubectl wait --namespace argo-workflows --for=condition=ready pod --selector=app.kubernetes.io/instance=argo-workflows --timeout=300s
 
-      - name: Check Installation
-        run: |
-          kubectl get pods --all-namespaces
-
   test:
     runs-on: ubuntu-latest
     needs: [ setup-gcloud, setup-cluster ]
@@ -140,6 +128,7 @@ jobs:
       - name: Run Tests
         run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
+          KUBECONFIG: '$HOME/.config/kubeconfig-test-cluster.yaml'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
