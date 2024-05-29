@@ -18,6 +18,8 @@ func GetConfigUsingKubeconfig() (*rest.Config, error) {
 		configPath = filepath.Join(home, ".kube", "config")
 	}
 
+	log.Debug().Str("configPath", configPath).Msg("using KUBECONFIG")
+
 	kubeconfig, err := clientcmd.BuildConfigFromFlags("", configPath)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to build K8s config using kubeconfig")
