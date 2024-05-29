@@ -61,13 +61,7 @@ jobs:
       - name: Create k3d Cluster and Write Kubeconfig
         run: |
           k3d cluster create test-cluster
-          mkdir -p $HOME/.kube
-          k3d kubeconfig write test-cluster | tee $HOME/.kube/config
-          cat $HOME/.kube/config  # Debugging use only
-
-      - name: Set KUBECONFIG Environment Variable
-        run: |
-          echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
+          echo "KUBECONFIG=$HOME/.config/kubeconfig-test-cluster.yaml" >> $GITHUB_ENV
 
       - name: Check cluster health
         run: |
