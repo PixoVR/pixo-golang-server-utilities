@@ -7,7 +7,7 @@ toolchain go1.22.2
 require (
 	agones.dev/agones v1.40.0
 	cloud.google.com/go/storage v1.41.0
-	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240528234651-0d83a940b7c1
+	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240528235556-8840d516e88a
 	github.com/alicebob/miniredis/v2 v2.32.1
 	github.com/antchfx/jsonquery v1.3.4
 	github.com/argoproj/argo-workflows/v3 v3.5.6
@@ -25,7 +25,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/joho/godotenv v1.5.1
-	github.com/onsi/ginkgo/v2 v2.18.0
+	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
 	github.com/opentracing-contrib/go-gin v0.0.0-20230313182354-1499e56cc906
 	github.com/redis/go-redis/v9 v9.5.1
