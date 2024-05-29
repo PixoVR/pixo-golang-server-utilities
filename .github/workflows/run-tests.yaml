@@ -62,13 +62,7 @@ jobs:
         run: |
           k3d cluster create test-cluster
           echo "KUBECONFIG=$HOME/.config/kubeconfig-test-cluster.yaml" >> $GITHUB_ENV
-          k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
-
-#      - name: Adjust Kubeconfig
-#        run: |
-#          K3D_IP=$(hostname -I | awk '{print $1}')  # Assuming the first IP is the correct one; adjust as necessary
-#          sed -i "s/0.0.0.0/$K3D_IP/" $KUBECONFIG
-#          cat $KUBECONFIG  # For debugging only, check the adjusted kubeconfig
+          k3d kubeconfig write test-cluster > $HOME/kube/.config/kubeconfig-test-cluster.yaml
 
       - name: Check cluster health
         run: |
