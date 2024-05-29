@@ -61,7 +61,8 @@ jobs:
       - name: Create k3d Cluster
         run: |
           k3d cluster create test-cluster
-          echo "KUBECONFIG=$(k3d kubeconfig write test-cluster)" >> $GITHUB_ENV
+          k3d kubeconfig write test-cluster > $HOME/.kube/config
+
 
       - name: Check cluster health
         run: |
