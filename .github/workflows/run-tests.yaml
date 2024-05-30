@@ -47,7 +47,12 @@ jobs:
         run: |
           k3d cluster create test-cluster
           k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
-          echo "KUBECONFIG=$HOME/.config/kubeconfig-test-cluster.yaml"
+
+      - name: Upload Kubeconfig Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: kubeconfig
+          path: ${{ github.workspace }}/.config/kubeconfig-test-cluster.yaml
 
       - name: Check cluster health
         run: |
@@ -111,17 +116,25 @@ jobs:
         with:
           go-version: '1.22'
 
-      - name: Run Tests
+      - name: Download Kubeconfig
+        uses: actions/download-artifact@v2
+        with:
+          name: config
+          path: ${{ github.workspace }}/.kube
+
+      - name: Setup Google Cloud SDK
         run: |
           echo "$GOOGLE_JSON_KEY_CONTENTS" > $HOME/google-key.json
-          echo "GOOGLE_JSON_KEY=$HOME/google-key.json" >> $GITHUB_ENV
           gcloud auth activate-service-account --key-file=$HOME/google-key.json
+        env:
+          GOOGLE_JSON_KEY_CONTENTS: ${{ secrets.GOOGLE_JSON_KEY }}
+
+      - name: Run Tests
+        run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
-          KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
-          GOOGLE_JSON_KEY_CONTENTS: ${{ secrets.GOOGLE_JSON_KEY }}
-          GOOGLE_JSON_KEY: '/home/runner/google-key.json'
-          GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
+          GOOGLE_JSON_KEY: '${{ github.workspace }}/google-key.json'
+          GOOGLE_APPLICATION_CREDENTIALS: '${{ github.workspace }}/google-key.json'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
