@@ -121,9 +121,9 @@ jobs:
         run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
-          KUBECONFIG: '${{ github.workspace }}/.config/kubeconfig-test-cluster.yaml'
-          GOOGLE_JSON_KEY: '${{ github.workspace }}/google-key.json'
-          GOOGLE_APPLICATION_CREDENTIALS: '${{ github.workspace }}/google-key.json'
+          KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
+          GOOGLE_JSON_KEY: '/home/runner/google-key.json'
+          GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
