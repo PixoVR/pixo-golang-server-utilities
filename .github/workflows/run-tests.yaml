@@ -33,11 +33,18 @@ jobs:
           args: --timeout=30m
           working-directory: ./pixo-platform
 
-  setup-cluster:
+  test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./pixo-platform
+    #    strategy:
+    #      fail-fast: false
+    #      matrix:
+    #        containers: [ 1, 2, 3 ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install k3d
         run: |
@@ -98,29 +105,10 @@ jobs:
         run: |
           kubectl wait --namespace argo-workflows --for=condition=ready pod --selector=app.kubernetes.io/instance=argo-workflows --timeout=300s
 
-  test:
-    runs-on: ubuntu-latest
-    needs: [ setup-cluster ]
-    defaults:
-      run:
-        working-directory: ./pixo-platform
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        containers: [ 1, 2, 3 ]
-    steps:
-      - uses: actions/checkout@v4
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-
-      - name: Download Kubeconfig
-        uses: actions/download-artifact@v2
-        with:
-          name: kubeconfig
-          path: ${{ github.workspace }}/.config
 
       - name: Setup Google Cloud SDK
         run: |
@@ -139,16 +127,11 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Check Test Coverage
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          config: .coverage.yaml
 
-  #      - name: Check Test Coverage
-#        uses: vladopajic/go-test-coverage@v2
-#        with:
-#          config: pixo-platform/.coverage.yaml
-
-  cleanup:
-    runs-on: ubuntu-latest
-    needs: [ test ]
-    steps:
       - name: Cleanup
         run: |
           k3d cluster delete test-cluster
