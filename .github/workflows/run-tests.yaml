@@ -55,12 +55,6 @@ jobs:
           k3d cluster create test-cluster
           k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
 
-      - name: Upload Kubeconfig Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: kubeconfig
-          path: ${{ github.workspace }}/.config/kubeconfig-test-cluster.yaml
-
       - name: Check cluster health
         run: |
           kubectl wait --for=condition=ready node --all --timeout=300s
