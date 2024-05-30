@@ -85,7 +85,8 @@ jobs:
 
       - name: Install Agones via Helm
         run: |
-          helm install agones agones/agones --namespace agones-system --create-namespace
+          helm install agones agones/agones --namespace agones-system --create-namespace --set gameservers.namespaces[0]=dev-multiplayer
+          kubectl create ns dev-multiplayer
 
       - name: Install Argo Workflows via Helm
         run: |
