@@ -135,12 +135,6 @@ jobs:
       - name: Cleanup
         run: |
           k3d cluster delete test-cluster
-          - name: Cleanup Kubeconfig
-
-      - name: Cleanup Kubeconfig
-        if: always()
-        run: |
-          rm -f $KUBECONFIG
 
 permissions:
   contents: read
