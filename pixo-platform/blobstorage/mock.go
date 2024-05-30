@@ -2,6 +2,7 @@ package blobstorage
 
 import (
 	"context"
+	"fmt"
 	"io"
 )
 
@@ -101,7 +102,7 @@ func (f *MockStorageClient) GetPublicURL(object UploadableObject) string {
 		return ""
 	}
 
-	return "https://storage.googleapis.com/bucket/test-file.txt"
+	return fmt.Sprintf("https://storage.googleapis.com/%s/%s", object.GetBucketName(), object.GetFileLocation())
 }
 
 func (f *MockStorageClient) GetSignedURL(ctx context.Context, object UploadableObject, options ...Option) (string, error) {
@@ -113,7 +114,8 @@ func (f *MockStorageClient) GetSignedURL(ctx context.Context, object UploadableO
 		return "", f.GetSignedURLError
 	}
 
-	return "https://storage.googleapis.com/pixo-bootstrap/test-file.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=credential&X-Goog-Date=20210101T000000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=signature", nil
+	signedURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=credential&X-Goog-Date=20210101T000000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=signature", object.GetBucketName(), object.GetFileLocation())
+	return signedURL, nil
 }
 
 func (f *MockStorageClient) UploadFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error) {

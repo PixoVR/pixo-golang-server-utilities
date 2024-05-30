@@ -9,13 +9,16 @@ import (
 )
 
 func GetConfigUsingKubeconfig() (*rest.Config, error) {
-
-	home, exists := os.LookupEnv("HOME")
+	configPath, exists := os.LookupEnv("KUBECONFIG")
 	if !exists {
-		home = "/workspace"
+		home, exists := os.LookupEnv("HOME")
+		if !exists {
+			home = "/workspace"
+		}
+		configPath = filepath.Join(home, ".kube", "config")
 	}
 
-	configPath := filepath.Join(home, ".kube", "config")
+	log.Debug().Str("configPath", configPath).Msg("using KUBECONFIG")
 
 	kubeconfig, err := clientcmd.BuildConfigFromFlags("", configPath)
 	if err != nil {
