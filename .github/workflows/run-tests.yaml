@@ -46,7 +46,6 @@ jobs:
           echo "$GOOGLE_JSON_KEY" > $HOME/google-key.json
           echo "GOOGLE_JSON_KEY=$HOME/google-key.json" >> $GITHUB_ENV
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/google-key.json" >> $GITHUB_ENV
-          gcloud auth activate-service-account --key-file=$HOME/google-key.json
 
   setup-cluster:
     runs-on: ubuntu-latest
@@ -126,7 +125,9 @@ jobs:
           go-version: '1.22'
 
       - name: Run Tests
-        run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+        run: |
+          gcloud auth activate-service-account --key-file=$HOME/google-key.json
+          go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
           KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
