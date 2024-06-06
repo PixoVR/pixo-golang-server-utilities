@@ -1,5 +1,5 @@
-agones.dev/agones v1.40.0 h1:G4l20gRSIPDkBUtBkL6GIpzCMRmGcOsi7DbZlyuEAIQ=
-agones.dev/agones v1.40.0/go.mod h1:ZT5YGGsA2swP6JsqidO2cj0c93KWq4ZZrmPfwZTLRZk=
+agones.dev/agones v1.41.0 h1:QnCgtxXqRmP7ceQYCEg+orzazIwR5/X0DcPz9RBKiZk=
+agones.dev/agones v1.41.0/go.mod h1:2teUtMj7YRAxuS9vU24vrZHmqkyvG58gVGEBCgEP2dE=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.114.0 h1:OIPFAdfrFDFO2ve2U7r/H5SwSbBzEdrBdE7xkgwc+kY=
