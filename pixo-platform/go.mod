@@ -40,8 +40,8 @@ require (
 	google.golang.org/protobuf v1.34.1
 	gopkg.in/DataDog/dd-trace-go.v1 v1.64.1
 	helm.sh/helm/v3 v3.15.1
-	k8s.io/api v0.30.1
-	k8s.io/apimachinery v0.30.1
+	k8s.io/api v0.30.2
+	k8s.io/apimachinery v0.30.2
 	k8s.io/cli-runtime v0.30.1
 	k8s.io/client-go v0.30.1
 	open-match.dev/open-match v1.8.1
