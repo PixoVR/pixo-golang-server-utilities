@@ -24,7 +24,7 @@ func TestArgo(t *testing.T) {
 
 var (
 	bucketName         = "multi-central1-dev-multiplayer-allocator-build-logs"
-	namespace          = config.GetEnvOrReturn("TEST_NAMESPACE", "test")
+	namespace          = config.GetEnvOrReturn("NAMESPACE", "test")
 	serviceAccountName = config.GetEnvOrReturn("SERVICE_ACCOUNT_NAME", "test-sa")
 	workflowName       = "whalesay-"
 	templateOneName    = fmt.Sprintf("%s1", workflowName)

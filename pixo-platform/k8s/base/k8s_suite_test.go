@@ -1,6 +1,7 @@
 package base_test
 
 import (
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"os"
 	"testing"
 
@@ -13,3 +14,7 @@ func TestK8s(t *testing.T) {
 	_ = os.Setenv("IS_LOCAL", "true")
 	RunSpecs(t, "K8s Client Suite")
 }
+
+var (
+	namespace = config.GetEnvOrReturn("NAMESPACE", "test")
+)

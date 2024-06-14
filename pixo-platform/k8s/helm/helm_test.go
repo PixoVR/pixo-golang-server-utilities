@@ -1,6 +1,7 @@
 package helm_test
 
 import (
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/helm"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -12,13 +13,14 @@ var _ = Describe("Helm", Ordered, func() {
 		helmClient     helm.Client
 		chart          helm.Chart
 		sampleChartURL = "https://github.com/PixoVR/helm-charts/releases/download/multiplayer-build-trigger-0.0.2/multiplayer-build-trigger-0.0.2.tgz"
+		namespace      = config.GetEnvOrReturn("NAMESPACE", "test")
 	)
 
 	BeforeEach(func() {
 		chart = helm.Chart{
 			RepoURL:     helm.PixoRepoURL,
 			Name:        "multiplayer-module",
-			Namespace:   "dev-multiplayer",
+			Namespace:   namespace,
 			Version:     "0.0.23",
 			ReleaseName: "helm-test",
 		}
@@ -26,7 +28,7 @@ var _ = Describe("Helm", Ordered, func() {
 		var err error
 		helmClient, err = helm.NewClient(helm.ClientConfig{
 			ChartsDirectory: "/tmp",
-			Namespace:       "dev-multiplayer",
+			Namespace:       namespace,
 			Driver:          "",
 		})
 		Expect(err).NotTo(HaveOccurred())

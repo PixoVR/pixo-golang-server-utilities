@@ -21,7 +21,7 @@ var _ = Describe("K8s", func() {
 	})
 
 	It("can get a pod by name", func() {
-		pods, err := baseClient.GetPods(context.Background(), "dev-multiplayer")
+		pods, err := baseClient.GetPods(context.Background(), namespace)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(pods).NotTo(BeNil())
 

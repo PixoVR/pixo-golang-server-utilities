@@ -3,6 +3,7 @@ package agones_test
 import (
 	agonesv1 "agones.dev/agones/pkg/apis/agones/v1"
 	"context"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/agones"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	corev1 "k8s.io/api/core/v1"
@@ -21,7 +22,7 @@ func TestAgones(t *testing.T) {
 }
 
 var (
-	namespace    = "dev-multiplayer"
+	namespace    = config.GetEnvOrReturn("NAMESPACE", "test")
 	fleetName    = "test-fleet"
 	agonesClient agones.Client
 )

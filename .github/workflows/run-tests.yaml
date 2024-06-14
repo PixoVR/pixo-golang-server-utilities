@@ -69,6 +69,7 @@ jobs:
           k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
         env:
           GOOGLE_JSON_KEY: '/home/runner/google-key.json'
+          NAMESPACE: 'test'
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -80,6 +81,7 @@ jobs:
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
           KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
+          NAMESPACE: 'test'
           GOOGLE_JSON_KEY: '/home/runner/google-key.json'
           GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
