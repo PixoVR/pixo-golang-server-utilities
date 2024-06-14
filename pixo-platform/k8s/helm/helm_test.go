@@ -49,7 +49,7 @@ var _ = Describe("Helm", Ordered, func() {
 	It("can install a chart", func() {
 		values := map[string]interface{}{
 			"app_project_id": "pixo-dev",
-			"create_infra":   "false",
+			"create_infra":   false,
 		}
 		Expect(helmClient.Install(chart, values)).To(Succeed())
 	})

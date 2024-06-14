@@ -2,6 +2,7 @@ package argo_test
 
 import (
 	"fmt"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/argo"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/k8s/base"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -23,8 +24,8 @@ func TestArgo(t *testing.T) {
 
 var (
 	bucketName         = "multi-central1-dev-multiplayer-allocator-build-logs"
-	namespace          = "dev-multiplayer"
-	serviceAccountName = "multiplayer-workload"
+	namespace          = config.GetEnvOrReturn("TEST_NAMESPACE", "test")
+	serviceAccountName = config.GetEnvOrReturn("SERVICE_ACCOUNT_NAME", "test-sa")
 	workflowName       = "whalesay-"
 	templateOneName    = fmt.Sprintf("%s1", workflowName)
 	templateTwoName    = fmt.Sprintf("%s2", workflowName)
