@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.18
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.18
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.55.1
-	github.com/casbin/casbin/v2 v2.92.0
+	github.com/casbin/casbin/v2 v2.96.0
 	github.com/cucumber/godog v0.14.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-jose/go-jose/v3 v3.0.3
