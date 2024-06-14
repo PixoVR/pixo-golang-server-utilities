@@ -42,7 +42,7 @@ func TestMain(m *testing.M) {
 	}
 
 	suiteConfig := &SuiteConfig{
-		Engine:        e.Engine(),
+		Engine:        e.Engine,
 		BeforeRequest: beforeRequest,
 		Reset:         resetFunc,
 		Steps:         []Step{helloStep},

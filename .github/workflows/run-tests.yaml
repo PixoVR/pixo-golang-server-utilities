@@ -50,55 +50,16 @@ jobs:
         run: |
           curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
 
-      - name: Create k3d Cluster and Set Kubeconfig
-        run: |
-          k3d cluster create test-cluster
-          k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
-
-      - name: Check cluster health
-        run: |
-          kubectl wait --for=condition=ready node --all --timeout=300s
-
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-
       - name: Install Helm
         run: |
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
           chmod 700 get_helm.sh
           ./get_helm.sh
 
-      - name: Add Helm Repositories
+      - name: Create k3d Cluster and Set Kubeconfig
         run: |
-          helm repo add agones https://agones.dev/chart/stable
-          helm repo add argo https://argoproj.github.io/argo-helm
-          helm repo update
-
-      - name: Install Agones via Helm
-        run: |
-          kubectl create ns dev-multiplayer
-          helm install agones agones/agones --namespace agones-system --create-namespace --set gameservers.namespaces[0]=dev-multiplayer
-
-      - name: Install Argo Workflows via Helm
-        run: |
-          helm install argo-workflows argo/argo-workflows --namespace argo-workflows --create-namespace
-
-      - name: Verify CRDs are ready
-        run: |
-          for crd in gameservers.agones.dev gameserversets.agones.dev fleets.agones.dev fleetautoscalers.autoscaling.agones.dev; do
-            kubectl wait --for=condition=established --timeout=300s crd/$crd
-          done
-
-      - name: Wait for Agones to be ready
-        run: |
-          kubectl wait --namespace agones-system --for=condition=ready pod --selector=app=agones --timeout=300s
-
-      - name: Wait for Argo Workflows to be ready
-        run: |
-          kubectl wait --namespace argo-workflows --for=condition=ready pod --selector=app.kubernetes.io/instance=argo-workflows --timeout=300s
+          ./bin/init_test_cluster.sh
+          k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
 
       - name: Setup Go
         uses: actions/setup-go@v5

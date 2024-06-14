@@ -28,16 +28,14 @@ var _ = Describe("CustomEngine", func() {
 	})
 
 	It("can create an engine with defaults", func() {
-		internalEngine := e.Engine()
 		Expect(e).NotTo(BeNil())
 		req, err := http.NewRequest(http.MethodGet, "/api/health", nil)
 		Expect(err).NotTo(HaveOccurred())
 
-		internalEngine.ServeHTTP(w, req)
+		e.ServeHTTP(w, req)
 
 		Expect(err).To(BeNil())
 		Expect(w.Code).To(Equal(http.StatusOK))
-		Expect(e.Engine()).NotTo(BeNil())
 	})
 
 	It("can create an custom engine with a basic route and tracing", func() {
@@ -49,21 +47,18 @@ var _ = Describe("CustomEngine", func() {
 			InternalRoutes:    true,
 			ExternalRoutes:    true,
 		}
-		engine := engine.NewEngine(config)
-		Expect(engine).NotTo(BeNil())
-		Expect(engine.Port()).To(Equal(config.Port))
-		Expect(engine.BasePath()).To(Equal(config.BasePath))
-		Expect(engine.PublicRouteGroup).NotTo(BeNil())
-		Expect(engine.InternalRouteGroup).NotTo(BeNil())
-		Expect(engine.ExternalRouteGroup).NotTo(BeNil())
-
-		e := engine.Engine()
-		Expect(e).NotTo(BeNil())
+		customEngine := engine.NewEngine(config)
+		Expect(customEngine).NotTo(BeNil())
+		Expect(customEngine.Port()).To(Equal(config.Port))
+		Expect(customEngine.BasePath()).To(Equal(config.BasePath))
+		Expect(customEngine.PublicRouteGroup).NotTo(BeNil())
+		Expect(customEngine.InternalRouteGroup).NotTo(BeNil())
+		Expect(customEngine.ExternalRouteGroup).NotTo(BeNil())
 
 		req, err := http.NewRequest(http.MethodGet, "/api/v2/health", nil)
 		Expect(err).NotTo(HaveOccurred())
 
-		e.ServeHTTP(w, req)
+		customEngine.ServeHTTP(w, req)
 
 		Expect(err).To(BeNil())
 		Expect(w.Code).To(Equal(http.StatusOK))
@@ -71,13 +66,13 @@ var _ = Describe("CustomEngine", func() {
 
 	It("uses middleware to add a host to the context", func() {
 		ip := "127.0.0.1"
-		e.Engine().GET("/test", func(c *gin.Context) {
+		e.GET("/test", func(c *gin.Context) {
 			Expect(config.GetIPAddress(c)).To(Equal(ip))
 		})
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
 		req.RemoteAddr = "127.0.0.1:8000"
 
-		e.Engine().ServeHTTP(w, req)
+		e.ServeHTTP(w, req)
 
 		Expect(w.Code).To(Equal(http.StatusOK))
 	})

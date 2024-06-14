@@ -49,15 +49,14 @@ var _ = Describe("Helm", Ordered, func() {
 	It("can install a chart", func() {
 		values := map[string]interface{}{
 			"app_project_id": "pixo-dev",
+			"create_infra":   "false",
 		}
-		err := helmClient.Install(chart, values)
-		Expect(err).NotTo(HaveOccurred())
+		Expect(helmClient.Install(chart, values)).To(Succeed())
 	})
 
 	It("can upgrade a chart", func() {
 		values := map[string]interface{}{}
-		err := helmClient.Upgrade(chart, values)
-		Expect(err).NotTo(HaveOccurred())
+		Expect(helmClient.Upgrade(chart, values)).To(Succeed())
 	})
 
 	It("can tell if a chart is installed", func() {
@@ -65,19 +64,21 @@ var _ = Describe("Helm", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(installed).To(BeTrue())
 
-		nonexistentChart := helm.Chart{
+		installed, err = helmClient.Exists(helm.Chart{
 			RepoURL:     chart.RepoURL,
 			Name:        chart.Name,
 			ReleaseName: "nonexistent-chart",
-		}
-		installed, err = helmClient.Exists(nonexistentChart)
+		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(installed).To(BeFalse())
 	})
 
 	It("can uninstall a chart", func() {
-		err := helmClient.Uninstall(chart)
+		Expect(helmClient.Uninstall(chart)).To(Succeed())
+
+		installed, err := helmClient.Exists(chart)
 		Expect(err).NotTo(HaveOccurred())
+		Expect(installed).To(BeFalse())
 	})
 
 })

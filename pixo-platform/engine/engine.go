@@ -36,10 +36,9 @@ type Config struct {
 }
 
 type CustomEngine struct {
+	*gin.Engine
 	port     int
 	basePath string
-
-	engine *gin.Engine
 
 	PublicRouteGroup   *gin.RouterGroup
 	InternalRouteGroup *gin.RouterGroup
@@ -48,7 +47,9 @@ type CustomEngine struct {
 
 func NewEngine(config Config) *CustomEngine {
 
-	e := &CustomEngine{}
+	e := &CustomEngine{
+		Engine: gin.New(),
+	}
 
 	if config.Port != 0 {
 		e.port = config.Port
@@ -67,13 +68,12 @@ func NewEngine(config Config) *CustomEngine {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	e.engine = gin.New()
-	e.engine.Use(gin.Recovery())
-	e.engine.Use(platformAuth.HostMiddleware())
+	e.Use(gin.Recovery())
+	e.Use(platformAuth.HostMiddleware())
 
 	if config.Tracing {
 		if os.Getenv("DD_ENV") != "" {
-			e.engine.Use(gintrace.Middleware(strings.ReplaceAll(e.basePath, "/", "")))
+			e.Use(gintrace.Middleware(strings.ReplaceAll(e.basePath, "/", "")))
 			tracer.Start(tracer.WithRuntimeMetrics())
 
 		} else {
@@ -106,27 +106,27 @@ func NewEngine(config Config) *CustomEngine {
 			}
 			//defer closer.Close() // nolint: errcheck
 
-			e.engine.Use(ginhttp.Middleware(t))
+			e.Use(ginhttp.Middleware(t))
 		}
 	}
 
 	if config.AddCustomContextMiddleware != nil {
-		config.AddCustomContextMiddleware(e.engine)
+		config.AddCustomContextMiddleware(e.Engine)
 	}
 
-	e.PublicRouteGroup = e.engine.Group(e.basePath)
+	e.PublicRouteGroup = e.Group(e.basePath)
 	e.PublicRouteGroup.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 	e.PublicRouteGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	if config.InternalRoutes {
-		e.InternalRouteGroup = e.engine.Group(config.BasePath)
+		e.InternalRouteGroup = e.Group(config.BasePath)
 		e.InternalRouteGroup.Use(platformAuth.SecretKeyAuthMiddleware())
 	}
 
 	if config.ExternalRoutes {
-		e.ExternalRouteGroup = e.engine.Group(config.BasePath)
+		e.ExternalRouteGroup = e.Group(config.BasePath)
 		e.ExternalRouteGroup.Use(platformAuth.JWTOrSecretKeyAuthMiddleware(func(c *gin.Context) error {
 			return nil
 		}))
@@ -147,16 +147,8 @@ func (e *CustomEngine) BasePath() string {
 	return e.basePath
 }
 
-func (e *CustomEngine) Engine() *gin.Engine {
-	return e.engine
-}
-
-func (e *CustomEngine) Use(middleware gin.HandlerFunc) {
-	e.engine.Use(middleware)
-}
-
-func (e *CustomEngine) Run() {
-	if err := e.engine.Run(fmt.Sprint(e.PortString())); err != nil {
+func (e *CustomEngine) Start() {
+	if err := e.Run(fmt.Sprint(e.PortString())); err != nil {
 		log.Fatal().Err(err).Msg("Unable to start server")
 	}
 }
