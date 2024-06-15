@@ -3,6 +3,8 @@ package gcs_test
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"io"
 	"net/http"
 	"os"
@@ -19,7 +21,7 @@ import (
 var _ = Describe("Google Cloud Storage", Ordered, func() {
 	var (
 		filename       = "test-file.txt"
-		bucketName     = "dev-apex-primary-api-modules"
+		bucketName     = config.GetEnvOrReturn("GCS_BUCKET_NAME", "pixo-test-bucket")
 		bucketFilepath = "testdata"
 
 		storageClient          gcs.Client
@@ -58,7 +60,7 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 
 	It("can format a public url", func() {
 		publicURL := storageClient.GetPublicURL(object)
-		Expect(publicURL).To(Equal("https://storage.googleapis.com/dev-apex-primary-api-modules/testdata/test-file.txt"))
+		Expect(publicURL).To(Equal(fmt.Sprintf("https://storage.googleapis.com/%s/testdata/test-file.txt", bucketName)))
 	})
 
 	It("can sanitize a filename", func() {

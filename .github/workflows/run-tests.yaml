@@ -86,6 +86,7 @@ jobs:
           SA_NAME: 'test-sa'
           GOOGLE_JSON_KEY: '/home/runner/google-key.json'
           GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
+          GCS_BUCKET_NAME: pixo-test-bucket
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 

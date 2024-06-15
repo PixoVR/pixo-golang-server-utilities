@@ -23,12 +23,17 @@ func TestArgo(t *testing.T) {
 }
 
 var (
-	bucketName         = "multi-central1-dev-multiplayer-allocator-build-logs"
+	bucketName         = config.GetEnvOrReturn("GCS_BUCKET_NAME", "pixo-test-bucket")
 	namespace          = config.GetEnvOrReturn("NAMESPACE", "test")
-	serviceAccountName = config.GetEnvOrReturn("SERVICE_ACCOUNT_NAME", "test-sa")
-	workflowName       = "whalesay-"
-	templateOneName    = fmt.Sprintf("%s1", workflowName)
-	templateTwoName    = fmt.Sprintf("%s2", workflowName)
+	serviceAccountName = config.GetEnvOrReturn("SA_NAME", "test-sa")
+
+	secretName    = config.GetEnvOrReturn("SECRET_NAME", "google-credentials")
+	secretKeyName = config.GetEnvOrReturn("SECRET_KEY_NAME", "credentials")
+
+	workflowName = "whalesay-"
+
+	templateOneName = fmt.Sprintf("%s1", workflowName)
+	templateTwoName = fmt.Sprintf("%s2", workflowName)
 
 	k8sClient  base.Client
 	argoClient argo.Client
@@ -43,6 +48,10 @@ var (
 		Spec: v1alpha1.WorkflowSpec{
 			Entrypoint:  workflowName,
 			ArchiveLogs: &archiveLogs,
+			ArtifactRepositoryRef: &v1alpha1.ArtifactRepositoryRef{
+				ConfigMap: "artifact-repositories",
+				Key:       "gcs-artifact-repository",
+			},
 			PodGC: &v1alpha1.PodGC{
 				Strategy: v1alpha1.PodGCOnWorkflowCompletion,
 			},
@@ -54,6 +63,13 @@ var (
 						GCS: &v1alpha1.GCSArtifact{
 							GCSBucket: v1alpha1.GCSBucket{
 								Bucket: bucketName,
+								ServiceAccountKeySecret: &corev1.SecretKeySelector{
+									Optional: &[]bool{false}[0],
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: secretName,
+									},
+									Key: secretKeyName,
+								},
 							},
 							Key: "whalesay-{{workflow.name}}-{{pod.name}}-{{time}}",
 						},
