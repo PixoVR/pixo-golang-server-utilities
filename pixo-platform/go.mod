@@ -11,7 +11,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.33.0
 	github.com/antchfx/jsonquery v1.3.4
 	github.com/argoproj/argo-workflows/v3 v3.5.7
-	github.com/aws/aws-sdk-go-v2 v1.27.2
+	github.com/aws/aws-sdk-go-v2 v1.28.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.18
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.18
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.55.1
