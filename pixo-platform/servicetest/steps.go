@@ -150,10 +150,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 			variableBody.Content = strings.ReplaceAll(variableBody.Content, fmt.Sprintf("$%s", k), fmt.Sprintf("%v", v))
 		}
 
-		variableBody.Content = string(s.PerformSubstitutions([]byte(variableBody.Content)))
-		log.Debug().Msgf("GraphQL variables body: %s", variableBody.Content)
-
-		if err = json.Unmarshal(s.PerformSubstitutions([]byte(variableBody.Content)), &variables); err != nil {
+		if err = json.Unmarshal([]byte(variableBody.Content), &variables); err != nil {
 			return nil, err
 		}
 
@@ -195,6 +192,12 @@ func (s *ServerTestFeature) ExtractValueFromResponse(keyName string) error {
 	}
 
 	s.GraphQLResponse[keyName] = extractedValue.FirstChild.Data
+
+	if keyName == "id" {
+		if s.GraphQLResponse["id"] != nil {
+			s.ID = s.GraphQLResponse["id"].(string)
+		}
+	}
 
 	return nil
 }

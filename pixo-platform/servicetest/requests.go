@@ -161,6 +161,8 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 		req.FormData.Add("map", fmt.Sprintf(`{"0": ["variables.%s"]}`, s.SendFileKey))
 		req.SetFiles(map[string]string{"0": s.SendFile})
 	} else {
+		log.Debug().Msgf("GraphQL request body: %s", body)
+
 		req.SetHeader("Content-Type", "application/json").
 			SetBody(body)
 	}
