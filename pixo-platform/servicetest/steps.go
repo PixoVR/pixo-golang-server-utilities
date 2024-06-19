@@ -153,7 +153,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 		variableBody.Content = string(s.PerformSubstitutions([]byte(variableBody.Content)))
 		log.Debug().Msgf("GraphQL variables body: %s", variableBody.Content)
 
-		if err = json.Unmarshal([]byte(variableBody.Content), &variables); err != nil {
+		if err = json.Unmarshal(s.PerformSubstitutions([]byte(variableBody.Content)), &variables); err != nil {
 			return nil, err
 		}
 
