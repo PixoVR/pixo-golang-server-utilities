@@ -315,6 +315,7 @@ func (s *ServerTestFeature) WaitForSeconds(seconds int) {
 }
 
 func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string) error {
+	value = string(s.PerformSubstitutions([]byte(value)))
 	if !strings.Contains(s.ResponseString, fmt.Sprintf("\"%s\":\"%s\"", property, value)) {
 		return fmt.Errorf("expected response to contain %s set to %s", property, value)
 	}
