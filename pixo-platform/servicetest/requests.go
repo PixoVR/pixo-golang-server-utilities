@@ -195,13 +195,14 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 	}
 
 	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//data/%s", s.GraphQLOperation))
-	if extractedValue == nil {
-		return fmt.Errorf("key data.%s not found in response", s.GraphQLOperation)
+	if extractedValue != nil {
+		responseBytes, _ := json.Marshal(extractedValue.Value())
+		s.ResponseString = string(responseBytes)
+	} else {
+		s.ResponseString = response.String()
 	}
 
 	s.HTTPResponse = response.RawResponse
-	responseBytes, _ := json.Marshal(extractedValue.Value())
-	s.ResponseString = string(responseBytes)
 	s.StatusCode = response.StatusCode()
 
 	// reset so it is not used automatically for the next request
