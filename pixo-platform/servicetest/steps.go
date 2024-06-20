@@ -255,8 +255,8 @@ func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotNull(jsonQueryPath
 		}
 	}
 
-	if dataFound {
-		return fmt.Errorf("the json query path %s contains s null value", jsonQueryPath)
+	if !dataFound {
+		return fmt.Errorf("the json query path %s contains a null value", jsonQueryPath)
 	}
 
 	return nil
