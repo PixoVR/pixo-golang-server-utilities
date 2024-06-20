@@ -249,7 +249,7 @@ func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotNull(jsonQueryPath
 	dataFound := false
 
 	for _, child := range extractedValue.ChildNodes() {
-		if child.Value() != nil {
+		if child.Value() != nil && child.Value() != "<nil>" {
 			dataFound = true
 			break
 		}
