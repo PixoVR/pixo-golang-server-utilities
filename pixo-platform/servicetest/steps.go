@@ -187,14 +187,14 @@ func (s *ServerTestFeature) ExtractValueFromResponse(keyName string) error {
 		return err
 	}
 
-	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s/%s", s.GraphQLOperation, keyName))
+	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("/%s", keyName))
 	if extractedValue == nil {
 		return fmt.Errorf("key %s not found in response", keyName)
 	}
 
 	s.GraphQLResponse[keyName] = extractedValue.FirstChild.Data
 
-	if keyName == "id" {
+	if strings.ToLower(keyName) == "id" {
 		if s.GraphQLResponse["id"] != nil {
 			s.ID = s.GraphQLResponse["id"].(string)
 		}
@@ -280,7 +280,7 @@ func (s *ServerTestFeature) TheResponseShouldContain(body *godog.DocString) erro
 }
 
 func (s *ServerTestFeature) TheResponseHeadersShouldContain(key, value string) error {
-	headerValue := s.Response.Header.Get(key)
+	headerValue := s.httpResponse.Header.Get(key)
 	if !strings.Contains(headerValue, value) {
 		return fmt.Errorf("expected response header %s to contain %s, but got %s", key, value, headerValue)
 	}

@@ -13,14 +13,14 @@ import (
 func (s *ServerTestFeature) OpenWebsocket(endpoint string) error {
 	log.Debug().Str("endpoint", endpoint).Msg("Opening websocket connection")
 
-	s.WebsocketConn, s.Response, s.Err = s.ServiceClient.DialWebsocket(endpoint)
+	s.WebsocketConn, s.httpResponse, s.Err = s.ServiceClient.DialWebsocket(endpoint)
 	if s.Err != nil {
 		log.Info().Err(s.Err).Msg("Error opening websocket")
 	}
 
-	if s.Response != nil {
-		log.Debug().Str("status", s.Response.Status).Msg("Websocket connection opened")
-		s.StatusCode = s.Response.StatusCode
+	if s.httpResponse != nil {
+		log.Debug().Str("status", s.httpResponse.Status).Msg("Websocket connection opened")
+		s.StatusCode = s.httpResponse.StatusCode
 	}
 
 	return nil

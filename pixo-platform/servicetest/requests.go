@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/middleware/auth"
+	"github.com/antchfx/jsonquery"
 	"github.com/cucumber/godog"
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
@@ -86,7 +87,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 
 		s.Engine.ServeHTTP(s.Recorder, req)
 
-		s.Response = s.Recorder.Result()
+		s.httpResponse = s.Recorder.Result()
 		s.ResponseString = s.Recorder.Body.String()
 		s.StatusCode = s.Recorder.Code
 		s.Err = nil
@@ -143,7 +144,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			return errors.New("response is nil")
 		}
 
-		s.Response = res.RawResponse
+		s.httpResponse = res.RawResponse
 		s.ResponseString = string(res.Body())
 		s.StatusCode = res.StatusCode()
 	}
@@ -188,8 +189,18 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 	}
 
 	log.Debug().Msgf("RESPONSE: %v", response)
-	s.Response = response.RawResponse
-	s.ResponseString = response.String()
+	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	if err != nil {
+		return err
+	}
+
+	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s", s.GraphQLOperation))
+	if extractedValue == nil {
+		return fmt.Errorf("key data.%s not found in response", s.GraphQLOperation)
+	}
+
+	s.httpResponse = response.RawResponse
+	s.ResponseString = extractedValue.FirstChild.Data
 	s.StatusCode = response.StatusCode()
 
 	// reset so it is not used automatically for the next request
