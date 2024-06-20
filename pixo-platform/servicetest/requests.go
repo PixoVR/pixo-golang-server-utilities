@@ -201,7 +201,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 
 	s.HTTPResponse = response.RawResponse
 	responseBytes, _ := json.Marshal(extractedValue.Value())
-	s.ResponseString = fmt.Sprint(responseBytes)
+	s.ResponseString = string(responseBytes)
 	s.StatusCode = response.StatusCode()
 
 	// reset so it is not used automatically for the next request
