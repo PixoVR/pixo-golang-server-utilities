@@ -87,7 +87,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 
 		s.Engine.ServeHTTP(s.Recorder, req)
 
-		s.httpResponse = s.Recorder.Result()
+		s.HTTPResponse = s.Recorder.Result()
 		s.ResponseString = s.Recorder.Body.String()
 		s.StatusCode = s.Recorder.Code
 		s.Err = nil
@@ -144,7 +144,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			return errors.New("response is nil")
 		}
 
-		s.httpResponse = res.RawResponse
+		s.HTTPResponse = res.RawResponse
 		s.ResponseString = string(res.Body())
 		s.StatusCode = res.StatusCode()
 	}
@@ -189,7 +189,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 	}
 
 	log.Debug().Msgf("RESPONSE: %v", response)
-	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	doc, err := jsonquery.Parse(response.RawBody())
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 		return fmt.Errorf("key data.%s not found in response", s.GraphQLOperation)
 	}
 
-	s.httpResponse = response.RawResponse
+	s.HTTPResponse = response.RawResponse
 	s.ResponseString = extractedValue.FirstChild.Data
 	s.StatusCode = response.StatusCode()
 

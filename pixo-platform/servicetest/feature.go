@@ -28,7 +28,7 @@ type ServerTestFeature struct {
 	ServiceClient  abstract_client.AbstractClient
 	PlatformClient graphql_api.PlatformClient
 
-	httpResponse   *http.Response
+	HTTPResponse   *http.Response
 	ResponseString string
 	StatusCode     int
 
@@ -75,7 +75,7 @@ func (s *ServerTestFeature) Reset(interface{}) {
 		s.ServiceClient.SetAPIKey("")
 	}
 
-	s.httpResponse = nil
+	s.HTTPResponse = nil
 	s.ResponseString = ""
 	s.StatusCode = 0
 

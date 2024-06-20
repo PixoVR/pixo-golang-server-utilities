@@ -280,7 +280,7 @@ func (s *ServerTestFeature) TheResponseShouldContain(body *godog.DocString) erro
 }
 
 func (s *ServerTestFeature) TheResponseHeadersShouldContain(key, value string) error {
-	headerValue := s.httpResponse.Header.Get(key)
+	headerValue := s.HTTPResponse.Header.Get(key)
 	if !strings.Contains(headerValue, value) {
 		return fmt.Errorf("expected response header %s to contain %s, but got %s", key, value, headerValue)
 	}
