@@ -189,13 +189,13 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 	}
 
 	log.Debug().Msgf("RESPONSE: %v", response)
-	doc, err := jsonquery.Parse(response.RawBody())
+	doc, err := jsonquery.Parse(strings.NewReader(response.String()))
 	if err != nil {
 		return err
 	}
 
 	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s", s.GraphQLOperation))
-	if extractedValue == nil {
+	if extractedValue == nil || extractedValue.FirstChild == nil {
 		return fmt.Errorf("key data.%s not found in response", s.GraphQLOperation)
 	}
 
