@@ -194,7 +194,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 		return err
 	}
 
-	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s", s.GraphQLOperation))
+	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//data/%s", s.GraphQLOperation))
 	if extractedValue == nil || extractedValue.FirstChild == nil {
 		return fmt.Errorf("key data.%s not found in response", s.GraphQLOperation)
 	}
