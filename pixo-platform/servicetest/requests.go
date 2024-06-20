@@ -200,7 +200,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 	}
 
 	s.HTTPResponse = response.RawResponse
-	responseBytes, _ := json.Marshal(extractedValue.FirstChild.Value())
+	responseBytes, _ := json.Marshal(extractedValue.Value())
 	s.ResponseString = fmt.Sprint(responseBytes)
 	s.StatusCode = response.StatusCode()
 
