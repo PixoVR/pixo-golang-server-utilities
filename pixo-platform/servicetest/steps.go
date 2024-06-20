@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -320,9 +321,17 @@ func (s *ServerTestFeature) WaitForSeconds(seconds int) {
 
 func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string) error {
 	value = string(s.PerformSubstitutions([]byte(value)))
-	if !strings.Contains(s.ResponseString, fmt.Sprintf("\"%s\":\"%s\"", property, value)) {
+	expectedString := fmt.Sprintf("\"%s\":\"%s\"", property, value)
+
+	intValue, err := strconv.Atoi(value)
+	if err == nil {
+		expectedString = fmt.Sprintf("\"%s\":%d", property, intValue)
+	}
+
+	if !strings.Contains(s.ResponseString, expectedString) {
 		return fmt.Errorf("expected response to contain %s set to %s", property, value)
 	}
+
 	return nil
 }
 
