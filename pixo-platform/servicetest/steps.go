@@ -53,6 +53,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should contain "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
 	ctx.Step(`^the response should not contain "([^"]*)" at path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
 	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
+	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
 	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
 
 	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
@@ -234,21 +235,14 @@ func (s *ServerTestFeature) ShouldNotContainForJsonQueryPath(value, jsonQueryPat
 }
 
 func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotNull(jsonQueryPath string) error {
-	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	val, err := s.getJSONNodeFromResponse(jsonQueryPath)
 	if err != nil {
 		return err
 	}
 
-	jsonQueryPath = strings.ReplaceAll(jsonQueryPath, ".", "/")
-
-	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s", jsonQueryPath))
-	if extractedValue == nil {
-		return fmt.Errorf("json query '%s' not found in response", jsonQueryPath)
-	}
-
 	dataFound := false
 
-	for _, child := range extractedValue.ChildNodes() {
+	for _, child := range val.ChildNodes() {
 		if child.Value() != nil && child.Value() != "<nil>" {
 			dataFound = true
 			break
@@ -260,6 +254,44 @@ func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotNull(jsonQueryPath
 	}
 
 	return nil
+}
+
+func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotEmpty(jsonQueryPath string) error {
+	val, err := s.getJSONNodeFromResponse(jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	dataFound := false
+
+	for _, child := range val.ChildNodes() {
+		if child.Value() != nil && child.Value() != "<nil>" && child.Value() != "" {
+			dataFound = true
+			break
+		}
+	}
+
+	if !dataFound {
+		return fmt.Errorf("the json query path %s contains a null or empty value", jsonQueryPath)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) getJSONNodeFromResponse(queryPath string) (*jsonquery.Node, error) {
+	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	if err != nil {
+		return nil, err
+	}
+
+	queryPath = strings.ReplaceAll(queryPath, ".", "/")
+
+	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s", queryPath))
+	if extractedValue == nil {
+		return nil, fmt.Errorf("json query '%s' not found in response", queryPath)
+	}
+
+	return extractedValue, nil
 }
 
 func (s *ServerTestFeature) TheResponseCodeShouldBe(statusCode int) error {
