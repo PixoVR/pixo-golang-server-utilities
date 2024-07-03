@@ -68,6 +68,10 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			req.Header.Set(auth.SecretKeyHeader, s.SecretKey)
 		}
 
+		if s.APIKey != "" {
+			req.Header.Set(auth.APIKeyHeader, s.APIKey)
+		}
+
 		if method == "POST" {
 			log.Debug().
 				Str("url", url).
@@ -102,6 +106,10 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 
 		if s.SecretKey != "" {
 			req.SetHeader(auth.SecretKeyHeader, s.SecretKey)
+		}
+
+		if s.APIKey != "" {
+			req.SetHeader(auth.APIKeyHeader, s.APIKey)
 		}
 
 		if paramsMap != nil {
@@ -170,6 +178,14 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 
 	if s.Token != "" {
 		req.SetAuthToken(s.Token)
+	}
+
+	if s.SecretKey != "" {
+		req.SetHeader(auth.SecretKeyHeader, s.SecretKey)
+	}
+
+	if s.APIKey != "" {
+		req.SetHeader(auth.APIKeyHeader, s.APIKey)
 	}
 
 	method := "POST"
