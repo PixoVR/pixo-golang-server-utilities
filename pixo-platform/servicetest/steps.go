@@ -9,6 +9,8 @@ import (
 	"github.com/cucumber/godog"
 	. "github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
+	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -59,6 +61,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
 
+	ctx.Step(`^I download the "([^"]*)" link to the "([^"]*)" directory as "([^"]*)"$`, s.DownloadFileViaLink)
 	ctx.Step(`^the file "([^"]*)" in the "([^"]*)" directory should exist$`, s.FileShouldExist)
 	ctx.Step(`^the files "([^"]*)" and "([^"]*)" in the "([^"]*)" directory should be the same$`, s.CompareFiles)
 
@@ -435,4 +438,46 @@ func (s *ServerTestFeature) FileToSendInRequest(filename, directory, key string)
 	}
 
 	return nil
+}
+
+func (s *ServerTestFeature) DownloadFileViaLink(keyName, downloadDirectory, filename string) error {
+	if keyName == "" {
+		return fmt.Errorf("key name cannot be empty")
+	}
+
+	dataFromMap := s.GraphQLResponse[keyName]
+	if dataFromMap == nil {
+		return fmt.Errorf("key %s not found in response", keyName)
+	}
+
+	url := dataFromMap.(string)
+
+	if !strings.HasPrefix(url, "http") {
+		return fmt.Errorf("url '%s' is not valid", url)
+	}
+
+	filepath := fmt.Sprintf("./%s/%s", downloadDirectory, filename)
+
+	return s.DownloadFile(filepath, url)
+}
+
+func (s *ServerTestFeature) DownloadFile(filepath, url string) error {
+	log.Info().Msgf("Downloading file from %s to %s", url, filepath)
+	response, err := s.Client.R().Get(url)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode() != http.StatusOK {
+		return fmt.Errorf("expected status code 200, got %d, Body: %v", response.StatusCode(), response)
+	}
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	reader := bytes.NewReader(response.Body())
+	_, err = io.Copy(out, reader)
+	return err
 }
