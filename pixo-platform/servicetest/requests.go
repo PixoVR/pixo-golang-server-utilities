@@ -188,18 +188,24 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 		return err
 	}
 
+	s.ResponseString = response.String()
+
 	log.Debug().Msgf("RESPONSE: %v", response)
 	doc, err := jsonquery.Parse(strings.NewReader(response.String()))
 	if err != nil {
 		return err
 	}
 
-	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//data/%s", s.GraphQLOperation))
-	if extractedValue != nil {
-		responseBytes, _ := json.Marshal(extractedValue.Value())
-		s.ResponseString = string(responseBytes)
+	errorValue := jsonquery.FindOne(doc, "//errors")
+	if errorValue != nil {
+		errorBytes, _ := json.Marshal(errorValue.Value())
+		s.Err = errors.New(string(errorBytes))
 	} else {
-		s.ResponseString = response.String()
+		extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//data/%s", s.GraphQLOperation))
+		if extractedValue != nil {
+			responseBytes, _ := json.Marshal(extractedValue.Value())
+			s.ResponseString = string(responseBytes)
+		}
 	}
 
 	s.HTTPResponse = response.RawResponse
