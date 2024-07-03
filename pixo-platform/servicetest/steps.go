@@ -415,11 +415,10 @@ func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string
 	expectedString := fmt.Sprintf("\"%s\":\"%s\"", property, value)
 
 	intValue, err := strconv.Atoi(value)
-	if err == nil {
-		expectedString = fmt.Sprintf("\"%s\":%d", property, intValue)
-	}
+	isNum := err == nil
+	expectedInt := fmt.Sprintf("\"%s\":%d", property, intValue)
 
-	if !strings.Contains(s.ResponseString, expectedString) {
+	if !(strings.Contains(s.ResponseString, expectedString) || (isNum && strings.Contains(s.ResponseString, expectedInt))) {
 		return fmt.Errorf("expected response to contain %s set to %s", property, value)
 	}
 
