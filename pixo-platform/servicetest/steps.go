@@ -59,6 +59,9 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
 
+	ctx.Step(`^the file "([^"]*)" in the "([^"]*)" directory should exist$`, s.FileShouldExist)
+	ctx.Step(`^the files "([^"]*)" and "([^"]*)" in the "([^"]*)" directory should be the same$`, s.CompareFiles)
+
 	ctx.Step(`^I wait for "([^"]*)" seconds$`, s.WaitForSeconds)
 
 	ctx.Step(`^the websocket is connected$`, s.WebsocketIsConnected)
@@ -201,6 +204,36 @@ func (s *ServerTestFeature) ExtractValueFromResponse(keyName string) error {
 		if s.GraphQLResponse["id"] != nil {
 			s.ID = s.GraphQLResponse["id"].(string)
 		}
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) FileShouldExist(filename, directory string) error {
+	if directory == "" && filename == "" {
+		return fmt.Errorf("directory and filename cannot be empty")
+	}
+	filePath := fmt.Sprintf("./%s/%s", directory, filename)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return fmt.Errorf("file %s does not exist", filePath)
+	}
+	return nil
+}
+
+func (s *ServerTestFeature) CompareFiles(file1, file2, dir string) error {
+	file1Contents, err := os.ReadFile(fmt.Sprintf("%s/%s", dir, file1))
+	if err != nil {
+		return fmt.Errorf("error reading file %s: %w", file1, err)
+	}
+
+	file2Contents, err := os.ReadFile(fmt.Sprintf("%s/%s", dir, file2))
+	if err != nil {
+		return fmt.Errorf("error reading file %s: %w", file2, err)
+	}
+
+	if !bytes.Equal(file1Contents, file2Contents) {
+		return fmt.Errorf("file contents do not match")
 	}
 
 	return nil
