@@ -413,12 +413,18 @@ func (s *ServerTestFeature) WaitForSeconds(seconds int) {
 func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string) error {
 	value = string(s.PerformSubstitutions([]byte(value)))
 	expectedString := fmt.Sprintf("\"%s\":\"%s\"", property, value)
+	savedByString := strings.Contains(s.ResponseString, expectedString)
+
+	isNullOrBool := value == "null" || value == "true" || value == "false"
+	expectedBool := fmt.Sprintf("\"%s\":%s", property, value)
+	savedByBool := isNullOrBool && strings.Contains(s.ResponseString, expectedBool)
 
 	intValue, err := strconv.Atoi(value)
 	isNum := err == nil
 	expectedInt := fmt.Sprintf("\"%s\":%d", property, intValue)
+	savedByInt := isNum && strings.Contains(s.ResponseString, expectedInt)
 
-	if !(strings.Contains(s.ResponseString, expectedString) || (isNum && strings.Contains(s.ResponseString, expectedInt))) {
+	if !(savedByString || savedByBool || savedByInt) {
 		return fmt.Errorf("expected response to contain %s set to %s", property, value)
 	}
 
