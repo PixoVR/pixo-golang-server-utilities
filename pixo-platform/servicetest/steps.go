@@ -52,6 +52,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
 	ctx.Step(`^the response should contain "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
 	ctx.Step(`^the response should not contain "([^"]*)" at path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
+	ctx.Step(`^the response should contain a "([^"]*)" that is null$`, s.TheResponseShouldContainAThatIsNull)
 	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
 	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
 	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
@@ -251,6 +252,28 @@ func (s *ServerTestFeature) TheResponseShouldContainAThatIsNotNull(jsonQueryPath
 
 	if !dataFound {
 		return fmt.Errorf("the json query path %s contains a null value", jsonQueryPath)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) TheResponseShouldContainAThatIsNull(jsonQueryPath string) error {
+	val, err := s.getJSONNodeFromResponse(jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	dataFound := false
+
+	for _, child := range val.ChildNodes() {
+		if child.Value() != nil && child.Value() != "<nil>" {
+			dataFound = true
+			break
+		}
+	}
+
+	if dataFound {
+		return fmt.Errorf("the json query path %s does not contain a null value: %s", jsonQueryPath, s.ResponseString)
 	}
 
 	return nil
