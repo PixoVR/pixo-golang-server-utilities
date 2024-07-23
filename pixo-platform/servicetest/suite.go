@@ -3,8 +3,8 @@ package servicetest
 import (
 	"context"
 	"errors"
-	abstract_client "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
-	graphql_api "github.com/PixoVR/pixo-golang-clients/pixo-platform/graphql-api"
+	abstract "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/platform"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
@@ -36,7 +36,7 @@ type ServerTestSuite struct {
 
 type SuiteConfig struct {
 	Opts          *godog.Options
-	ServiceClient abstract_client.AbstractClient
+	ServiceClient abstract.AbstractClient
 	Engine        *gin.Engine
 	BeforeRequest func(body []byte)
 	Reset         func(sc *godog.Scenario)
@@ -78,10 +78,10 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	}
 
 	if lifecycle == "" || lifecycle == "internal" {
-		suite.Feature.PlatformClient = &graphql_api.MockGraphQLClient{}
+		suite.Feature.PlatformClient = &platform.MockClient{}
 		suite.Feature.Engine = config.Engine
 	} else {
-		suite.Feature.PlatformClient = graphql_api.NewClient(urlfinder.ClientConfig{
+		suite.Feature.PlatformClient = platform.NewClient(urlfinder.ClientConfig{
 			Lifecycle: suite.Lifecycle,
 			Region:    suite.Region,
 			APIKey:    os.Getenv("PIXO_API_KEY"),

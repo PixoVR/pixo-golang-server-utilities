@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"os"
 
-	platform "github.com/PixoVR/pixo-golang-clients/pixo-platform/primary-api"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/middleware/auth"
 	"github.com/gin-gonic/gin"
@@ -77,8 +76,8 @@ var _ = Describe("Auth", func() {
 		})
 
 		Context("JWT validation", func() {
-			validateAPIKey := func(ctx context.Context, apiKey string) (*platform.User, error) {
-				return &platform.User{ID: 1}, nil
+			validateAPIKey := func(ctx context.Context, apiKey string) (*auth.User, error) {
+				return &auth.User{ID: 1}, nil
 			}
 			BeforeEach(func() {
 				jwtTokenString := GetTestJWT(1)
@@ -120,12 +119,13 @@ var _ = Describe("Auth", func() {
 				Expect(w.Code).To(Equal(http.StatusUnauthorized))
 			})
 		})
+
 		Context("API key validation", func() {
-			validateAPIKey := func(ctx context.Context, apiKey string) (*platform.User, error) {
+			validateAPIKey := func(ctx context.Context, apiKey string) (*auth.User, error) {
 				if apiKey != "test" {
 					return nil, fmt.Errorf("invalid API key")
 				}
-				return &platform.User{ID: 1}, nil
+				return &auth.User{ID: 1}, nil
 			}
 
 			BeforeEach(func() {

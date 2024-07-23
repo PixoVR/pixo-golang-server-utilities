@@ -1,8 +1,8 @@
 package servicetest_test
 
 import (
-	graphql_api "github.com/PixoVR/pixo-golang-clients/pixo-platform/graphql-api"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/heartbeat"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/platform"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/engine"
 	. "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/servicetest"
@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 		Region:    suite.Region,
 	})
 
-	suite.Feature.PlatformClient = &graphql_api.MockGraphQLClient{}
+	suite.Feature.PlatformClient = &platform.MockClient{}
 
 	if suite.Lifecycle == "" {
 		log.Fatal().Msg("Failed to get lifecycle")
