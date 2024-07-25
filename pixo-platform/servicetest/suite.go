@@ -57,7 +57,7 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	}
 
 	pflag.StringVarP(&region, "region", "r", "na", "region to run tests against (options: na, saudi)")
-	pflag.StringVarP(&lifecycle, "lifecycle", "l", "dev", "lifecycle to run tests against (options: local, dev, stage, prod)")
+	pflag.StringVarP(&lifecycle, "lifecycle", "l", "local", "lifecycle to run tests against (options: local, dev, stage, prod)")
 
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		log.Fatal().Err(err).Msg("Failed to bind flags")

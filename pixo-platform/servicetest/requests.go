@@ -55,6 +55,8 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 
 	if service == "" && (currentLifecycle == "" || currentLifecycle == "internal") {
 		url := fmt.Sprintf("/%s%s", s.ServiceClient.Path(), endpoint)
+		log.Debug().Msgf("URL: %s: - Method %s", url, method)
+
 		req, err := http.NewRequest(method, url, bytes.NewReader(body))
 		if err != nil {
 			return fmt.Errorf("failed to create request: %s", err)
@@ -125,6 +127,11 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			}
 			url = serviceConfig.FormatURL() + endpoint
 		}
+
+		log.Debug().
+			Str("url", url).
+			Str("method", method).
+			Msg("Making request")
 
 		var res *resty.Response
 		var err error
