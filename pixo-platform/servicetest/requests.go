@@ -100,6 +100,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 
 	} else {
 		url := s.ServiceClient.GetURL() + endpoint
+		url = string(s.PerformSubstitutions([]byte(url)))
 		req := s.Client.R()
 
 		if s.Token != "" {
@@ -115,6 +116,9 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 		}
 
 		if paramsMap != nil {
+			for key, value := range paramsMap {
+				paramsMap[key] = string(s.PerformSubstitutions([]byte(value)))
+			}
 			req.SetQueryParams(paramsMap)
 		}
 
