@@ -425,7 +425,12 @@ func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string
 	expectedInt := fmt.Sprintf("\"%s\":%d", property, intValue)
 	savedByInt := isNum && strings.Contains(s.ResponseString, expectedInt)
 
-	if !(savedByString || savedByBool || savedByInt) {
+	floatValue, err := strconv.ParseFloat(value, 64)
+	isFloat := err == nil
+	expectedFloat := fmt.Sprintf("\"%s\":%f", property, floatValue)
+	savedByFloat := isFloat && strings.Contains(s.ResponseString, expectedFloat)
+
+	if !(savedByString || savedByBool || savedByInt || savedByFloat) {
 		return fmt.Errorf("expected response to contain %s set to %s", property, value)
 	}
 
