@@ -33,6 +33,7 @@ type ServerTestFeature struct {
 	StatusCode     int
 
 	RandomInt int
+	UUID      string
 
 	SecretKey string
 	Token     string
@@ -91,4 +92,7 @@ func (s *ServerTestFeature) Reset(interface{}) {
 	s.DirectoryFilePath = ""
 	s.SendFileKey = ""
 	s.SendFileKey = ""
+
+	s.UUID = ""
+	s.RandomInt = 0
 }

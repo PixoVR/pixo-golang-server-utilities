@@ -3,6 +3,7 @@ package servicetest
 import (
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 	"math/rand"
 	"os"
@@ -29,6 +30,10 @@ func (s *ServerTestFeature) UseSecretKey() error {
 
 func (s *ServerTestFeature) CreateRandomInt() {
 	s.RandomInt = rand.Int()
+}
+func (s *ServerTestFeature) CreateRandomUUID() error {
+	s.UUID = uuid.New().String()
+	return nil
 }
 
 func (s *ServerTestFeature) SignedInAsA(role string) error {
