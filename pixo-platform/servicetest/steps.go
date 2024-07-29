@@ -420,14 +420,14 @@ func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string
 	expectedBool := fmt.Sprintf("\"%s\":%s", property, value)
 	savedByBool := isNullOrBool && strings.Contains(s.ResponseString, expectedBool)
 
-	intValue, err := strconv.Atoi(value)
+	_, err := strconv.Atoi(value)
 	isNum := err == nil
-	expectedInt := fmt.Sprintf("\"%s\":%d", property, intValue)
+	expectedInt := fmt.Sprintf("\"%s\":%s", property, value)
 	savedByInt := isNum && strings.Contains(s.ResponseString, expectedInt)
 
-	floatValue, err := strconv.ParseFloat(value, 64)
+	_, err = strconv.ParseFloat(value, 64)
 	isFloat := err == nil
-	expectedFloat := fmt.Sprintf("\"%s\":%.2f", property, floatValue)
+	expectedFloat := fmt.Sprintf("\"%s\":%s", property, value)
 	savedByFloat := isFloat && strings.Contains(s.ResponseString, expectedFloat)
 
 	if !(savedByString || savedByBool || savedByInt || savedByFloat) {
