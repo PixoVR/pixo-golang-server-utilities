@@ -29,7 +29,7 @@ func (s *ServerTestFeature) UseSecretKey() error {
 }
 
 func (s *ServerTestFeature) CreateRandomInt() {
-	s.RandomInt = rand.Int()
+	s.RandomInt = rand.Intn(1000000)
 }
 func (s *ServerTestFeature) CreateRandomUUID() error {
 	s.UUID = uuid.New().String()
