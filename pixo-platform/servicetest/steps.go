@@ -220,12 +220,15 @@ func (s *ServerTestFeature) ExtractValueFromResponseAs(keyName, identifier strin
 
 	s.GraphQLResponse[identifier] = extractedValue.FirstChild.Data
 
-	s.dynamicSubstitutions[identifier] = func(data []byte) string {
-		if s.GraphQLResponse[identifier] == nil {
-			return ""
+	if identifier != "id" {
+		s.dynamicSubstitutions[identifier] = func(data []byte) string {
+			if s.GraphQLResponse[identifier] == nil {
+				return ""
+			}
+			return s.GraphQLResponse[identifier].(string)
 		}
-		return s.GraphQLResponse[identifier].(string)
 	}
+
 	return nil
 }
 
