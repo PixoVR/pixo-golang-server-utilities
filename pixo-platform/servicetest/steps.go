@@ -58,7 +58,9 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should contain a "([^"]*)" that is null$`, s.TheResponseShouldContainAThatIsNull)
 	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
 	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
+
 	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
+	ctx.Step(`^I extract the "([^"]*)" from the response as "([^"]*)"$`, s.ExtractValueFromResponseAs)
 
 	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
 
@@ -192,6 +194,20 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 }
 
 func (s *ServerTestFeature) ExtractValueFromResponse(keyName string) error {
+	if err := s.ExtractValueFromResponseAs(keyName, keyName); err != nil {
+		return err
+	}
+
+	if strings.ToLower(keyName) == "id" {
+		if s.GraphQLResponse["id"] != nil {
+			s.ID = s.GraphQLResponse["id"].(string)
+		}
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ExtractValueFromResponseAs(keyName, identifier string) error {
 	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
 	if err != nil {
 		return err
@@ -202,14 +218,11 @@ func (s *ServerTestFeature) ExtractValueFromResponse(keyName string) error {
 		return fmt.Errorf("key %s not found in response", keyName)
 	}
 
-	s.GraphQLResponse[keyName] = extractedValue.FirstChild.Data
+	s.GraphQLResponse[identifier] = extractedValue.FirstChild.Data
 
-	if strings.ToLower(keyName) == "id" {
-		if s.GraphQLResponse["id"] != nil {
-			s.ID = s.GraphQLResponse["id"].(string)
-		}
+	s.dynamicSubstitutions[identifier] = func(data []byte) string {
+		return s.GraphQLResponse[identifier].(string)
 	}
-
 	return nil
 }
 
@@ -420,9 +433,9 @@ func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string
 	expectedBool := fmt.Sprintf("\"%s\":%s", property, value)
 	savedByBool := isNullOrBool && strings.Contains(s.ResponseString, expectedBool)
 
-	_, err := strconv.Atoi(value)
+	intValue, err := strconv.Atoi(value)
 	isNum := err == nil
-	expectedInt := fmt.Sprintf("\"%s\":%s", property, value)
+	expectedInt := fmt.Sprintf("\"%s\":%d", property, intValue)
 	savedByInt := isNum && strings.Contains(s.ResponseString, expectedInt)
 
 	_, err = strconv.ParseFloat(value, 64)
