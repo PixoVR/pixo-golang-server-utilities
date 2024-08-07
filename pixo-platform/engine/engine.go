@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	env "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
+	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/middleware/logger"
 	"github.com/opentracing-contrib/go-gin/ginhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -70,6 +71,7 @@ func NewEngine(config Config) *CustomEngine {
 
 	e.Use(gin.Recovery())
 	e.Use(platformAuth.HostMiddleware())
+	e.Use(logger.LoggingMiddleware(nil))
 
 	if config.Tracing {
 		if os.Getenv("DD_ENV") != "" {
