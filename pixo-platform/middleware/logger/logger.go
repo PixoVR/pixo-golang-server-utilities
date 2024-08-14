@@ -51,9 +51,7 @@ func LoggingMiddleware(logger *zerolog.Logger) gin.HandlerFunc {
 			c.Request.Method == http.MethodPatch {
 
 			body, err := io.ReadAll(c.Request.Body)
-			if err != nil {
-				logger.Error().Err(err).Msg("Error reading request body")
-			} else {
+			if err == nil && len(body) > 0 {
 				logger.Debug().Msgf("Request Body: %s", body)
 			}
 		}
