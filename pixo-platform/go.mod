@@ -38,7 +38,7 @@ require (
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/api v0.185.0
 	google.golang.org/protobuf v1.34.2
-	gopkg.in/DataDog/dd-trace-go.v1 v1.65.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.66.0
 	helm.sh/helm/v3 v3.15.4
 	k8s.io/api v0.30.3
 	k8s.io/apimachinery v0.30.3
