@@ -38,7 +38,7 @@ require (
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/api v0.185.0
 	google.golang.org/protobuf v1.34.2
-	gopkg.in/DataDog/dd-trace-go.v1 v1.65.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.67.0
 	helm.sh/helm/v3 v3.15.4
 	k8s.io/api v0.30.3
 	k8s.io/apimachinery v0.30.3
@@ -56,11 +56,11 @@ require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
-	github.com/DataDog/appsec-internal-go v1.6.0 // indirect
+	github.com/DataDog/appsec-internal-go v1.7.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.48.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.48.1 // indirect
 	github.com/DataDog/datadog-go/v5 v5.3.0 // indirect
-	github.com/DataDog/go-libddwaf/v3 v3.2.1 // indirect
+	github.com/DataDog/go-libddwaf/v3 v3.3.0 // indirect
 	github.com/DataDog/go-tuf v1.0.2-0.5.2 // indirect
 	github.com/DataDog/sketches-go v1.4.5 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
