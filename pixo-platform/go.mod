@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	cloud.google.com/go/storage v1.42.0
-	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240829060826-78f0ee320e73
+	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240829063759-c67e39508981
 	github.com/alicebob/miniredis/v2 v2.33.0
 	github.com/antchfx/jsonquery v1.3.4
 	github.com/aws/aws-sdk-go-v2 v1.30.4
