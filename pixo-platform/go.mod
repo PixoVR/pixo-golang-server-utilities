@@ -9,7 +9,6 @@ require (
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240723034614-4795e01d9189
 	github.com/alicebob/miniredis/v2 v2.33.0
 	github.com/antchfx/jsonquery v1.3.4
-	github.com/argoproj/argo-workflows/v3 v3.5.7
 	github.com/aws/aws-sdk-go-v2 v1.30.4
 	github.com/aws/aws-sdk-go-v2/config v1.27.18
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.18
@@ -37,12 +36,6 @@ require (
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/api v0.185.0
 	google.golang.org/protobuf v1.34.2
-	gopkg.in/DataDog/dd-trace-go.v1 v1.65.0
-	helm.sh/helm/v3 v3.15.4
-	k8s.io/api v0.30.3
-	k8s.io/apimachinery v0.30.3
-	k8s.io/cli-runtime v0.30.3
-	k8s.io/client-go v0.30.3
 	open-match.dev/open-match v1.8.1
 )
 
