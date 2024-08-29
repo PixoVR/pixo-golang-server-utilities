@@ -2,11 +2,10 @@ package profile_test
 
 import (
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/matchmaking/profile"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"math/rand"
 	"open-match.dev/open-match/pkg/pb"
 )
@@ -21,13 +20,13 @@ var _ = Describe("Matchmaking Profile", func() {
 	BeforeEach(func() {
 		maxNumberOfPlayers = rand.Intn(25) + 1
 
-		val, err := anypb.New(&wrappers.Int32Value{Value: int32(maxNumberOfPlayers)})
+		val, err := anypb.New(&wrapperspb.Int32Value{Value: int32(maxNumberOfPlayers)})
 		if err != nil {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
 		matchmakingProfile = profile.NewOpenMatchProfile(&pb.MatchProfile{
-			Extensions: map[string]*any.Any{
+			Extensions: map[string]*anypb.Any{
 				profile.MaxPlayersExtensionKey: val,
 			},
 		})
