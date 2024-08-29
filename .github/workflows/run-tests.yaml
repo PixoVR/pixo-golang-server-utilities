@@ -47,31 +47,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install k3d
-        run: |
-          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
-
-      - name: Install Helm
-        run: |
-          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-          chmod 700 get_helm.sh
-          ./get_helm.sh
-
-      - name: Setup Google Cloud SDK
-        run: |
-          echo "$GOOGLE_JSON_KEY_CONTENTS" > $HOME/google-key.json
-          gcloud auth activate-service-account --key-file=$HOME/google-key.json
-        env:
-          GOOGLE_JSON_KEY_CONTENTS: ${{ secrets.GOOGLE_JSON_KEY }}
-
-      - name: Init Test Cluster
-        run: |
-          ../bin/init_test_cluster.sh
-          k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
-        env:
-          GOOGLE_JSON_KEY: '/home/runner/google-key.json'
-          NAMESPACE: 'test'
-          SA_NAME: 'test-sa'
+#      - name: Install k3d
+#        run: |
+#          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+#
+#      - name: Install Helm
+#        run: |
+#          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+#          chmod 700 get_helm.sh
+#          ./get_helm.sh
+#
+#      - name: Setup Google Cloud SDK
+#        run: |
+#          echo "$GOOGLE_JSON_KEY_CONTENTS" > $HOME/google-key.json
+#          gcloud auth activate-service-account --key-file=$HOME/google-key.json
+#        env:
+#          GOOGLE_JSON_KEY_CONTENTS: ${{ secrets.GOOGLE_JSON_KEY }}
+#
+#      - name: Init Test Cluster
+#        run: |
+#          ../bin/init_test_cluster.sh
+#          k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
+#        env:
+#          GOOGLE_JSON_KEY: '/home/runner/google-key.json'
+#          NAMESPACE: 'test'
+#          SA_NAME: 'test-sa'
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -82,9 +82,6 @@ jobs:
         run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
-          KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
-          NAMESPACE: 'test'
-          SA_NAME: 'test-sa'
           GOOGLE_JSON_KEY: '/home/runner/google-key.json'
           GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
           GCS_BUCKET_NAME: pixo-test-bucket
@@ -96,9 +93,9 @@ jobs:
         with:
           config: .coverage.yaml
 
-      - name: Cleanup
-        run: |
-          k3d cluster delete test-cluster
+#      - name: Cleanup
+#        run: |
+#          k3d cluster delete test-cluster
 
 permissions:
   contents: read
