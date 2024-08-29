@@ -493,21 +493,33 @@ func (s *ServerTestFeature) DownloadFileViaLink(keyName, downloadDirectory, file
 
 func (s *ServerTestFeature) DownloadFile(filepath, url string) error {
 	log.Info().Msgf("Downloading file from %s to %s", url, filepath)
-	response, err := s.Client.R().Get(url)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+
+	}
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
 
-	if response.StatusCode() != http.StatusOK {
-		return fmt.Errorf("expected status code 200, got %d, Body: %v", response.StatusCode(), response)
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("expected status code 200, got %d, Body: %v", response.StatusCode, response)
 	}
+
 	out, err := os.Create(filepath)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	reader := bytes.NewReader(response.Body())
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %w", err)
+	}
+
+	reader := bytes.NewReader(bodyBytes)
 	_, err = io.Copy(out, reader)
 	return err
 }

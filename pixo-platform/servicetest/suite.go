@@ -56,6 +56,7 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		}
 	}
 
+	pflag.BoolVarP(&debug, "debug", "d", false, "enable debug logging")
 	pflag.StringVarP(&region, "region", "r", "na", "region to run tests against (options: na, saudi)")
 	pflag.StringVarP(&lifecycle, "lifecycle", "l", "local", "lifecycle to run tests against (options: local, dev, stage, prod)")
 
@@ -68,6 +69,12 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 
 	viper.Set("region", region)
 	viper.Set("lifecycle", lifecycle)
+
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	}
 
 	suite := &ServerTestSuite{
 		Feature:   NewServerTestFeature(),
