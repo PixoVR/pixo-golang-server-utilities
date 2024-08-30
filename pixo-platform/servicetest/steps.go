@@ -97,7 +97,7 @@ func (s *ServerTestFeature) SendRequestWithParams(method, endpoint string, param
 
 func (s *ServerTestFeature) SendRequestWithParamsToService(method, tenant, service, endpoint string, params *godog.DocString) error {
 	var paramsMap map[string]string
-	if err := json.Unmarshal([]byte(params.Content), &paramsMap); err != nil {
+	if err := json.Unmarshal(s.PerformSubstitutions([]byte(params.Content)), &paramsMap); err != nil {
 		return fmt.Errorf("error unmarshalling params: %w", err)
 	}
 
