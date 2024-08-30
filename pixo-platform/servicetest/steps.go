@@ -98,7 +98,7 @@ func (s *ServerTestFeature) SendRequestWithParams(method, endpoint string, param
 func (s *ServerTestFeature) SendRequestWithParamsToService(method, tenant, service, endpoint string, params *godog.DocString) error {
 	var paramsMap map[string]string
 	if err := json.Unmarshal([]byte(params.Content), &paramsMap); err != nil {
-		log.Fatal().Err(err)
+		return fmt.Errorf("error unmarshalling params: %w", err)
 	}
 
 	return s.MakeRequest(method, tenant, service, endpoint, nil, paramsMap)
@@ -492,7 +492,7 @@ func (s *ServerTestFeature) DownloadFileViaLink(keyName, downloadDirectory, file
 }
 
 func (s *ServerTestFeature) DownloadFile(filepath, url string) error {
-	log.Info().Msgf("Downloading file from %s to %s", url, filepath)
+	log.Debug().Msgf("Downloading file from %s to %s", url, filepath)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

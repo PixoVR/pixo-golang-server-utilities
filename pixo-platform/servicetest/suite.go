@@ -56,7 +56,7 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		}
 	}
 
-	pflag.BoolVarP(&debug, "debug", "d", false, "enable debug logging")
+	pflag.BoolVarP(&debug, "debug", "v", false, "enable debug logging")
 	pflag.StringVarP(&region, "region", "r", "na", "region to run tests against (options: na, saudi)")
 	pflag.StringVarP(&lifecycle, "lifecycle", "l", "local", "lifecycle to run tests against (options: local, dev, stage, prod)")
 
@@ -72,8 +72,9 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 
 	if debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		log.Debug().Msg("Debug logging enabled")
 	} else {
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 
 	suite := &ServerTestSuite{
@@ -146,8 +147,6 @@ func (s *ServerTestSuite) setup() {
 			log.Warn().Msg("Config file not found; ignore error if desired")
 		}
 	}
-
-	initLogger()
 }
 
 func (s *ServerTestSuite) loadEnv() {
@@ -165,14 +164,5 @@ func (s *ServerTestSuite) loadEnv() {
 		} else {
 			_ = godotenv.Load(".env")
 		}
-	}
-}
-
-func initLogger() {
-	pflag.BoolVarP(&debug, "debug", "z", true, "enable debug logging")
-	if debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	} else {
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	}
 }
