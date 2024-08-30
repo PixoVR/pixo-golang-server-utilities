@@ -7,7 +7,7 @@ require (
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240829063759-c67e39508981
 	github.com/alicebob/miniredis/v2 v2.33.0
 	github.com/antchfx/jsonquery v1.3.5
-	github.com/casbin/casbin/v2 v2.98.0
+	github.com/casbin/casbin/v2 v2.99.0
 	github.com/cucumber/godog v0.14.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-jose/go-jose/v3 v3.0.3
@@ -41,6 +41,7 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/antchfx/xpath v1.3.1 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/casbin/govaluate v1.2.0 // indirect
