@@ -84,7 +84,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 		}
 
 		for key, value := range paramsMap {
-			req.URL.Query().Add(key, value) //nolint:staticcheck
+			req.URL.Query().Add(key, value)
 		}
 
 		if s.Engine == nil {
@@ -208,7 +208,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 	url := serviceConfig.FormatURL() + endpoint
 	url = string(s.PerformSubstitutions([]byte(url)))
 
-	log.Info().Msgf("URL: %s: - Method %s", url, method)
+	log.Debug().Msgf("URL: %s: - Method %s", url, method)
 
 	response, err := req.Post(url)
 	if err != nil {

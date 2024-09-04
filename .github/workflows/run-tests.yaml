@@ -24,12 +24,12 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.23'
 
       - name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.54
+          version: v1.60.3
           install-mode: "goinstall"
           args: --timeout=30m
           working-directory: ./pixo-platform
@@ -47,36 +47,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-#      - name: Install k3d
-#        run: |
-#          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
-#
-#      - name: Install Helm
-#        run: |
-#          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-#          chmod 700 get_helm.sh
-#          ./get_helm.sh
-#
-#      - name: Setup Google Cloud SDK
-#        run: |
-#          echo "$GOOGLE_JSON_KEY_CONTENTS" > $HOME/google-key.json
-#          gcloud auth activate-service-account --key-file=$HOME/google-key.json
-#        env:
-#          GOOGLE_JSON_KEY_CONTENTS: ${{ secrets.GOOGLE_JSON_KEY }}
-#
-#      - name: Init Test Cluster
-#        run: |
-#          ../bin/init_test_cluster.sh
-#          k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
-#        env:
-#          GOOGLE_JSON_KEY: '/home/runner/google-key.json'
-#          NAMESPACE: 'test'
-#          SA_NAME: 'test-sa'
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.23'
 
       - name: Run Tests
         run: |
@@ -92,10 +66,3 @@ jobs:
         uses: vladopajic/go-test-coverage@v2
         with:
           config: .coverage.yaml
-
-#      - name: Cleanup
-#        run: |
-#          k3d cluster delete test-cluster
-
-permissions:
-  contents: read
