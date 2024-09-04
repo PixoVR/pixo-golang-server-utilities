@@ -26,7 +26,7 @@ require (
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
-	golang.org/x/oauth2 v0.22.0
+	golang.org/x/oauth2 v0.23.0
 	google.golang.org/api v0.195.0
 	google.golang.org/protobuf v1.34.2
 	open-match.dev/open-match v1.8.1
