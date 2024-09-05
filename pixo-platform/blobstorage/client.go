@@ -21,7 +21,7 @@ type StorageClient interface {
 
 type Option struct {
 	ContentDisposition string
-	Expires            *time.Time
+	Lifetime           time.Duration
 	Method             string
 }
 

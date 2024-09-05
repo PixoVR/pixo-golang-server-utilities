@@ -23,11 +23,11 @@ func (c Client) getBucketName(object blobstorage.UploadableObject) string {
 		return bucketName
 	}
 
-	if c.bucketName == "" {
-		c.bucketName = os.Getenv("GOOGLE_STORAGE_BUCKET")
+	if c.config.BucketName == "" {
+		c.config.BucketName = os.Getenv("GOOGLE_STORAGE_BUCKET")
 	}
 
-	return c.bucketName
+	return c.config.BucketName
 }
 
 func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
@@ -42,6 +42,11 @@ func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableObject, options ...blobstorage.Option) (string, error) {
+	res := c.config.Cache.Get(ctx, c.CacheKey(object, options...))
+	if res.Err() == nil {
+		return res.Val(), nil
+	}
+
 	data, err := os.ReadFile(os.Getenv("GOOGLE_JSON_KEY"))
 	if err != nil {
 		return "", err
@@ -65,22 +70,32 @@ func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableO
 		PrivateKey:     conf.PrivateKey,
 	}
 	if len(options) > 0 {
-		option := options[0]
+		opt := options[0]
 
-		if option.ContentDisposition != "" {
+		if opt.ContentDisposition != "" {
 			opts.QueryParameters = url.Values{
-				"response-content-disposition": {option.ContentDisposition},
+				"response-content-disposition": {opt.ContentDisposition},
 			}
 		}
 
-		if option.Expires != nil {
-			opts.Expires = *option.Expires
+		if opt.Lifetime.String() != "0s" {
+			opts.Expires = time.Now().Add(opt.Lifetime)
 		}
 
-		if option.Method != "" {
-			opts.Method = option.Method
+		if opt.Method != "" {
+			opts.Method = opt.Method
 		}
 	}
 
-	return storageClient.Bucket(c.getBucketName(object)).SignedURL(object.GetFileLocation(), opts)
+	signedURL, err := storageClient.Bucket(c.getBucketName(object)).SignedURL(object.GetFileLocation(), opts)
+	if err != nil {
+		return "", err
+	}
+
+	c.config.Cache.Set(ctx, c.CacheKey(object, options...), signedURL, expireDuration)
+	return signedURL, nil
+}
+
+func (c Client) CacheKey(object blobstorage.UploadableObject, options ...blobstorage.Option) string {
+	return fmt.Sprintf("signed-url:%s/%s", c.getBucketName(object), object.GetFileLocation())
 }

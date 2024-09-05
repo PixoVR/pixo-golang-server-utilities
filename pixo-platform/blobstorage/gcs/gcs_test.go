@@ -5,6 +5,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
+	"github.com/alicebob/miniredis/v2"
+	"github.com/onsi/gomega/types"
+	"github.com/redis/go-redis/v9"
 	"io"
 	"net/http"
 	"os"
@@ -19,18 +22,23 @@ import (
 )
 
 var _ = Describe("Google Cloud Storage", Ordered, func() {
+
 	var (
 		filename       = "test-file.txt"
 		bucketName     = config.GetEnvOrReturn("GCS_BUCKET_NAME", "pixo-test-bucket")
 		bucketFilepath = "testdata"
 
-		storageClient          gcs.Client
-		expectedSignedURLValue = "X-Goog-Algorithm=GOOG4-RSA-SHA256"
+		c                           *redis.Client
+		storageClient               gcs.Client
+		googleAlgorithm             = "X-Goog-Algorithm=GOOG4-RSA-SHA256"
+		googleDateParam             = "X-Goog-Expires="
+		googleExpiresAlgorithmParam = "X-Goog-Expires="
 
 		object = storage.BasicUploadable{
 			BucketName:        bucketName,
 			UploadDestination: bucketFilepath,
 			Filename:          filename,
+			Timestamp:         time.Now().Unix(),
 		}
 		ctx = context.Background()
 
@@ -44,13 +52,29 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 		defer file.Close()
 
-		storageClient, err = gcs.NewClient(gcs.Config{BucketName: bucketName})
+		s, err := miniredis.Run()
+		Expect(err).NotTo(HaveOccurred())
+
+		c = redis.NewClient(&redis.Options{
+			Addr:     s.Addr(),
+			Password: "",
+			DB:       0,
+		})
+
+		storageClient, err = gcs.NewClient(gcs.Config{
+			BucketName: bucketName,
+			Cache:      c,
+		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(storageClient).NotTo(BeNil())
 	})
 
 	AfterAll(func() {
 		Expect(os.Remove(filename)).NotTo(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		c.Del(context.Background(), storageClient.CacheKey(uploadedObject))
 	})
 
 	It("can return empty string if object is empty", func() {
@@ -69,6 +93,16 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(storageClient.SanitizeFilename("model/thumbnails/file.txt", time.Now().Unix())).To(MatchRegexp(`^model/thumbnails/blob_\d+.txt$`))
 	})
 
+	It("can use the cache to get the signed url if it exists", func() {
+		cachedURL := "https://storage.googleapis.com/pixo-test-bucket/testdata/cached-blob.txt"
+		c.Set(context.Background(), storageClient.CacheKey(uploadedObject), cachedURL, 0)
+
+		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(signedURL).To(Equal(cachedURL))
+	})
+
 	It("can upload a file", func() {
 		fileReader, err := os.Open(filename)
 		Expect(err).NotTo(HaveOccurred())
@@ -76,7 +110,7 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(locationInBucket).To(Equal("testdata/blob.txt"))
+		Expect(locationInBucket).To(Equal(fmt.Sprintf("testdata/blob_%d.txt", object.Timestamp)))
 		uploadedObject = storage.PathUploadable{
 			BucketName: bucketName,
 			Filepath:   locationInBucket,
@@ -122,10 +156,18 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 	})
 
 	It("can get the signed url for the previously uploaded file", func() {
+		locationInBucket, err := storageClient.UploadFile(ctx, object, bytes.NewReader([]byte("Go Blue")))
+		Expect(err).NotTo(HaveOccurred())
+		uploadedObject = storage.PathUploadable{
+			BucketName: bucketName,
+			Filepath:   locationInBucket,
+		}
+
 		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
+		Expect(signedURL).To(ContainSubstring(googleAlgorithm))
+		Expect(signedURL).To(ContainSubstring(googleExpiresAlgorithmParam))
 		Expect(signedURL).To(ContainSubstring(bucketName))
 		Expect(signedURL).To(ContainSubstring(bucketFilepath))
 		Expect(signedURL).NotTo(ContainSubstring(filename))
@@ -139,6 +181,10 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		data, err := io.ReadAll(reader)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(data)).To(Equal("Go Blue"))
+
+		cacheRes := c.Get(context.Background(), fmt.Sprintf("signed-url:%s/%s", bucketName, uploadedObject.Filepath))
+		Expect(cacheRes.Err()).NotTo(HaveOccurred())
+		Expect(cacheRes.Val()).To(Equal(signedURL))
 	})
 
 	It("can read a file", func() {
@@ -175,31 +221,65 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(res.UploadURL).To(ContainSubstring(bucketFilepath))
 		Expect(res.UploadURL).To(ContainSubstring(filename))
 	})
+
 	It("can set the content disposition in the signed url", func() {
-		options := []blobstorage.Option{
-			{
-				ContentDisposition: "attachment",
-			},
-		}
-		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject, options...)
+		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject, blobstorage.Option{
+			ContentDisposition: "attachment",
+		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
+		Expect(signedURL).To(ContainSubstring(googleAlgorithm))
+		Expect(signedURL).To(ContainSubstring(googleExpiresAlgorithmParam))
 		Expect(signedURL).To(ContainSubstring(bucketName))
 		Expect(signedURL).To(ContainSubstring("attachment"))
 	})
 
 	It("can set the expiration for the signed url", func() {
-		expireTime := time.Now().Add(5 * time.Hour)
-		expectedTime := expireTime.Format("20060102T150405Z")
-		options := []blobstorage.Option{
-			{
-				Expires: &expireTime,
-			},
-		}
-		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject, options...)
+		lifetime := 5 * time.Hour
+
+		signedURL, err := storageClient.GetSignedURL(ctx, uploadedObject, blobstorage.Option{Lifetime: lifetime})
+
 		Expect(err).NotTo(HaveOccurred())
-		Expect(signedURL).To(ContainSubstring(expectedSignedURLValue))
 		Expect(signedURL).To(ContainSubstring(bucketName))
-		Expect(signedURL).To(ContainSubstring(expectedTime))
+		Expect(signedURL).To(ContainSubstring(googleAlgorithm))
+		Expect(signedURL).To(ContainSubstring(googleDateParam))
+		Expect(signedURL).To(ContainSubstring(googleExpiresAlgorithmParam))
+		Expect(signedURL).To(ContainLifetime(lifetime))
 	})
+
 })
+
+func ContainLifetime(lifetime time.Duration) types.GomegaMatcher {
+	return &containsLifetimeMatcher{
+		expected: lifetime,
+	}
+}
+
+type containsLifetimeMatcher struct {
+	expected time.Duration
+}
+
+// checks for expected.Seconds() +- 1 second
+func (m *containsLifetimeMatcher) Match(signedURL interface{}) (success bool, err error) {
+	signedURLStr := signedURL.(string)
+	expectedStr := fmt.Sprintf("%d", int(m.expected.Seconds()))
+	expectedMinusOneStr := fmt.Sprintf("%d", int(m.expected.Seconds()-1))
+	expectedPlusOneStr := fmt.Sprintf("%d", int(m.expected.Seconds()+1))
+
+	if success, err = ContainSubstring(expectedStr).Match(signedURLStr); success {
+		return true, nil
+	}
+
+	if success, err = ContainSubstring(expectedMinusOneStr).Match(signedURLStr); success {
+		return true, nil
+	}
+
+	return ContainSubstring(expectedPlusOneStr).Match(signedURLStr)
+}
+
+func (m *containsLifetimeMatcher) FailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf("Expected %s to contain %s", actual, m.expected)
+}
+
+func (m *containsLifetimeMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf("Expected %s not to contain %s", actual, m.expected)
+}
