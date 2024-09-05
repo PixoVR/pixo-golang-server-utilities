@@ -15,7 +15,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-var expireDuration = 120 * time.Minute
+var DefaultExpireDuration = 120 * time.Minute
 
 func (c Client) getBucketName(object blobstorage.UploadableObject) string {
 	bucketName := object.GetBucketName()
@@ -42,9 +42,8 @@ func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableObject, options ...blobstorage.Option) (string, error) {
-	res := c.config.Cache.Get(ctx, c.CacheKey(object, options...))
-	if res.Err() == nil {
-		return res.Val(), nil
+	if signedURL := c.cacheGet(ctx, object); signedURL != "" {
+		return signedURL, nil
 	}
 
 	data, err := os.ReadFile(os.Getenv("GOOGLE_JSON_KEY"))
@@ -65,7 +64,7 @@ func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableO
 	opts := &storage.SignedURLOptions{
 		Scheme:         storage.SigningSchemeV4,
 		Method:         http.MethodGet,
-		Expires:        time.Now().Add(expireDuration),
+		Expires:        time.Now().Add(DefaultExpireDuration),
 		GoogleAccessID: conf.Email,
 		PrivateKey:     conf.PrivateKey,
 	}
@@ -92,10 +91,28 @@ func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableO
 		return "", err
 	}
 
-	c.config.Cache.Set(ctx, c.CacheKey(object, options...), signedURL, expireDuration)
+	c.cacheSet(ctx, signedURL, object, options...)
 	return signedURL, nil
 }
 
-func (c Client) CacheKey(object blobstorage.UploadableObject, options ...blobstorage.Option) string {
+func (c Client) cacheSet(ctx context.Context, signedURL string, object blobstorage.UploadableObject, options ...blobstorage.Option) {
+	if c.config.Cache != nil {
+		expiration := DefaultExpireDuration
+		if len(options) > 0 && options[0].Lifetime != 0 {
+			expiration = options[0].Lifetime - 1*time.Second
+		}
+		c.config.Cache.Set(ctx, c.CacheKey(object), signedURL, expiration)
+	}
+}
+
+func (c Client) cacheGet(ctx context.Context, object blobstorage.UploadableObject) string {
+	if c.config.Cache != nil {
+		return c.config.Cache.Get(ctx, c.CacheKey(object)).Val()
+	}
+
+	return ""
+}
+
+func (c Client) CacheKey(object blobstorage.UploadableObject) string {
 	return fmt.Sprintf("signed-url:%s/%s", c.getBucketName(object), object.GetFileLocation())
 }

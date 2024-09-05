@@ -155,7 +155,7 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(locations[0]).To(Equal(uploadedObject.Filepath))
 	})
 
-	It("can get the signed url for the previously uploaded file", func() {
+	It("can get the signed url", func() {
 		locationInBucket, err := storageClient.UploadFile(ctx, object, bytes.NewReader([]byte("Go Blue")))
 		Expect(err).NotTo(HaveOccurred())
 		uploadedObject = storage.PathUploadable{
@@ -185,6 +185,8 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		cacheRes := c.Get(context.Background(), fmt.Sprintf("signed-url:%s/%s", bucketName, uploadedObject.Filepath))
 		Expect(cacheRes.Err()).NotTo(HaveOccurred())
 		Expect(cacheRes.Val()).To(Equal(signedURL))
+		cacheExpiration := c.TTL(context.Background(), storageClient.CacheKey(uploadedObject)).Val()
+		Expect(cacheExpiration.Seconds()).To(BeNumerically("~", gcs.DefaultExpireDuration.Seconds(), 3))
 	})
 
 	It("can read a file", func() {
@@ -244,6 +246,9 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(signedURL).To(ContainSubstring(googleDateParam))
 		Expect(signedURL).To(ContainSubstring(googleExpiresAlgorithmParam))
 		Expect(signedURL).To(ContainLifetime(lifetime))
+
+		cacheExpiration := c.TTL(context.Background(), storageClient.CacheKey(uploadedObject)).Val()
+		Expect(cacheExpiration.Seconds()).To(BeNumerically("~", lifetime.Seconds(), 3))
 	})
 
 })
