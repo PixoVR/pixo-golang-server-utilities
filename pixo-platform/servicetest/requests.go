@@ -177,9 +177,16 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 	body = string(s.PerformSubstitutions([]byte(body)))
 
 	if s.SendFileKey != "" && s.SendFile != "" {
+		log.Debug().
+			Str("send_file_key", s.SendFileKey).
+			Str("send_file", s.SendFile).
+			Str("body", body).
+			Msg("Sending file")
 		req.FormData.Add("operations", body)
 		req.FormData.Add("map", fmt.Sprintf(`{"0": ["variables.%s"]}`, s.SendFileKey))
 		req.SetFiles(map[string]string{"0": s.SendFile})
+		log.Debug().
+			Msgf("Encoded form data: %v", req.FormData.Encode())
 	} else {
 		log.Debug().Msgf("GraphQL request body: %s", body)
 

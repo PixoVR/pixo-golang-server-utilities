@@ -19,7 +19,7 @@ func GenerateRandomString(length int) string {
 	}
 	randomID := string(b)
 
-	log.Info().Msgf("Random ID: %s", randomID)
+	log.Debug().Msgf("Random ID: %s", randomID)
 
 	return randomID
 }
