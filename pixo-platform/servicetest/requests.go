@@ -186,7 +186,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 		req.FormData.Add("map", fmt.Sprintf(`{"0": ["variables.%s"]}`, s.SendFileKey))
 		req.SetFiles(map[string]string{"0": s.SendFile})
 		log.Debug().
-			Msgf("Encoded form data: %v", req.FormData.Encode())
+			Msgf("Encoded form data: %v", req.FormData)
 	} else {
 		log.Debug().Msgf("GraphQL request body: %s", body)
 
