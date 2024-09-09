@@ -195,14 +195,26 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 
 	if len(s.FilesToSend) > 0 {
 		for i, upload := range s.FilesToSend {
+			log.Debug().
+				Str("key", upload.Key).
+				Str("path", upload.Path).
+				Msgf("Uploading file")
 			file, err := os.Open(upload.Path)
 			if err != nil {
+				log.Err(err).
+					Str("path", upload.Path).
+					Msg("Failed to open file")
 				return err
 			}
+
 			part, err := createFormFile(writer, fmt.Sprint(i), filepath.Base(upload.Path))
 			if err != nil {
+				log.Err(err).
+					Str("path", upload.Path).
+					Msg("Failed to create form file")
 				return err
 			}
+			log.Debug().Msgf("Copying file: %s", upload.Path)
 			_, _ = io.Copy(part, file)
 		}
 		req.SetHeader("Content-Type", writer.FormDataContentType())
@@ -210,7 +222,7 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 		req.SetHeader("Content-Type", "application/json")
 	}
 
-	log.Debug().Msgf("GraphQL request body: %s", payload)
+	log.Debug().Msgf("GraphQL request body: %s", body)
 	req.SetBody(payload)
 
 	if s.Token != "" {
@@ -269,8 +281,10 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 }
 
 func createFormFile(w *multipart.Writer, fieldName, filename string) (io.Writer, error) {
+	log.Debug().Msgf("Creating form file: %s", filename)
 	fileContentType := mime.TypeByExtension(filepath.Ext(filename))
 	if fileContentType == "" {
+		log.Debug().Msgf("File content type is empty, setting to application/octet-stream")
 		fileContentType = "application/octet-stream"
 	}
 	h := make(textproto.MIMEHeader)
