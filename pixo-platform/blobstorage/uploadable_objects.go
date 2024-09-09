@@ -27,6 +27,7 @@ func (b BasicUploadable) GetTimestamp() int64 {
 type PathUploadable struct {
 	BucketName string
 	Filepath   string
+	Timestamp  *time.Time
 }
 
 func (p PathUploadable) GetBucketName() string {
@@ -38,5 +39,8 @@ func (p PathUploadable) GetFileLocation() string {
 }
 
 func (p PathUploadable) GetTimestamp() int64 {
+	if p.Timestamp != nil {
+		return p.Timestamp.Unix()
+	}
 	return 0
 }

@@ -263,7 +263,6 @@ type containsLifetimeMatcher struct {
 	expected time.Duration
 }
 
-// checks for expected.Seconds() +- 1 second
 func (m *containsLifetimeMatcher) Match(signedURL interface{}) (success bool, err error) {
 	signedURLStr := signedURL.(string)
 	expectedStr := fmt.Sprintf("%d", int(m.expected.Seconds()))
