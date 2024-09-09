@@ -13,7 +13,12 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -176,17 +181,30 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 
 	body = string(s.PerformSubstitutions([]byte(body)))
 
-	if s.SendFileKey != "" && s.SendFile != "" {
-		log.Debug().
-			Str("send_file_key", s.SendFileKey).
-			Str("send_file", s.SendFile).
-			Str("body", body).
-			Msg("Sending file")
-		req.FormData.Add("operations", body)
-		req.FormData.Add("map", fmt.Sprintf(`{"0": ["variables.%s"]}`, s.SendFileKey))
-		req.SetFiles(map[string]string{"0": s.SendFile})
-		log.Debug().
-			Msgf("Encoded form data: %v", req.FormData)
+	payload := &bytes.Buffer{}
+	writer := multipart.NewWriter(payload)
+	_ = writer.WriteField("operations", body)
+
+	mapData := map[string][]string{}
+	for i, upload := range s.FilesToSend {
+		mapData[fmt.Sprint(i)] = []string{fmt.Sprintf(`variables.%s`, upload.Key)}
+	}
+	jsonData, _ := json.Marshal(mapData)
+
+	_ = writer.WriteField("map", string(jsonData))
+
+	if len(s.FilesToSend) > 0 {
+		for i, upload := range s.FilesToSend {
+			file, err := os.Open(upload.Path)
+			if err != nil {
+				return err
+			}
+			part, err := createFormFile(writer, fmt.Sprint(i), filepath.Base(upload.Path))
+			if err != nil {
+				return err
+			}
+			_, _ = io.Copy(part, file)
+		}
 	} else {
 		log.Debug().Msgf("GraphQL request body: %s", body)
 
@@ -245,9 +263,17 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 	s.HTTPResponse = response.RawResponse
 	s.StatusCode = response.StatusCode()
 
-	// reset so it is not used automatically for the next request
-	s.SendFileKey = ""
-	s.SendFileKey = ""
-
+	s.FilesToSend = nil
 	return nil
+}
+
+func createFormFile(w *multipart.Writer, fieldName, filename string) (io.Writer, error) {
+	fileContentType := mime.TypeByExtension(filepath.Ext(filename))
+	if fileContentType == "" {
+		fileContentType = "application/octet-stream"
+	}
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, fieldName, filename))
+	h.Set("Content-Type", fileContentType)
+	return w.CreatePart(h)
 }

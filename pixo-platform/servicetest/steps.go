@@ -44,6 +44,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with data$`, s.SendRequestWithDataToService)
 	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedDataToService)
 
+	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
 	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGQLRequestWithVariables)
 
 	ctx.Step(`^the response code should be "([^"]*)"$`, s.TheResponseCodeShouldBe)
@@ -62,11 +63,10 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
 	ctx.Step(`^I extract the "([^"]*)" from the response as "([^"]*)"$`, s.ExtractValueFromResponseAs)
 
-	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
-
 	ctx.Step(`^I download the "([^"]*)" link to the "([^"]*)" directory as "([^"]*)"$`, s.DownloadFileViaLink)
 	ctx.Step(`^the file "([^"]*)" in the "([^"]*)" directory should exist$`, s.FileShouldExist)
 	ctx.Step(`^the files "([^"]*)" and "([^"]*)" in the "([^"]*)" directory should be the same$`, s.CompareFiles)
+	ctx.Step(`^the files "([^"]*)" and "([^"]*)" in the "([^"]*)" directory should not be the same$`, s.CompareFilesForInequality)
 
 	ctx.Step(`^I wait for "([^"]*)" seconds$`, s.WaitForSeconds)
 
@@ -257,6 +257,14 @@ func (s *ServerTestFeature) CompareFiles(file1, file2, dir string) error {
 
 	if !bytes.Equal(file1Contents, file2Contents) {
 		return fmt.Errorf("file contents do not match")
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) CompareFilesForInequality(file1, file2, dir string) error {
+	if s.CompareFiles(file1, file2, dir) == nil {
+		return fmt.Errorf("file contents match")
 	}
 
 	return nil
@@ -460,13 +468,16 @@ func (s *ServerTestFeature) FileToSendInRequest(filename, directory, key string)
 	if directory == "" && filename == "" {
 		return fmt.Errorf("directory and filename cannot be empty")
 	}
-	s.SendFileKey = key
-	s.SendFile = fmt.Sprintf("./%s/%s", directory, filename)
 
-	if _, err := os.Stat(s.SendFile); os.IsNotExist(err) {
-		return fmt.Errorf("file %s does not exist", s.SendFile)
+	filepath := fmt.Sprintf("./%s/%s", directory, filename)
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		return fmt.Errorf("file %s does not exist", filepath)
 	}
 
+	s.FilesToSend = append(s.FilesToSend, FileToSend{
+		Path: key,
+		Key:  filepath,
+	})
 	return nil
 }
 

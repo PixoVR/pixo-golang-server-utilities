@@ -45,9 +45,13 @@ type ServerTestFeature struct {
 
 	DirectoryFilePath string
 	GraphQLOperation  string
-	SendFileKey       string
-	SendFile          string
+	FilesToSend       []FileToSend
 	GraphQLResponse   map[string]interface{}
+}
+
+type FileToSend struct {
+	Key  string
+	Path string
 }
 
 type SubstitutionFunc func(data []byte) string
@@ -90,8 +94,7 @@ func (s *ServerTestFeature) Reset(interface{}) {
 
 	s.GraphQLResponse = make(map[string]interface{})
 	s.DirectoryFilePath = ""
-	s.SendFileKey = ""
-	s.SendFileKey = ""
+	s.FilesToSend = nil
 
 	s.UUID = ""
 	s.RandomInt = 0
