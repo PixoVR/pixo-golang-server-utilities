@@ -181,19 +181,19 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 
 	body = string(s.PerformSubstitutions([]byte(body)))
 
-	payload := &bytes.Buffer{}
-	writer := multipart.NewWriter(payload)
-	_ = writer.WriteField("operations", body)
-
-	mapData := map[string][]string{}
-	for i, upload := range s.FilesToSend {
-		mapData[fmt.Sprint(i)] = []string{fmt.Sprintf(`variables.%s`, upload.Key)}
-	}
-	jsonData, _ := json.Marshal(mapData)
-
-	_ = writer.WriteField("map", string(jsonData))
-
 	if len(s.FilesToSend) > 0 {
+		payload := &bytes.Buffer{}
+		writer := multipart.NewWriter(payload)
+		_ = writer.WriteField("operations", body)
+
+		mapData := map[string][]string{}
+		for i, upload := range s.FilesToSend {
+			mapData[fmt.Sprint(i)] = []string{fmt.Sprintf(`variables.%s`, upload.Key)}
+		}
+		jsonData, _ := json.Marshal(mapData)
+
+		_ = writer.WriteField("map", string(jsonData))
+
 		for i, upload := range s.FilesToSend {
 			log.Debug().
 				Str("key", upload.Key).
@@ -214,19 +214,19 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 					Msg("Failed to create form file")
 				return err
 			}
-			log.Debug().Msgf("Copying file: %s", upload.Path)
 			_, _ = io.Copy(part, file)
 		}
 		if err := writer.Close(); err != nil {
 			return err
 		}
 		req.SetHeader("Content-Type", writer.FormDataContentType())
+		req.SetBody(payload)
 	} else {
 		req.SetHeader("Content-Type", "application/json")
+		req.SetBody(body)
 	}
 
 	log.Debug().Msgf("GraphQL request body: %s", body)
-	req.SetBody(payload)
 
 	if s.Token != "" {
 		req.SetAuthToken(s.Token)
