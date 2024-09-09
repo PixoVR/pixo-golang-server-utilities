@@ -475,8 +475,8 @@ func (s *ServerTestFeature) FileToSendInRequest(filename, directory, key string)
 	}
 
 	s.FilesToSend = append(s.FilesToSend, FileToSend{
-		Path: key,
-		Key:  filepath,
+		Key:  key,
+		Path: filepath,
 	})
 	return nil
 }
