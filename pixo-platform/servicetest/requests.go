@@ -217,6 +217,9 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 			log.Debug().Msgf("Copying file: %s", upload.Path)
 			_, _ = io.Copy(part, file)
 		}
+		if err := writer.Close(); err != nil {
+			return err
+		}
 		req.SetHeader("Content-Type", writer.FormDataContentType())
 	} else {
 		req.SetHeader("Content-Type", "application/json")
