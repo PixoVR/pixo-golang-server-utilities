@@ -269,11 +269,11 @@ func (m *containsLifetimeMatcher) Match(signedURL interface{}) (success bool, er
 	expectedMinusOneStr := fmt.Sprintf("%d", int(m.expected.Seconds()-1))
 	expectedPlusOneStr := fmt.Sprintf("%d", int(m.expected.Seconds()+1))
 
-	if success, err = ContainSubstring(expectedStr).Match(signedURLStr); success {
+	if success, _ = ContainSubstring(expectedStr).Match(signedURLStr); success {
 		return true, nil
 	}
 
-	if success, err = ContainSubstring(expectedMinusOneStr).Match(signedURLStr); success {
+	if success, _ = ContainSubstring(expectedMinusOneStr).Match(signedURLStr); success {
 		return true, nil
 	}
 

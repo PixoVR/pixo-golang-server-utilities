@@ -89,7 +89,15 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 		}
 
 		for key, value := range paramsMap {
-			req.URL.Query().Add(key, value)
+			paramsMap[key] = string(s.PerformSubstitutions([]byte(value)))
+		}
+
+		if len(paramsMap) > 0 {
+			q := req.URL.Query()
+			for key, value := range paramsMap {
+				q.Add(key, value)
+			}
+			req.URL.RawQuery = q.Encode()
 		}
 
 		if s.Engine == nil {
