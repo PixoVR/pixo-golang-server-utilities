@@ -184,7 +184,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 	return nil
 }
 
-func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body string) error {
+func (s *ServerTestFeature) MakeGraphQLRequest(endpoint, serviceName, body string) error {
 	req := s.Client.R()
 
 	body = string(s.PerformSubstitutions([]byte(body)))

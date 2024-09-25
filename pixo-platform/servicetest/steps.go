@@ -190,7 +190,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 		return err
 	}
 
-	return s.makeGraphQLRequest(endpoint, serviceName, buf.String())
+	return s.MakeGraphQLRequest(endpoint, serviceName, buf.String())
 }
 
 func (s *ServerTestFeature) ExtractValueFromResponse(keyName string) error {
