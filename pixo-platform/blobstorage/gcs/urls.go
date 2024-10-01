@@ -2,6 +2,7 @@ package gcs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -48,7 +49,7 @@ func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableO
 
 	data, err := os.ReadFile(os.Getenv("GOOGLE_JSON_KEY"))
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to read google json key")
 	}
 
 	conf, err := google.JWTConfigFromJSON(data, storage.ScopeReadOnly)
