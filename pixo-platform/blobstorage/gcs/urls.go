@@ -100,9 +100,9 @@ func (c Client) cacheSet(ctx context.Context, signedURL string, object blobstora
 	if c.config.Cache != nil {
 		expiration := DefaultExpireDuration
 		if len(options) > 0 && options[0].Lifetime != 0 {
-			expiration = options[0].Lifetime - 1*time.Second
+			expiration = options[0].Lifetime
 		}
-		c.config.Cache.Set(ctx, c.CacheKey(object), signedURL, expiration)
+		c.config.Cache.Set(ctx, c.CacheKey(object), signedURL, expiration/2)
 	}
 }
 
