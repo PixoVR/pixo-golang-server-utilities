@@ -164,14 +164,22 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 				Str("method", method).
 				Str("body", string(body)).
 				Msg("Making POST request")
-			req.SetHeader("Content-Type", "application/json").
-				SetBody(body)
-			for _, value := range s.FilesToSend {
-				log.Debug().
-					Str("key", value.Key).
-					Str("path", value.Path).
-					Msgf("Uploading file")
-				req.SetFile(value.Key, value.Path)
+			if len(s.FilesToSend) == 0 {
+				req.SetHeader("Content-Type", "application/json").
+					SetBody(body)
+			} else {
+				for _, value := range s.FilesToSend {
+					log.Debug().
+						Str("key", value.Key).
+						Str("path", value.Path).
+						Msgf("Uploading file")
+					var bodyFormData map[string]string
+					if err = json.Unmarshal(body, &bodyFormData); err != nil {
+						return fmt.Errorf("failed to unmarshal body: %s", err)
+					}
+					req.SetFile(value.Key, value.Path).
+						SetFormData(bodyFormData)
+				}
 			}
 			res, err = req.Post(url)
 		}
