@@ -164,6 +164,13 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 				Str("method", method).
 				Str("body", string(body))
 			req.SetBody(body)
+			for _, value := range s.FilesToSend {
+				log.Debug().
+					Str("key", value.Key).
+					Str("path", value.Path).
+					Msgf("Uploading file")
+				req.SetFile(value.Key, value.Path)
+			}
 			res, err = req.Post(url)
 		}
 
@@ -292,7 +299,6 @@ func (s *ServerTestFeature) MakeGraphQLRequest(endpoint, serviceName, body strin
 }
 
 func createFormFile(w *multipart.Writer, fieldName, filename string) (io.Writer, error) {
-	log.Debug().Msgf("Creating form file: %s", filename)
 	fileContentType := mime.TypeByExtension(filepath.Ext(filename))
 	if fileContentType == "" {
 		log.Debug().Msgf("File content type is empty, setting to application/octet-stream")
