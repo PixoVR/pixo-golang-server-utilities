@@ -176,7 +176,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 					req.SetFile(value.Key, value.Path)
 				}
 
-				var formBodyMap map[string]interface{}
+				formBodyMap := make(map[string]interface{}, 0)
 				if err = json.Unmarshal(body, &formBodyMap); err != nil {
 					return fmt.Errorf("failed to unmarshal body: %s", err)
 				}
