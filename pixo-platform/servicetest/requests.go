@@ -164,7 +164,8 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 				Str("method", method).
 				Str("body", string(body)).
 				Msg("Making POST request")
-			req.SetBody(body)
+			req.SetHeader("Content-Type", "application/json").
+				SetBody(body)
 			for _, value := range s.FilesToSend {
 				log.Debug().
 					Str("key", value.Key).
