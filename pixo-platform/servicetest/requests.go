@@ -205,6 +205,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 		s.StatusCode = res.StatusCode()
 	}
 
+	s.FilesToSend = nil
 	return nil
 }
 
