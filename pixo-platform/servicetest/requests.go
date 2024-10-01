@@ -162,7 +162,8 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			log.Debug().
 				Str("url", url).
 				Str("method", method).
-				Str("body", string(body))
+				Str("body", string(body)).
+				Msg("Making POST request")
 			req.SetBody(body)
 			for _, value := range s.FilesToSend {
 				log.Debug().
