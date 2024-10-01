@@ -173,13 +173,20 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 						Str("key", value.Key).
 						Str("path", value.Path).
 						Msgf("Uploading file")
-					var bodyFormData map[string]string
-					if err = json.Unmarshal(body, &bodyFormData); err != nil {
-						return fmt.Errorf("failed to unmarshal body: %s", err)
-					}
-					req.SetFile(value.Key, value.Path).
-						SetFormData(bodyFormData)
+					req.SetFile(value.Key, value.Path)
 				}
+
+				var formBodyMap map[string]interface{}
+				if err = json.Unmarshal(body, &formBodyMap); err != nil {
+					return fmt.Errorf("failed to unmarshal body: %s", err)
+				}
+
+				var bodyFormData map[string]string
+				for key, value := range formBodyMap {
+					bodyFormData[key] = fmt.Sprint(value)
+				}
+
+				req.SetFormData(bodyFormData)
 			}
 			res, err = req.Post(url)
 		}
