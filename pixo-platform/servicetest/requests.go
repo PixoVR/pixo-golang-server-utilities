@@ -176,12 +176,12 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 					req.SetFile(value.Key, value.Path)
 				}
 
-				formBodyMap := make(map[string]interface{}, 0)
+				formBodyMap := make(map[string]interface{})
 				if err = json.Unmarshal(body, &formBodyMap); err != nil {
 					return fmt.Errorf("failed to unmarshal body: %s", err)
 				}
 
-				var bodyFormData map[string]string
+				bodyFormData := make(map[string]string)
 				for key, value := range formBodyMap {
 					bodyFormData[key] = fmt.Sprint(value)
 				}
