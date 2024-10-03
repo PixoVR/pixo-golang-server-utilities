@@ -51,14 +51,6 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response code should be (\d+)$`, s.TheResponseCodeShouldBe)
 	ctx.Step(`^the response should match json$`, s.TheResponseShouldMatchJSON)
 	ctx.Step(`^the response should contain$`, s.TheResponseShouldContain)
-	ctx.Step(`^the response should contain a "([^"]*)" header with value "([^"]*)"$`, s.TheResponseHeadersShouldContain)
-	ctx.Step(`^the response should contain a "([^"]*)"$`, s.TheResponseShouldContainA)
-	ctx.Step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
-	ctx.Step(`^the response should contain "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
-	ctx.Step(`^the response should not contain "([^"]*)" at path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
-	ctx.Step(`^the response should contain a "([^"]*)" that is null$`, s.TheResponseShouldContainAThatIsNull)
-	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
-	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
 
 	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
 	ctx.Step(`^I extract the "([^"]*)" from the response as "([^"]*)"$`, s.ExtractValueFromResponseAs)
@@ -77,16 +69,30 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I send the following data to the websocket:$`, s.SendWebsocketMessage)
 	ctx.Step(`^I read a message from the websocket$`, s.GetWebsocketMessage)
 
+	ctx.Step(`^the response should have a length of (\d+)$`, s.ResponseShouldHaveLength)
+
+	ctx.Step(`^the response should contain a "([^"]*)" header with value "([^"]*)"$`, s.TheResponseHeadersShouldContain)
+	ctx.Step(`^the response should contain a "([^"]*)"$`, s.TheResponseShouldContainA)
+	ctx.Step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
+	ctx.Step(`^the response should not contain "([^"]*)" at path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
+	ctx.Step(`^the response should contain a "([^"]*)" that is null$`, s.TheResponseShouldContainAThatIsNull)
+	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
+	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
+	ctx.Step(`^the response should contain a "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
+	ctx.Step(`^the response should contain a "([^"]*)" with length (\d+)$`, s.ResponseShouldContainPropertyWithLength)
 	ctx.Step(`^the response should contain a "([^"]*)" with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithPropertySetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyOfLength)
+	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetToNull)
+	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetToNull)
+
+	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsItemAtIndexWithPropertySetToNull)
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemAtIndexWithPropertySetTo)
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsItemAtIndexWithPropertyOfLength)
+
 	ctx.Step(`^the response should contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemWithPropertySetTo)
-	ctx.Step(`^the response should have a length of (\d+)$`, s.ResponseShouldHaveLength)
-	ctx.Step(`^the response should contain a "([^"]*)" with length (\d+)$`, s.ResponseShouldContainPropertyWithLength)
 
 	ctx.Step(`^the message should contain a "([^"]*)"$`, s.TheMessageShouldContainA)
 	ctx.Step(`^the message should not contain a "([^"]*)"$`, s.TheMessageShouldNotContainA)
@@ -695,6 +701,64 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyOfL
 
 	if len(itemValue.([]interface{})) != length {
 		return fmt.Errorf("item at index %d does not have %s set to a slice of length %d, found %d", index, property, length, len(itemValue.([]interface{})))
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySetToNull(objectName string, index int, property string) error {
+	response := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+		return fmt.Errorf("failed to unmarshal response into map: %v", err)
+	}
+
+	objectValue, ok := response[objectName]
+	if !ok {
+		return fmt.Errorf("response does not have %s in response", objectName)
+	}
+
+	itemsList, ok := objectValue.([]interface{})
+	if !ok {
+		return fmt.Errorf("%s is not a list: got %v", objectName, objectValue)
+	}
+
+	if index >= len(itemsList) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(itemsList))
+	}
+
+	itemMap := itemsList[index].(map[string]interface{})
+	itemValue := itemMap[property]
+	if itemValue != nil {
+		return fmt.Errorf("item at index %d does not have %s set to null, found %v", index, property, itemValue)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyIsNotNull(objectName string, index int, property string) error {
+	response := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+		return fmt.Errorf("failed to unmarshal response into map: %v", err)
+	}
+
+	objectValue, ok := response[objectName]
+	if !ok {
+		return fmt.Errorf("response does not have %s in response", objectName)
+	}
+
+	itemsList, ok := objectValue.([]interface{})
+	if !ok {
+		return fmt.Errorf("%s is not a list: got %v", objectName, objectValue)
+	}
+
+	if index >= len(itemsList) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(itemsList))
+	}
+
+	itemMap := itemsList[index].(map[string]interface{})
+	itemValue := itemMap[property]
+	if itemValue == nil {
+		return fmt.Errorf("item at index %d does not have %s set to a non-null value, found nil", index, property)
 	}
 
 	return nil
