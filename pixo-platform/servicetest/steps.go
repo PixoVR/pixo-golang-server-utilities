@@ -80,6 +80,8 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should contain a "([^"]*)" with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithPropertySetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyOfLength)
+	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsItemAtIndexWithPropertySetToNull)
+	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemAtIndexWithPropertySetTo)
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsItemAtIndexWithPropertyOfLength)
 	ctx.Step(`^the response should contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemWithPropertySetTo)
@@ -693,6 +695,44 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyOfL
 
 	if len(itemValue.([]interface{})) != length {
 		return fmt.Errorf("item at index %d does not have %s set to a slice of length %d, found %d", index, property, length, len(itemValue.([]interface{})))
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetToNull(index int, property string) error {
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if index >= len(items) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(items))
+	}
+
+	itemMap := items[index].(map[string]interface{})
+	itemValue := itemMap[property]
+	if itemValue != nil {
+		return fmt.Errorf("item at index %d does not have %s set to null, found %v", index, property, itemValue)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertyNotSetToNull(index int, property string) error {
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if index >= len(items) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(items))
+	}
+
+	itemMap := items[index].(map[string]interface{})
+	itemValue := itemMap[property]
+	if itemValue == nil {
+		return fmt.Errorf("item at index %d does not have %s set to a non-null value, found nil", index, property)
 	}
 
 	return nil
