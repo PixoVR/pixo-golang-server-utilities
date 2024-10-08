@@ -84,7 +84,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyOfLength)
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetToNull)
-	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetToNull)
+	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyNotNull)
 
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsItemAtIndexWithPropertySetToNull)
@@ -735,7 +735,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySet
 	return nil
 }
 
-func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyIsNotNull(objectName string, index int, property string) error {
+func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyNotNull(objectName string, index int, property string) error {
 	response := make(map[string]interface{})
 	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
