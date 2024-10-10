@@ -43,6 +43,5 @@ calc:
 .PHONY: coverage
 coverage: test calc
 
-
 .PHONY: cov
 cov: coverage
