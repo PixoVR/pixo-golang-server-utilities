@@ -162,8 +162,32 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 			log.Debug().
 				Str("url", url).
 				Str("method", method).
-				Str("body", string(body))
-			req.SetBody(body)
+				Str("body", string(body)).
+				Msg("Making POST request")
+			if len(s.FilesToSend) == 0 {
+				req.SetHeader("Content-Type", "application/json").
+					SetBody(body)
+			} else {
+				for _, value := range s.FilesToSend {
+					log.Debug().
+						Str("key", value.Key).
+						Str("path", value.Path).
+						Msgf("Uploading file")
+					req.SetFile(value.Key, value.Path)
+				}
+
+				formBodyMap := make(map[string]interface{})
+				if err = json.Unmarshal(body, &formBodyMap); err != nil {
+					return fmt.Errorf("failed to unmarshal body: %s", err)
+				}
+
+				bodyFormData := make(map[string]string)
+				for key, value := range formBodyMap {
+					bodyFormData[key] = fmt.Sprint(value)
+				}
+
+				req.SetFormData(bodyFormData)
+			}
 			res, err = req.Post(url)
 		}
 
@@ -181,10 +205,11 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 		s.StatusCode = res.StatusCode()
 	}
 
+	s.FilesToSend = nil
 	return nil
 }
 
-func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body string) error {
+func (s *ServerTestFeature) MakeGraphQLRequest(endpoint, serviceName, body string) error {
 	req := s.Client.R()
 
 	body = string(s.PerformSubstitutions([]byte(body)))
@@ -292,7 +317,6 @@ func (s *ServerTestFeature) makeGraphQLRequest(endpoint, serviceName, body strin
 }
 
 func createFormFile(w *multipart.Writer, fieldName, filename string) (io.Writer, error) {
-	log.Debug().Msgf("Creating form file: %s", filename)
 	fileContentType := mime.TypeByExtension(filepath.Ext(filename))
 	if fileContentType == "" {
 		log.Debug().Msgf("File content type is empty, setting to application/octet-stream")

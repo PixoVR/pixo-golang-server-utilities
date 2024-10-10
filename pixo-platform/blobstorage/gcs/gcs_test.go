@@ -67,6 +67,18 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(storageClient).NotTo(BeNil())
+
+		fileReader, err := os.Open(filename)
+		Expect(err).NotTo(HaveOccurred())
+
+		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(locationInBucket).To(Equal(fmt.Sprintf("testdata/blob_%d.txt", object.Timestamp)))
+		uploadedObject = storage.PathUploadable{
+			BucketName: bucketName,
+			Filepath:   locationInBucket,
+		}
 	})
 
 	AfterAll(func() {
@@ -103,18 +115,10 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(signedURL).To(Equal(cachedURL))
 	})
 
-	It("can upload a file", func() {
-		fileReader, err := os.Open(filename)
+	It("can get the checksum of a file", func() {
+		checksum, err := storageClient.GetChecksum(ctx, uploadedObject)
 		Expect(err).NotTo(HaveOccurred())
-
-		locationInBucket, err := storageClient.UploadFile(ctx, object, fileReader)
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(locationInBucket).To(Equal(fmt.Sprintf("testdata/blob_%d.txt", object.Timestamp)))
-		uploadedObject = storage.PathUploadable{
-			BucketName: bucketName,
-			Filepath:   locationInBucket,
-		}
+		Expect(checksum).To(Equal("043b96b15c0c54b6d9eb5d89c4e7bd83"))
 	})
 
 	It("can copy a file", func() {

@@ -2,6 +2,7 @@ package blobstorage
 
 import (
 	"context"
+	"crypto/md5"
 	"fmt"
 	"io"
 )
@@ -116,6 +117,10 @@ func (f *MockStorageClient) GetSignedURL(ctx context.Context, object UploadableO
 
 	signedURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=credential&X-Goog-Date=20210101T000000Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=signature", object.GetBucketName(), object.GetFileLocation())
 	return signedURL, nil
+}
+
+func (f *MockStorageClient) GetChecksum(ctx context.Context, object UploadableObject) (string, error) {
+	return fmt.Sprint(md5.New().Sum([]byte(object.GetFileLocation()))), nil
 }
 
 func (f *MockStorageClient) UploadFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error) {
