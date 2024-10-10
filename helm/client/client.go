@@ -3,9 +3,20 @@ package helm
 import (
 	"github.com/rs/zerolog/log"
 	"helm.sh/helm/v3/pkg/action"
+	"helm.sh/helm/v3/pkg/chart"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"os"
 )
+
+type Client interface {
+	Namespace() string
+	Install(chart Chart, values map[string]interface{}) error
+	Upgrade(chart Chart, values map[string]interface{}) error
+	Exists(chart Chart) (bool, error)
+	Uninstall(chart Chart) error
+	DownloadChart(chartURL string) (string, error)
+	LoadChart(chart Chart) (*chart.Chart, error)
+}
 
 type Chart struct {
 	Name        string
@@ -15,7 +26,7 @@ type Chart struct {
 	Namespace   string
 }
 
-type Client struct {
+type clientImpl struct {
 	config       ClientConfig
 	actionConfig *action.Configuration
 }
@@ -26,7 +37,7 @@ type ClientConfig struct {
 	ChartsDirectory string
 }
 
-func NewClient(config ClientConfig) (*Client, error) {
+func NewClient(config ClientConfig) (Client, error) {
 	if config.Namespace == "" {
 		config.Namespace = os.Getenv("NAMESPACE")
 	}
@@ -43,12 +54,12 @@ func NewClient(config ClientConfig) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{
+	return &clientImpl{
 		actionConfig: actionConfig,
 		config:       config,
 	}, nil
 }
 
-func (c *Client) Namespace() string {
+func (c clientImpl) Namespace() string {
 	return c.config.Namespace
 }

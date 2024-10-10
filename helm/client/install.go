@@ -4,7 +4,7 @@ import (
 	"helm.sh/helm/v3/pkg/action"
 )
 
-func (c Client) Install(chart Chart, values map[string]interface{}) error {
+func (c clientImpl) Install(chart Chart, values map[string]interface{}) error {
 	helmChart, err := c.LoadChart(chart)
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func (c Client) Install(chart Chart, values map[string]interface{}) error {
 	return nil
 }
 
-func (c Client) Upgrade(chart Chart, values map[string]interface{}) error {
+func (c clientImpl) Upgrade(chart Chart, values map[string]interface{}) error {
 	helmChart, err := c.LoadChart(chart)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func (c Client) Upgrade(chart Chart, values map[string]interface{}) error {
 	return nil
 }
 
-func (c Client) Exists(chart Chart) (bool, error) {
+func (c clientImpl) Exists(chart Chart) (bool, error) {
 	client := action.NewList(c.actionConfig)
 
 	releases, err := client.Run()
@@ -54,7 +54,7 @@ func (c Client) Exists(chart Chart) (bool, error) {
 	return false, nil
 }
 
-func (c Client) Uninstall(chart Chart) error {
+func (c clientImpl) Uninstall(chart Chart) error {
 	client := action.NewUninstall(c.actionConfig)
 
 	if _, err := client.Run(chart.ReleaseName); err != nil {

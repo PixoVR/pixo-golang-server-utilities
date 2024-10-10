@@ -51,17 +51,20 @@ var _ = BeforeSuite(func() {
 	var ok bool
 	bucketName, ok = os.LookupEnv("GCS_BUCKET_NAME")
 	if !ok {
+		//bucketName = "multi-central1-dev-multiplayer-allocator-build-logs"
 		bucketName = "pixo-test-bucket"
 	}
 
 	namespace, ok = os.LookupEnv("NAMESPACE")
 	if !ok {
 		namespace = "test"
+		//namespace = "dev-multiplayer"
 	}
 
 	serviceAccountName, ok = os.LookupEnv("SA_NAME")
 	if !ok {
 		serviceAccountName = "test-sa"
+		//serviceAccountName = "multiplayer-workload"
 	}
 
 	secretName, ok = os.LookupEnv("SECRET_NAME")

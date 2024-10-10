@@ -9,7 +9,7 @@ import (
 	"path"
 )
 
-func (c Client) LoadChart(chart Chart) (*chart.Chart, error) {
+func (c clientImpl) LoadChart(chart Chart) (*chart.Chart, error) {
 	getterProviders := getter.Providers{
 		{Schemes: []string{"http", "https"}, New: getter.NewHTTPGetter},
 	}
@@ -32,7 +32,7 @@ func (c Client) LoadChart(chart Chart) (*chart.Chart, error) {
 	return helmChart, nil
 }
 
-func (c Client) DownloadChart(chartURL string) (string, error) {
+func (c clientImpl) DownloadChart(chartURL string) (string, error) {
 	dest, ok := os.LookupEnv("TMP_DIR")
 	if !ok {
 		dest = "/tmp"
