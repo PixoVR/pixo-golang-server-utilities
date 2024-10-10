@@ -39,6 +39,10 @@ var _ = Describe("Helm", Ordered, func() {
 		Expect(helmClient).NotTo(BeNil())
 	})
 
+	It("can get the namespace", func() {
+		Expect(helmClient.Namespace()).To(Equal(namespace))
+	})
+
 	Context("downloading", func() {
 
 		It("returns an error if the chart URL is invalid", func() {

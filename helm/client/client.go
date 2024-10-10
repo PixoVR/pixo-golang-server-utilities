@@ -48,3 +48,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		config:       config,
 	}, nil
 }
+
+func (c *Client) Namespace() string {
+	return c.config.Namespace
+}
