@@ -1,28 +1,32 @@
 
-name: Run Engine Tests
+name: Helm Tests
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'pixo-platform/**'
+      - 'helm/**'
     branches:
       - dev
       - main
+  push:
+    paths:
+      - './github/workflows/helm-tests.yaml'
+    branches:
+      - pipelines
 
 env:
   GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
   CLUSTER_NAME: 'test-cluster'
   NAMESPACE: 'test'
   SA_NAME: 'test-sa'
-  GCS_BUCKET_NAME: 'pixo-test-bucket'
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./pixo-platform
+        working-directory: ./helm
 
     steps:
       - uses: actions/checkout@v4
@@ -38,13 +42,26 @@ jobs:
           version: v1.61.0
           install-mode: "goinstall"
           args: --timeout=30m
-          working-directory: ./pixo-platform
+          working-directory: ./helm
+
+  init:
+    name: Initialize Cluster and Install Dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./helm
+    steps:
+      - name: Init Test Cluster
+        uses: ./.github/workflows/init-cluster
+        env:
+          NAMESPACE: ${{ env.NAMESPACE }}
+          SA_NAME: ${{ env.SA_NAME }}
 
   test:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./pixo-platform
+        working-directory: ./helm
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,9 +75,7 @@ jobs:
         run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
-          GOOGLE_JSON_KEY: '/home/runner/google-key.json'
-          GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
-          GCS_BUCKET_NAME: pixo-test-bucket
+          NAMESPACE: ${{ env.NAMESPACE }}
 
       - name: Check Test Coverage
         run: |

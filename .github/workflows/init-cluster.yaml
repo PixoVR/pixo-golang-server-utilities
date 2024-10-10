@@ -1,5 +1,5 @@
 
-name: Init Test Kubernetes Cluster
+name: Initialize Test Kubernetes Cluster
 
 on:
   workflow_call:

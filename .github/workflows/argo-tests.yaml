@@ -1,16 +1,22 @@
 
-name: Run K8s Tests
+name: Argo Tests
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'k8s/**'
+      - 'argo/**'
     branches:
       - dev
       - main
+  push:
+    paths:
+      - './github/workflows/argo-tests.yaml'
+    branches:
+      - pipelines
 
 env:
+  GCS_BUCKET_NAME: 'pixo-test-bucket'
   NAMESPACE: 'test'
   SA_NAME: 'test-sa'
 
@@ -19,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./k8s
+        working-directory: ./argo
 
     steps:
       - uses: actions/checkout@v4
@@ -35,26 +41,27 @@ jobs:
           version: v1.61.0
           install-mode: "goinstall"
           args: --timeout=30m
-          working-directory: ./k8s
+          working-directory: ./argo
 
   init:
     name: Initialize Cluster and Install Dependencies
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./k8s
+        working-directory: ./argo
     steps:
       - name: Init Test Cluster
         uses: ./.github/workflows/init-cluster
-        env:
-          NAMESPACE: ${{ env.NAMESPACE }}
-          SA_NAME: ${{ env.SA_NAME }}
+        with:
+          namespace: ${{ env.NAMESPACE }}
+          argo-events: true
+          argo-workflows: true
 
   test:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./k8s
+        working-directory: ./argo
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,7 +73,14 @@ jobs:
 
       - name: Run Tests
         run: |
-          make init-env test
+          go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ needs.init.outputs.gcp-credentials-file }}
+          GOOGLE_JSON_KEY: ${{ needs.init.outputs.gcp-credentials-file }}
+          GCS_BUCKET_NAME: ${{ env.GCS_BUCKET_NAME }}
+          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          NAMESPACE: ${{ env.NAMESPACE }}
+          SA_NAME: ${{ env.SA_NAME }}
 
       - name: Check Test Coverage
         run: |
