@@ -22,7 +22,7 @@ var _ = Describe("EnvTest k8s", Ordered, func() {
 		ctx = context.Background()
 
 		var err error
-		baseClient, err = k8s.NewEnvTestClient()
+		baseClient, err = k8s.NewEnvTestClient(namespace)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(baseClient).NotTo(BeNil())
 
@@ -39,6 +39,7 @@ var _ = Describe("EnvTest k8s", Ordered, func() {
 					}},
 				},
 			}, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterAll(func() {
@@ -47,6 +48,11 @@ var _ = Describe("EnvTest k8s", Ordered, func() {
 			Pods(namespace).
 			Delete(ctx, podName, metav1.DeleteOptions{})
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("returns an error if unable to create namespaces", func() {
+		_, err := k8s.NewEnvTestClient("default")
+		Expect(err).To(HaveOccurred())
 	})
 
 	It("can get pod by name", func() {

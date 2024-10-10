@@ -1,15 +1,19 @@
 
-name: Run Tests
+name: Run Engine Tests
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - dev
   pull_request:
     branches:
       - dev
       - main
+
+env:
+  GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
+  CLUSTER_NAME: 'test-cluster'
+  NAMESPACE: 'test'
+  SA_NAME: 'test-sa'
+  GCS_BUCKET_NAME: 'pixo-test-bucket'
 
 jobs:
   lint:
@@ -39,10 +43,6 @@ jobs:
     defaults:
       run:
         working-directory: ./pixo-platform
-    #    strategy:
-    #      fail-fast: false
-    #      matrix:
-    #        containers: [ 1, 2, 3 ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,8 +59,6 @@ jobs:
           GOOGLE_JSON_KEY: '/home/runner/google-key.json'
           GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
           GCS_BUCKET_NAME: pixo-test-bucket
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Check Test Coverage
         uses: vladopajic/go-test-coverage@v2

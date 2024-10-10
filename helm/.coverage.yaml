@@ -1,0 +1,12 @@
+
+profile: cover.out
+
+local-prefix: "github.com/PixoVR/pixo-golang-server-utilities/helm"
+
+threshold:
+  file: 76
+  package: 81
+  total: 81
+
+exclude:
+  paths:

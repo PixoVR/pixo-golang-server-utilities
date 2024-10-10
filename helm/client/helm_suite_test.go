@@ -1,21 +1,18 @@
-package k8s_test
+package helm_test
 
 import (
-	"os"
-	"testing"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"os"
+	"testing"
 )
 
 var (
 	namespace string
 )
 
-func TestK8s(t *testing.T) {
+func TestHelm(t *testing.T) {
 	RegisterFailHandler(Fail)
-
-	_ = os.Setenv("IN_CLUSTER", "false")
 
 	var ok bool
 	namespace, ok = os.LookupEnv("NAMESPACE")
@@ -23,5 +20,5 @@ func TestK8s(t *testing.T) {
 		namespace = "test"
 	}
 
-	RunSpecs(t, "K8s Client Suite")
+	RunSpecs(t, "Helm Suite")
 }
