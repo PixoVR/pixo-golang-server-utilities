@@ -23,8 +23,8 @@ lint:
 	@golangci-lint run --timeout 5m
 
 
-.PHONY: envtest
-init-envtest: $(LOCALBIN)
+.PHONY: init-env
+init-env: $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 
