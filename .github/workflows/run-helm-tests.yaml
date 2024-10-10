@@ -4,6 +4,8 @@ name: Run Helm Tests
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - 'helm/**'
     branches:
       - dev
       - main

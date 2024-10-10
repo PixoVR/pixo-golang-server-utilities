@@ -4,6 +4,8 @@ name: Run Engine Tests
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - 'pixo-platform/**'
     branches:
       - dev
       - main
