@@ -28,7 +28,7 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	golang.org/x/oauth2 v0.23.0
 	google.golang.org/api v0.196.0
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.35.1
 	open-match.dev/open-match v1.8.1
 )
 
