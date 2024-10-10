@@ -26,8 +26,12 @@ if [[ -z $NAMESPACE ]]; then
   export NAMESPACE=test
 fi
 
+if [[ -z $GOOGLE_JSON_KEY ]]; then
+  export GOOGLE_JSON_KEY=./secrets/credentials.json
+fi
+
 if [[ -z $SA_NAME ]]; then
-  export SA_NAME=test
+  export SA_NAME=test-sa
 fi
 
 kubectl create ns $NAMESPACE
@@ -44,3 +48,20 @@ helm upgrade --install argo-workflows argo/argo-workflows \
   --version 0.22.15
 
 kubectl wait --namespace argo-workflows --for=condition=ready pod --selector=app.kubernetes.io/instance=argo-workflows --timeout=300s
+
+kubectl create secret generic google-credentials --from-file=credentials=$GOOGLE_JSON_KEY -n $NAMESPACE
+
+kubectl apply -n $NAMESPACE -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: artifact-repositories
+data:
+  gcs-artifact-repository: |
+    gcs:
+      bucket: pixo-test-bucket
+      path: artifacts
+      serviceAccountKeySecret:
+        name: google-credentials
+        key: credentials
+EOF

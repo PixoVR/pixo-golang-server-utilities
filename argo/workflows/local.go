@@ -1,6 +1,7 @@
-package k8s
+package workflows
 
 import (
+	"github.com/argoproj/argo-workflows/v3/pkg/client/clientset/versioned"
 	"github.com/rs/zerolog/log"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -9,7 +10,21 @@ import (
 	"path/filepath"
 )
 
-func NewLocalClient() (kubernetes.Interface, error) {
+func NewLocalClient() (*Client, error) {
+	kubeconfig, err := GetConfigUsingKubeconfig()
+	if err != nil {
+		return nil, err
+	}
+
+	clientset, err := versioned.NewForConfig(kubeconfig)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to create argo client")
+		return nil, err
+	}
+	return &Client{Clientset: clientset}, nil
+}
+
+func NewLocalBaseClient() (kubernetes.Interface, error) {
 	kubeconfig, err := GetConfigUsingKubeconfig()
 	if err != nil {
 		return nil, err
@@ -27,8 +42,6 @@ func GetConfigUsingKubeconfig() (*rest.Config, error) {
 		}
 		configPath = filepath.Join(home, ".kube", "config")
 	}
-
-	log.Debug().Str("configPath", configPath).Msg("Using KUBECONFIG for K8s config")
 
 	return clientcmd.BuildConfigFromFlags("", configPath)
 }
