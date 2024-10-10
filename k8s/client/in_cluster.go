@@ -1,4 +1,4 @@
-package client
+package k8s
 
 import (
 	"github.com/rs/zerolog/log"

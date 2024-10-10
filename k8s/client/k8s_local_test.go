@@ -1,4 +1,4 @@
-package client_test
+package k8s_test
 
 import (
 	"context"
@@ -22,7 +22,7 @@ var _ = Describe("Local k8s", Ordered, func() {
 		ctx = context.Background()
 
 		var err error
-		localK8sClient, err = client.NewLocalClient()
+		localK8sClient, err = k8s.NewLocalClient()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(localK8sClient).NotTo(BeNil())
 

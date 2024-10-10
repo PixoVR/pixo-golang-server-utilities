@@ -1,4 +1,4 @@
-package client
+package k8s
 
 import (
 	"github.com/rs/zerolog/log"
@@ -15,13 +15,7 @@ func NewLocalClient() (kubernetes.Interface, error) {
 		return nil, err
 	}
 
-	clientset, err := kubernetes.NewForConfig(kubeconfig)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to build K8s clientset")
-		return nil, err
-	}
-
-	return clientset, nil
+	return kubernetes.NewForConfig(kubeconfig)
 }
 
 func GetConfigUsingKubeconfig() (*rest.Config, error) {

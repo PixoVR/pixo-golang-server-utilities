@@ -1,4 +1,4 @@
-package client_test
+package k8s_test
 
 import (
 	"os"

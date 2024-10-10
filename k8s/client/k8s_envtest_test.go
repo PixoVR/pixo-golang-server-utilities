@@ -1,4 +1,4 @@
-package client_test
+package k8s_test
 
 import (
 	"context"
@@ -22,7 +22,7 @@ var _ = Describe("EnvTest k8s", Ordered, func() {
 		ctx = context.Background()
 
 		var err error
-		baseClient, err = client.NewEnvTestClient()
+		baseClient, err = k8s.NewEnvTestClient()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(baseClient).NotTo(BeNil())
 
