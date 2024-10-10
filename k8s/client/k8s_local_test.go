@@ -39,6 +39,7 @@ var _ = Describe("Local k8s", Ordered, func() {
 					}},
 				},
 			}, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterAll(func() {
