@@ -64,7 +64,7 @@ var _ = Describe("Stream", func() {
 		Expect(err).To(MatchError("workflow not found"))
 	})
 
-	Context("after running a whalesay workflow", func() {
+	Context("when running a whalesay workflow", func() {
 
 		var (
 			streamer *workflows.LogsStreamer
@@ -95,7 +95,7 @@ var _ = Describe("Stream", func() {
 			s.Close()
 		})
 
-		It("can stream logs and read the archives", func() {
+		It("can stream logs and read the archives afterwards", func() {
 			stream, err := streamer.Start(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stream).NotTo(BeNil())

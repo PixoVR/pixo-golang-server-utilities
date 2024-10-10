@@ -4,6 +4,8 @@ name: Run Argo Tests
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - 'argo/**'
     branches:
       - dev
       - main

@@ -4,6 +4,8 @@ name: Run K8s Tests
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - 'k8s/**'
     branches:
       - dev
       - main
