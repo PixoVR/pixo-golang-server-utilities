@@ -8,6 +8,8 @@
 *.so
 *.dylib
 
+k8s/bin
+
 # Test binary, built with `go test -c`
 *.test
 
