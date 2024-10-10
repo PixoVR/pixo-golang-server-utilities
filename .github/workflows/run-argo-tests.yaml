@@ -67,7 +67,7 @@ jobs:
 
       - name: Init Test Cluster
         run: |
-          ./bin/init_test_cluster.sh
+          ../bin/init_test_cluster.sh
           k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
         env:
           GOOGLE_JSON_KEY: ${{ env.GOOGLE_JSON_KEY_PATH }}
