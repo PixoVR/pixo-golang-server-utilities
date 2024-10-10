@@ -11,11 +11,9 @@ on:
       - main
 
 env:
-  GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
-  CLUSTER_NAME: 'test-cluster'
+  GCS_BUCKET_NAME: 'pixo-test-bucket'
   NAMESPACE: 'test'
   SA_NAME: 'test-sa'
-  GCS_BUCKET_NAME: 'pixo-test-bucket'
 
 jobs:
   lint:
@@ -40,6 +38,20 @@ jobs:
           args: --timeout=30m
           working-directory: ./argo
 
+  init:
+    name: Initialize Cluster and Install Dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./argo
+    steps:
+      - name: Init Test Cluster
+        uses: ./.github/workflows/init-cluster
+        with:
+          namespace: ${{ env.NAMESPACE }}
+          argo-events: true
+          argo-workflows: true
+
   test:
     runs-on: ubuntu-latest
     defaults:
@@ -48,34 +60,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install k3d
-        run: |
-          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
-
-      - name: Install Helm
-        run: |
-          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-          chmod 700 get_helm.sh
-          ./get_helm.sh
-
-      - name: Setup Google Cloud SDK
-        run: |
-          echo "${GOOGLE_JSON_KEY_CONTENTS}" > ${GOOGLE_JSON_KEY_PATH}
-          gcloud auth activate-service-account --key-file=${GOOGLE_JSON_KEY_PATH}
-        env:
-          GOOGLE_JSON_KEY_CONTENTS: ${{ secrets.GOOGLE_JSON_KEY }}
-          GOOGLE_JSON_KEY_PATH: ${{ env.GOOGLE_JSON_KEY_PATH }}
-
-      - name: Init Test Cluster
-        run: |
-          ../bin/init_test_cluster.sh
-          k3d kubeconfig write test-cluster > $HOME/.config/kubeconfig-test-cluster.yaml
-        env:
-          GOOGLE_JSON_KEY: ${{ env.GOOGLE_JSON_KEY_PATH }}
-          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          NAMESPACE: ${{ env.NAMESPACE }}
-          SA_NAME: ${{ env.SA_NAME }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -86,8 +70,8 @@ jobs:
         run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
-          GOOGLE_JSON_KEY: ${{ secrets.GOOGLE_JSON_KEY_PATH }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_JSON_KEY_PATH }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ needs.init.outputs.gcp-credentials-file }}
+          GOOGLE_JSON_KEY: ${{ needs.init.outputs.gcp-credentials-file }}
           GCS_BUCKET_NAME: ${{ env.GCS_BUCKET_NAME }}
           CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           NAMESPACE: ${{ env.NAMESPACE }}

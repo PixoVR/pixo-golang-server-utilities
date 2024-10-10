@@ -1,0 +1,187 @@
+
+name: Init Test Kubernetes Cluster
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        required: false
+        type: string
+        default: test
+      redis:
+        required: false
+        type: boolean
+      agones:
+        required: false
+        type: boolean
+      argo-events:
+        required: false
+        type: boolean
+      argo-workflows:
+        required: false
+        type: boolean
+      gcp-credentials:
+        required: false
+        type: string
+      gcs-bucket-name:
+        required: false
+        type: string
+    outputs:
+      gcp-credentials-file:
+        description: 'Path to the Google Cloud credentials file'
+        type: string
+        value: ${{ jobs.init.outputs.gcp-credentials-file }}
+
+
+env:
+  GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
+  CLUSTER_NAME: 'test-cluster'
+  SA_NAME: 'test-sa'
+
+jobs:
+  init:
+    name: Initialize Cluster and Install Dependencies
+    runs-on: ubuntu-latest
+    outputs:
+      gcp-credentials-file: ${{ steps.step1.outputs.firstword }}
+      sa-name: ${{ env.SA_NAME }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      - name: Install k3d
+        run: |
+          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+
+
+      - name: Install Helm
+        run: |
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
+
+      - name: Setup Google Cloud SDK
+        if: ${{ github.event.inputs.gcp-credentials != '' }}
+        run: |
+          echo "${GOOGLE_JSON_KEY_CONTENTS}" > ${GOOGLE_JSON_KEY_PATH}
+          gcloud auth activate-service-account --key-file=${GOOGLE_JSON_KEY_PATH}
+          echo "gcp-credentials-file=%{GOOGLE_JSON_KEY_PATH}" >> $GITHUB_OUTPUT
+        env:
+          GOOGLE_JSON_KEY_PATH: ${{ env.GOOGLE_JSON_KEY_PATH }}
+          GOOGLE_JSON_KEY_CONTENTS: ${{ github.event.inputs.gcp-credentials }}
+
+
+      - name: Init Test Cluster
+        run: |
+          k3d cluster create ${CLUSTER_NAME}
+          kubectl wait --for=condition=ready node --all --timeout=300s
+
+          kubectl create ns ${NAMESPACE}
+          kubectl config set-context --current --namespace=${NAMESPACE}
+
+          kubectl create sa ${SA_NAME} -n ${NAMESPACE}
+          kubectl create clusterrolebinding test-admin-binding --clusterrole=cluster-admin --serviceaccount=${NAMESPACE}:${SA_NAME}
+          kubectl create clusterrolebinding test-deployment-binding --clusterrole=system:controller:deployment-controller --serviceaccount=${NAMESPACE}:${SA_NAME}
+
+          k3d kubeconfig write ${CLUSTER_NAME} > ${HOME}/.config/kubeconfig-test-cluster.yaml
+        env:
+          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          SA_NAME: ${{ env.SA_NAME }}
+          NAMESPACE: ${{ github.event.inputs.namespace }}
+
+
+      - name: Install Redis
+        if: ${{ github.event.inputs.redis == true }}
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          
+          helm upgrade -i redis oci://registry-1.docker.io/bitnamicharts/redis \
+            --namespace ${NAMESPACE} \
+            --create-namespace \
+            --set 'auth.enabled'=false \
+            --set 'commonConfiguration'='notify-keyspace-events Ex'
+
+
+      - name: Install Agones
+        if: ${{ github.event.inputs.agones == true }}
+        run: |
+          helm repo add agones https://agones.dev/chart/stable
+          helm repo update
+          
+          helm upgrade --install agones agones/agones \
+            --namespace agones-system \
+            --create-namespace \
+            --set 'gameservers.namespaces[0]'=${NAMESPACE} \
+            --set 'agones.featureGates'='PlayerTracking=true'
+          
+          for crd in gameservers.agones.dev gameserversets.agones.dev fleets.agones.dev fleetautoscalers.autoscaling.agones.dev; do
+            kubectl wait --for=condition=established --timeout=300s crd/$crd
+          done
+          
+          kubectl wait --namespace agones-system --for=condition=ready pod --selector=app=agones --timeout=300s
+        env:
+          NAMESPACE: ${{ github.event.inputs.namespace }}
+
+
+      - name: Install Argo Events
+        if: ${{ github.event.inputs.argo-events == true }}
+        run: |
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update
+          
+          helm upgrade --install argo-events argo/argo-events \
+            --namespace argo-events \
+            --create-namespace
+
+          kubectl wait --namespace argo-events \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/instance=argo-events \
+            --timeout=300s
+
+
+      - name: Install Argo Workflows
+        if: ${{ github.event.inputs.argo-workflows == true }}
+        run: |
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update
+          
+          helm upgrade --install argo-workflows argo/argo-workflows \
+            --namespace argo-workflows \
+            --create-namespace \
+            --version 0.22.15
+
+          kubectl wait --namespace argo-workflows \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/instance=argo-workflows \
+            --timeout=300s
+
+          if [[ -n "${GOOGLE_JSON_KEY}" ]]; then
+            kubectl create secret generic google-credentials --from-file=credentials=${GOOGLE_JSON_KEY} -n ${NAMESPACE}
+          
+            if [[ -n "${GCS_BUCKET_NAME}" ]]; then
+              kubectl apply -n ${NAMESPACE} -f - <<EOF
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                name: artifact-repositories
+              data:
+                gcs-artifact-repository: |
+                  gcs:
+                    bucket: ${GCS_BUCKET_NAME}
+                    path: artifacts
+                    serviceAccountKeySecret:
+                      name: google-credentials
+                      key: credentials
+              EOF
+            fi
+          
+          fi
+        env:
+          GOOGLE_JSON_KEY: ${{ github.event.inputs.gcp-credentials }}
+          GCS_BUCKET_NAME: ${{ github.event.inputs.gcs-bucket-name }}
+          NAMESPACE: ${{ github.event.inputs.namespace }}
+
+
