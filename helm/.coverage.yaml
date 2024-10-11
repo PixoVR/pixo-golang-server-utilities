@@ -10,3 +10,4 @@ threshold:
 
 exclude:
   paths:
+    - ^client/mock.go
