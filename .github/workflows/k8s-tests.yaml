@@ -47,8 +47,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    outputs:
-      kubeconfig: ${{ needs.init.outputs.kubeconfig }}
     defaults:
       run:
         working-directory: ./k8s
@@ -65,7 +63,7 @@ jobs:
         run: |
           make init-env test
         env:
-          KUBECONFIG: /home/runner/.kube/config
+          KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
           NAMESPACE: test
 #          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
 #          NAMESPACE: ${{ needs.init.outputs.namespace }}
