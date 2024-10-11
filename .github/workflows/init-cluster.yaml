@@ -57,10 +57,10 @@ jobs:
     name: Initialize Cluster and Install Dependencies
     runs-on: ubuntu-latest
     outputs:
-      cluster-name: ${{ github.event.inputs.cluster-name }}
-      namespace: ${{ github.event.inputs.namespace }}
-      sa-name: ${{ github.event.inputs.sa-name }}
-      gcp-credentials-file: ${{ steps.step1.outputs.firstword }}
+      cluster-name: ${{ inputs.cluster-name }}
+      namespace: ${{ inputs.namespace }}
+      sa-name: ${{ inputs.sa-name }}
+      gcp-credentials-file: ${{ inputs.gcp-credentials-file }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -76,14 +76,14 @@ jobs:
           ./get_helm.sh
 
       - name: Setup Google Cloud SDK
-        if: ${{ github.event.inputs.gcp-credentials != '' }}
+        if: ${{ inputs.gcp-credentials != '' }}
         run: |
           echo "${GOOGLE_JSON_KEY_CONTENTS}" > ${GOOGLE_JSON_KEY_PATH}
           gcloud auth activate-service-account --key-file=${GOOGLE_JSON_KEY_PATH}
           echo "gcp-credentials-file=%{GOOGLE_JSON_KEY_PATH}" >> $GITHUB_OUTPUT
         env:
           GOOGLE_JSON_KEY_PATH: ${{ env.GOOGLE_JSON_KEY_PATH }}
-          GOOGLE_JSON_KEY_CONTENTS: ${{ github.event.inputs.gcp-credentials }}
+          GOOGLE_JSON_KEY_CONTENTS: ${{ inputs.gcp-credentials }}
 
       - name: Init Test Cluster
         run: |
@@ -136,7 +136,7 @@ jobs:
           NAMESPACE: ${{ github.event.inputs.namespace }}
 
       - name: Install Argo Events
-        if: ${{ github.event.inputs.argo-events == true }}
+        if: ${{ inputs.argo-events == true }}
         run: |
           helm repo add argo https://argoproj.github.io/argo-helm
           helm repo update
@@ -188,6 +188,6 @@ jobs:
           
           fi
         env:
-          GOOGLE_JSON_KEY: ${{ github.event.inputs.gcp-credentials }}
-          GCS_BUCKET_NAME: ${{ github.event.inputs.gcs-bucket-name }}
-          NAMESPACE: ${{ github.event.inputs.namespace }}
+          GOOGLE_JSON_KEY: ${{ inputs.gcp-credentials }}
+          GCS_BUCKET_NAME: ${{ inputs.gcs-bucket-name }}
+          NAMESPACE: ${{ inputs.namespace }}
