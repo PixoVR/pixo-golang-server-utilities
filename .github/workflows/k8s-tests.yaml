@@ -61,12 +61,17 @@ jobs:
         with:
           go-version: '1.23'
 
-      - name: Run Tests
+      - name: Kubeconfig
         run: |
+          mkdir -p /home/runner/.kube
           echo "$KUBECONFIG" > /home/runner/.kube/config
-          make init-env test
         env:
           KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
+
+      - name: Run Tests
+        run: |
+          make init-env test
+        env:
           NAMESPACE: ${{ needs.init.outputs.namespace }}
 
       - name: Check Test Coverage
