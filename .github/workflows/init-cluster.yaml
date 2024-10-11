@@ -80,8 +80,8 @@ jobs:
           chmod 700 get_helm.sh
           ./get_helm.sh
 
-      - name: Setup Google Cloud SDK
-        id: gcloud
+      - id: gcloud
+        name: Setup Google Cloud SDK
         if: ${{ inputs.gcp-credentials != '' }}
         run: |
           echo "${GOOGLE_JSON_KEY_CONTENTS}" > ${GOOGLE_JSON_KEY_PATH}
@@ -91,8 +91,8 @@ jobs:
           GOOGLE_JSON_KEY_PATH: ${{ env.GOOGLE_JSON_KEY_PATH }}
           GOOGLE_JSON_KEY_CONTENTS: ${{ inputs.gcp-credentials }}
 
-      - name: Init Test Cluster
-        id: cluster
+      - id: cluster
+        name: Init Test Cluster
         run: |
           k3d cluster create ${CLUSTER_NAME}
           kubectl wait --for=condition=ready node --all --timeout=300s
@@ -105,6 +105,7 @@ jobs:
           kubectl create clusterrolebinding test-deployment-binding --clusterrole=system:controller:deployment-controller --serviceaccount=${NAMESPACE}:${SA_NAME}
 
           k3d kubeconfig write ${CLUSTER_NAME} > ${KUBECONFIG}
+          echo "kubeconfig=${KUBECONFIG}"
           echo "kubeconfig=${KUBECONFIG}" >> $GITHUB_OUTPUT
           echo "cluster-name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
           echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT

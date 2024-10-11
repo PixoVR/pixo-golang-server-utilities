@@ -61,10 +61,14 @@ jobs:
 
       - name: Run Tests
         run: |
+          echo "KUBECONFIG: ${{ env.KUBECONFIG_O }}"
+          echo "NAMESPACE: ${{ env.NAMESPACE_O }}"
           make init-env test
         env:
-          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
-          NAMESPACE: ${{ needs.init.outputs.namespace }}
+          KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
+          NAMESPACE: 'test'
+          KUBECONFIG_O: ${{ needs.init.outputs.kubeconfig }}
+          NAMESPACE_O: ${{ needs.init.outputs.namespace }}
 
       - name: Check Test Coverage
         run: |
