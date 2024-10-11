@@ -11,7 +11,7 @@ on:
       - main
   push:
     paths:
-      - './github/workflows/argo-tests.yaml'
+      - '.github/workflows/argo-tests.yaml'
     branches:
       - pipelines
 

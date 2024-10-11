@@ -11,7 +11,7 @@ on:
       - main
   push:
     paths:
-      - './github/workflows/helm-tests.yaml'
+      - '.github/workflows/helm-tests.yaml'
     branches:
       - pipelines
 

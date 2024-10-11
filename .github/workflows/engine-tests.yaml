@@ -11,7 +11,7 @@ on:
       - main
   push:
     paths:
-      - './github/workflows/engine-tests.yaml'
+      - '.github/workflows/engine-tests.yaml'
     branches:
       - pipelines
 

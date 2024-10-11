@@ -11,7 +11,7 @@ on:
       - main
   push:
     paths:
-      - './github/workflows/k8s-tests.yaml'
+      - '.github/workflows/k8s-tests.yaml'
     branches:
       - pipelines
 
