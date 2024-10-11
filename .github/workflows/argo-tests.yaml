@@ -43,15 +43,8 @@ jobs:
           args: --timeout=30m
           working-directory: ./argo
 
-  init:
-    uses: PixoVR/pixo-golang-server-utilities/.github/workflows/init-cluster.yaml@pipelines
-    with:
-      argo-events: true
-      argo-workflows: true
-
   test:
     runs-on: ubuntu-latest
-    needs: init
     defaults:
       run:
         working-directory: ./argo
@@ -59,26 +52,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - id: init
+        name: Init Cluster
+        uses: PixoVR/test-cluster-action@0.0.3
+        with:
+          argo-events: true
+          argo-workflows: true
+          gcp-credentials: ${{ secrets.GOOGLE_JSON_KEY }}
+          gcs-bucket-name: ${{ env.GCS_BUCKET_NAME }}
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
 
-      - name: Kubeconfig
-        run: |
-          mkdir -p /home/runner/.kube
-          echo "$KUBECONFIG" > /home/runner/.kube/config
-        env:
-          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
-
       - name: Run Tests
         run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
-          NAMESPACE: ${{ needs.init.outputs.namespace }}
-          SA_NAME: ${{ needs.init.outputs.sa-name }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ needs.init.outputs.gcp-credentials-file }}
-          GOOGLE_JSON_KEY: ${{ needs.init.outputs.gcp-credentials-file }}
+          NAMESPACE: ${{ steps.init.outputs.namespace }}
+          SA_NAME: ${{ steps.init.outputs.sa-name }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.init.outputs.gcp-credentials-file }}
+          GOOGLE_JSON_KEY: ${{ steps.init.outputs.gcp-credentials-file }}
           GCS_BUCKET_NAME: ${{ env.GCS_BUCKET_NAME }}
 
       - name: Check Test Coverage

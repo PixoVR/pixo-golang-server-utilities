@@ -52,6 +52,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - id: gcloud
+        name: Setup Google Cloud SDK
+        run: |
+          echo "${GOOGLE_JSON_KEY_CONTENTS}" > ${GOOGLE_JSON_KEY_PATH}
+          gcloud auth activate-service-account --key-file=${GOOGLE_JSON_KEY_PATH}
+        env:
+          GOOGLE_JSON_KEY_PATH: ${{ env.GOOGLE_JSON_KEY_PATH }}
+          GOOGLE_JSON_KEY_CONTENTS: ${{ secrets.GOOGLE_JSON_KEY }}
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -61,12 +70,11 @@ jobs:
         run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
-          GOOGLE_JSON_KEY: '/home/runner/google-key.json'
-          GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
+          GOOGLE_JSON_KEY: ${{ env.GOOGLE_JSON_KEY_PATH }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_JSON_KEY_PATH }}
           GCS_BUCKET_NAME: pixo-test-bucket
 
       - name: Check Test Coverage
         run: |
           go install github.com/vladopajic/go-test-coverage/v2@latest
           go-test-coverage -config=./.coverage.yaml
-
