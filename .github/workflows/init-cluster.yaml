@@ -104,6 +104,8 @@ jobs:
           kubectl create clusterrolebinding test-deployment-binding --clusterrole=system:controller:deployment-controller --serviceaccount=${NAMESPACE}:${SA_NAME}
 
           k3d kubeconfig write ${CLUSTER_NAME} > /home/runner/.config/kubeconfig-test-cluster.yaml
+          echo "KUBECONFIG CONTENTS"
+          cat /home/runner/.config/kubeconfig-test-cluster.yaml
           
           echo "kubeconfig=$(cat /home/runner/.config/kubeconfig-test-cluster.yaml)" >> $GITHUB_OUTPUT
           echo "cluster-name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
