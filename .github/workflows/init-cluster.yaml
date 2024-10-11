@@ -99,12 +99,12 @@ jobs:
 
           k3d kubeconfig write ${CLUSTER_NAME} > ${HOME}/.config/kubeconfig-test-cluster.yaml
         env:
-          CLUSTER_NAME: ${{ github.event.inputs.cluster-name }}
-          SA_NAME: ${{ github.event.inputs.sa-name }}
-          NAMESPACE: ${{ github.event.inputs.namespace }}
+          CLUSTER_NAME: ${{ inputs.cluster-name }}
+          SA_NAME: ${{ inputs.sa-name }}
+          NAMESPACE: ${{ inputs.namespace }}
 
       - name: Install Redis
-        if: ${{ github.event.inputs.redis == true }}
+        if: ${{ inputs.redis == true }}
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
@@ -116,7 +116,7 @@ jobs:
             --set 'commonConfiguration'='notify-keyspace-events Ex'
 
       - name: Install Agones
-        if: ${{ github.event.inputs.agones == true }}
+        if: ${{ inputs.agones == true }}
         run: |
           helm repo add agones https://agones.dev/chart/stable
           helm repo update
@@ -133,7 +133,7 @@ jobs:
           
           kubectl wait --namespace agones-system --for=condition=ready pod --selector=app=agones --timeout=300s
         env:
-          NAMESPACE: ${{ github.event.inputs.namespace }}
+          NAMESPACE: ${{ inputs.namespace }}
 
       - name: Install Argo Events
         if: ${{ inputs.argo-events == true }}
@@ -151,7 +151,7 @@ jobs:
             --timeout=300s
 
       - name: Install Argo Workflows
-        if: ${{ github.event.inputs.argo-workflows == true }}
+        if: ${{ inputs.argo-workflows == true }}
         run: |
           helm repo add argo https://argoproj.github.io/argo-helm
           helm repo update

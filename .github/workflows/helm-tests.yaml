@@ -71,3 +71,4 @@ jobs:
         run: |
           go install github.com/vladopajic/go-test-coverage/v2@latest
           go-test-coverage -config=./.coverage.yaml
+
