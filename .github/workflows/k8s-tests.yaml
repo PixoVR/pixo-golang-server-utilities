@@ -63,6 +63,7 @@ jobs:
 
       - name: Run Tests
         run: |
+          echo "$KUBECONFIG" > /home/runner/.kube/config
           make init-env test
         env:
           KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
