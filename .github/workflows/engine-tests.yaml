@@ -45,6 +45,7 @@ jobs:
           args: --timeout=30m
           working-directory: ./pixo-platform
 
+
   test:
     runs-on: ubuntu-latest
     defaults:

@@ -44,6 +44,7 @@ jobs:
           args: --timeout=30m
           working-directory: ./helm
 
+
   init:
     name: Initialize Cluster and Install Dependencies
     runs-on: ubuntu-latest
@@ -56,6 +57,7 @@ jobs:
         env:
           NAMESPACE: ${{ env.NAMESPACE }}
           SA_NAME: ${{ env.SA_NAME }}
+
 
   test:
     runs-on: ubuntu-latest
