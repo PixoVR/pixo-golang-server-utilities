@@ -63,13 +63,10 @@ jobs:
         run: |
           make init-env test
         env:
-          KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
-          NAMESPACE: test
-#          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
-#          NAMESPACE: ${{ needs.init.outputs.namespace }}
+          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
+          NAMESPACE: ${{ needs.init.outputs.namespace }}
 
       - name: Check Test Coverage
         run: |
           go install github.com/vladopajic/go-test-coverage/v2@latest
           go-test-coverage -config=./.coverage.yaml
-

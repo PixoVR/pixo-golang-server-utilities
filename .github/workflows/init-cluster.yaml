@@ -60,12 +60,6 @@ jobs:
   init:
     name: Initialize Cluster and Install Dependencies
     runs-on: ubuntu-latest
-    outputs:
-      kubeconfig: ${{ steps.init.outputs.kubeconfig }}
-      cluster-name: ${{ inputs.cluster-name }}
-      namespace: ${{ inputs.namespace }}
-      sa-name: ${{ inputs.sa-name }}
-      gcp-credentials-file: ${{ inputs.gcp-credentials-file }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
