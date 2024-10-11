@@ -4,10 +4,18 @@ name: Initialize Test Kubernetes Cluster
 on:
   workflow_call:
     inputs:
+      cluster-name:
+        required: false
+        type: string
+        default: test
       namespace:
         required: false
         type: string
         default: test
+      sa-name:
+        required: false
+        type: string
+        default: test-sa
       redis:
         required: false
         type: boolean
@@ -27,6 +35,15 @@ on:
         required: false
         type: string
     outputs:
+      cluster-name:
+        description: 'Name of the test cluster'
+        value: ${{ jobs.init.outputs.cluster-name }}
+      namespace:
+        description: 'Namespace to use for the test cluster'
+        value: ${{ jobs.init.outputs.namespace }}
+      sa-name:
+        description: 'Service Account name to use for the test cluster'
+        value: ${{ jobs.init.outputs.sa-name }}
       gcp-credentials-file:
         description: 'Path to the Google Cloud credentials file'
         value: ${{ jobs.init.outputs.gcp-credentials-file }}
@@ -34,32 +51,29 @@ on:
 
 env:
   GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
-  CLUSTER_NAME: 'test-cluster'
-  SA_NAME: 'test-sa'
 
 jobs:
   init:
     name: Initialize Cluster and Install Dependencies
     runs-on: ubuntu-latest
     outputs:
+      cluster-name: ${{ github.event.inputs.cluster-name }}
+      namespace: ${{ github.event.inputs.namespace }}
+      sa-name: ${{ github.event.inputs.sa-name }}
       gcp-credentials-file: ${{ steps.step1.outputs.firstword }}
-      sa-name: ${{ env.SA_NAME }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-
       - name: Install k3d
         run: |
           curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
-
 
       - name: Install Helm
         run: |
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
           chmod 700 get_helm.sh
           ./get_helm.sh
-
 
       - name: Setup Google Cloud SDK
         if: ${{ github.event.inputs.gcp-credentials != '' }}
@@ -70,7 +84,6 @@ jobs:
         env:
           GOOGLE_JSON_KEY_PATH: ${{ env.GOOGLE_JSON_KEY_PATH }}
           GOOGLE_JSON_KEY_CONTENTS: ${{ github.event.inputs.gcp-credentials }}
-
 
       - name: Init Test Cluster
         run: |
@@ -86,10 +99,9 @@ jobs:
 
           k3d kubeconfig write ${CLUSTER_NAME} > ${HOME}/.config/kubeconfig-test-cluster.yaml
         env:
-          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-          SA_NAME: ${{ env.SA_NAME }}
+          CLUSTER_NAME: ${{ github.event.inputs.cluster-name }}
+          SA_NAME: ${{ github.event.inputs.sa-name }}
           NAMESPACE: ${{ github.event.inputs.namespace }}
-
 
       - name: Install Redis
         if: ${{ github.event.inputs.redis == true }}
@@ -102,7 +114,6 @@ jobs:
             --create-namespace \
             --set 'auth.enabled'=false \
             --set 'commonConfiguration'='notify-keyspace-events Ex'
-
 
       - name: Install Agones
         if: ${{ github.event.inputs.agones == true }}
@@ -124,7 +135,6 @@ jobs:
         env:
           NAMESPACE: ${{ github.event.inputs.namespace }}
 
-
       - name: Install Argo Events
         if: ${{ github.event.inputs.argo-events == true }}
         run: |
@@ -139,7 +149,6 @@ jobs:
             --for=condition=ready pod \
             --selector=app.kubernetes.io/instance=argo-events \
             --timeout=300s
-
 
       - name: Install Argo Workflows
         if: ${{ github.event.inputs.argo-workflows == true }}
@@ -182,5 +191,3 @@ jobs:
           GOOGLE_JSON_KEY: ${{ github.event.inputs.gcp-credentials }}
           GCS_BUCKET_NAME: ${{ github.event.inputs.gcs-bucket-name }}
           NAMESPACE: ${{ github.event.inputs.namespace }}
-
-

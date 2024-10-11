@@ -73,8 +73,8 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ needs.init.outputs.gcp-credentials-file }}
           GOOGLE_JSON_KEY: ${{ needs.init.outputs.gcp-credentials-file }}
           GCS_BUCKET_NAME: ${{ env.GCS_BUCKET_NAME }}
-          NAMESPACE: ${{ env.NAMESPACE }}
-          SA_NAME: ${{ env.SA_NAME }}
+          NAMESPACE: ${{ needs.init.outputs.namespace }}
+          SA_NAME: ${{ needs.init.outputs.sa-name }}
 
       - name: Check Test Coverage
         run: |
