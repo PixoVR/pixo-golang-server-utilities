@@ -42,11 +42,8 @@ jobs:
           args: --timeout=30m
           working-directory: ./k8s
 
-
   init:
-    name: Initialize Cluster and Install Dependencies
     uses: PixoVR/pixo-golang-server-utilities/.github/workflows/init-cluster.yaml@pipelines
-
 
   test:
     runs-on: ubuntu-latest
@@ -72,4 +69,3 @@ jobs:
         run: |
           go install github.com/vladopajic/go-test-coverage/v2@latest
           go-test-coverage -config=./.coverage.yaml
-

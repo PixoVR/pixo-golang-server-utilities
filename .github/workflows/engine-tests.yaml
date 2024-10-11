@@ -17,9 +17,6 @@ on:
 
 env:
   GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
-  CLUSTER_NAME: 'test-cluster'
-  NAMESPACE: 'test'
-  SA_NAME: 'test-sa'
   GCS_BUCKET_NAME: 'pixo-test-bucket'
 
 jobs:
@@ -72,4 +69,3 @@ jobs:
         run: |
           go install github.com/vladopajic/go-test-coverage/v2@latest
           go-test-coverage -config=./.coverage.yaml
-
