@@ -39,7 +39,7 @@ on:
         description: 'Name of the test cluster'
         value: ${{ jobs.init.outputs.cluster-name }}
       kubeconfig:
-        description: 'Path to the kubeconfig file for the test cluster'
+        description: 'Kubeconfig for the test cluster'
         value: ${{ jobs.init.outputs.kubeconfig }}
       namespace:
         description: 'Namespace to use for the test cluster'
@@ -104,14 +104,15 @@ jobs:
           kubectl create clusterrolebinding test-deployment-binding --clusterrole=system:controller:deployment-controller --serviceaccount=${NAMESPACE}:${SA_NAME}
 
           k3d kubeconfig write ${CLUSTER_NAME} > $HOME/.config/kubeconfig-test-cluster.yaml
-          echo "kubeconfig=$(cat $HOME/.config/kubeconfig-test-cluster.yaml)" >> $GITHUB_OUTPUT
+          KUBECONFIG=$(cat $HOME/.config/kubeconfig-test-cluster.yaml)
+          echo "kubeconfig=$KUBECONFIG" >> $GITHUB_OUTPUT
           echo "cluster-name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
           echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
           echo "sa-name=${SA_NAME}" >> $GITHUB_OUTPUT
         env:
           CLUSTER_NAME: ${{ inputs.cluster-name }}
-          SA_NAME: ${{ inputs.sa-name }}
           NAMESPACE: ${{ inputs.namespace }}
+          SA_NAME: ${{ inputs.sa-name }}
 
       - name: Install Redis
         if: ${{ inputs.redis == true }}
