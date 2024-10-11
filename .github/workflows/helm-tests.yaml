@@ -55,7 +55,7 @@ jobs:
 
       - id: init
         name: Init Cluster
-        uses: PixoVR/test-cluster-action@0.0.5
+        uses: PixoVR/test-cluster-action@0.0.6
 
       - name: Setup Go
         uses: actions/setup-go@v5
