@@ -47,6 +47,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: init
     defaults:
       run:
         working-directory: ./k8s
@@ -61,17 +62,14 @@ jobs:
 
       - name: Run Tests
         run: |
-          echo "KUBECONFIG: ${{ env.KUBECONFIG_O }}"
-          echo "NAMESPACE: ${{ env.NAMESPACE_O }}"
+          echo "KUBECONFIG: ${{ env.KUBECONFIG }}"
+          echo "NAMESPACE: ${{ env.NAMESPACE }}"
           make init-env test
         env:
-          KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
-          NAMESPACE: 'test'
-          KUBECONFIG_O: ${{ needs.init.outputs.kubeconfig }}
-          NAMESPACE_O: ${{ needs.init.outputs.namespace }}
+          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
+          NAMESPACE: ${{ needs.init.outputs.namespace }}
 
       - name: Check Test Coverage
         run: |
           go install github.com/vladopajic/go-test-coverage/v2@latest
           go-test-coverage -config=./.coverage.yaml
-

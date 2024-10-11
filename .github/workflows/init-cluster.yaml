@@ -54,7 +54,6 @@ on:
 
 env:
   GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
-  KUBECONFIG: '/home/runner/.config/kubeconfig-test-cluster.yaml'
 
 jobs:
   init:
@@ -104,14 +103,12 @@ jobs:
           kubectl create clusterrolebinding test-admin-binding --clusterrole=cluster-admin --serviceaccount=${NAMESPACE}:${SA_NAME}
           kubectl create clusterrolebinding test-deployment-binding --clusterrole=system:controller:deployment-controller --serviceaccount=${NAMESPACE}:${SA_NAME}
 
-          k3d kubeconfig write ${CLUSTER_NAME} > ${KUBECONFIG}
-          echo "kubeconfig=${KUBECONFIG}"
-          echo "kubeconfig=${KUBECONFIG}" >> $GITHUB_OUTPUT
+          k3d kubeconfig write ${CLUSTER_NAME} > $HOME/.config/kubeconfig-test-cluster.yaml
+          echo "kubeconfig=$HOME/.config/kubeconfig-test-cluster.yaml" >> $GITHUB_OUTPUT
           echo "cluster-name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
           echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
           echo "sa-name=${SA_NAME}" >> $GITHUB_OUTPUT
         env:
-          KUBECONFIG: ${{ env.KUBECONFIG }}
           CLUSTER_NAME: ${{ inputs.cluster-name }}
           SA_NAME: ${{ inputs.sa-name }}
           NAMESPACE: ${{ inputs.namespace }}
