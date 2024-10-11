@@ -47,6 +47,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    outputs:
+      kubeconfig: ${{ needs.init.outputs.kubeconfig }}
     defaults:
       run:
         working-directory: ./k8s
@@ -63,8 +65,10 @@ jobs:
         run: |
           make init-env test
         env:
-          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
-          NAMESPACE: ${{ needs.init.outputs.namespace }}
+          KUBECONFIG: /home/runner/.kube/config
+          NAMESPACE: test
+#          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
+#          NAMESPACE: ${{ needs.init.outputs.namespace }}
 
       - name: Check Test Coverage
         run: |

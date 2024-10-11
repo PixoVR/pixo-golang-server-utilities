@@ -61,7 +61,7 @@ jobs:
     name: Initialize Cluster and Install Dependencies
     runs-on: ubuntu-latest
     outputs:
-      kubeconfig: ${{ needs.init.outputs.kubeconfig }}
+      kubeconfig: ${{ steps.init.outputs.kubeconfig }}
       cluster-name: ${{ inputs.cluster-name }}
       namespace: ${{ inputs.namespace }}
       sa-name: ${{ inputs.sa-name }}
