@@ -60,6 +60,12 @@ jobs:
   init:
     name: Initialize Cluster and Install Dependencies
     runs-on: ubuntu-latest
+    outputs:
+      kubeconfig: ${{ steps.cluster.outputs.kubeconfig }}
+      cluster-name: ${{ steps.cluster.outputs.cluster-name }}
+      namespace: ${{ steps.cluster.outputs.namespace }}
+      sa-name: ${{ steps.cluster.outputs.sa-name }}
+      gcp-credentials-file: ${{ steps.gcloud.outputs.gcp-credentials-file }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,6 +81,7 @@ jobs:
           ./get_helm.sh
 
       - name: Setup Google Cloud SDK
+        id: gcloud
         if: ${{ inputs.gcp-credentials != '' }}
         run: |
           echo "${GOOGLE_JSON_KEY_CONTENTS}" > ${GOOGLE_JSON_KEY_PATH}
@@ -85,6 +92,7 @@ jobs:
           GOOGLE_JSON_KEY_CONTENTS: ${{ inputs.gcp-credentials }}
 
       - name: Init Test Cluster
+        id: cluster
         run: |
           k3d cluster create ${CLUSTER_NAME}
           kubectl wait --for=condition=ready node --all --timeout=300s
@@ -98,6 +106,9 @@ jobs:
 
           k3d kubeconfig write ${CLUSTER_NAME} > ${KUBECONFIG}
           echo "kubeconfig=${KUBECONFIG}" >> $GITHUB_OUTPUT
+          echo "cluster-name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
+          echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
+          echo "sa-name=${SA_NAME}" >> $GITHUB_OUTPUT
         env:
           KUBECONFIG: ${{ env.KUBECONFIG }}
           CLUSTER_NAME: ${{ inputs.cluster-name }}
