@@ -12,6 +12,7 @@ on:
   push:
     paths:
       - '.github/workflows/k8s-tests.yaml'
+      - '.github/workflows/init-cluster.yaml'
     branches:
       - pipelines
 
@@ -62,8 +63,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          echo "KUBECONFIG: ${{ env.KUBECONFIG }}"
-          echo "NAMESPACE: ${{ env.NAMESPACE }}"
           make init-env test
         env:
           KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}

@@ -105,6 +105,7 @@ jobs:
 
           k3d kubeconfig write ${CLUSTER_NAME} > $HOME/.config/kubeconfig-test-cluster.yaml
           echo "kubeconfig=$HOME/.config/kubeconfig-test-cluster.yaml" >> $GITHUB_OUTPUT
+          cat $HOME/.config/kubeconfig-test-cluster.yaml
           echo "cluster-name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
           echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
           echo "sa-name=${SA_NAME}" >> $GITHUB_OUTPUT
