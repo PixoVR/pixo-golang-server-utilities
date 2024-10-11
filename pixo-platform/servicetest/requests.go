@@ -158,6 +158,11 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 				Str("url", url).
 				Str("method", method)
 			res, err = req.Get(url)
+		case "DELETE":
+			log.Debug().
+				Str("url", url).
+				Str("method", method)
+			res, err = req.Delete(url)
 		case "POST":
 			log.Debug().
 				Str("url", url).
