@@ -54,7 +54,7 @@ jobs:
 
       - id: init
         name: Init Cluster
-        uses: PixoVR/test-cluster-action@0.0.4
+        uses: PixoVR/test-cluster-action@0.0.5
         with:
           argo-events: true
           argo-workflows: true
