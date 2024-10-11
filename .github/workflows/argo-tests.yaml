@@ -52,7 +52,7 @@ jobs:
         working-directory: ./argo
     steps:
       - name: Init Test Cluster
-        uses: ./.github/workflows/init-cluster
+        uses: PixoVR/pixo-golang-server-utilities/.github/workflows/init-cluster.yaml
         with:
           namespace: ${{ env.NAMESPACE }}
           argo-events: true

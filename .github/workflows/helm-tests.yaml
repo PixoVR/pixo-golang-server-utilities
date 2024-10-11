@@ -53,7 +53,7 @@ jobs:
         working-directory: ./helm
     steps:
       - name: Init Test Cluster
-        uses: ./.github/workflows/init-cluster
+        uses: PixoVR/pixo-golang-server-utilities/.github/workflows/init-cluster.yaml
         env:
           NAMESPACE: ${{ env.NAMESPACE }}
           SA_NAME: ${{ env.SA_NAME }}
