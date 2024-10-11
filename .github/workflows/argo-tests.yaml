@@ -48,7 +48,6 @@ jobs:
     name: Initialize Cluster and Install Dependencies
     uses: PixoVR/pixo-golang-server-utilities/.github/workflows/init-cluster.yaml@pipelines
     with:
-      namespace: ${{ env.NAMESPACE }}
       argo-events: true
       argo-workflows: true
 
@@ -74,7 +73,6 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ needs.init.outputs.gcp-credentials-file }}
           GOOGLE_JSON_KEY: ${{ needs.init.outputs.gcp-credentials-file }}
           GCS_BUCKET_NAME: ${{ env.GCS_BUCKET_NAME }}
-          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
           NAMESPACE: ${{ env.NAMESPACE }}
           SA_NAME: ${{ env.SA_NAME }}
 
