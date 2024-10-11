@@ -13,7 +13,7 @@ var _ = Describe("Helm", Ordered, func() {
 
 	var (
 		chart          helm.Chart
-		helmClient     *helm.clientImpl
+		helmClient     helm.Client
 		NginxRepoURL   = "https://kubernetes.github.io/ingress-nginx"
 		sampleChartURL = "https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.11.2/ingress-nginx-4.11.2.tgz"
 	)
