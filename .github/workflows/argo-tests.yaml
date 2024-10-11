@@ -46,17 +46,11 @@ jobs:
 
   init:
     name: Initialize Cluster and Install Dependencies
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./argo
-    steps:
-      - name: Init Test Cluster
-        uses: PixoVR/pixo-golang-server-utilities/.github/workflows/init-cluster.yaml@pipelines
-        with:
-          namespace: ${{ env.NAMESPACE }}
-          argo-events: true
-          argo-workflows: true
+    uses: PixoVR/pixo-golang-server-utilities/.github/workflows/init-cluster.yaml@pipelines
+    with:
+      namespace: ${{ env.NAMESPACE }}
+      argo-events: true
+      argo-workflows: true
 
 
   test:
