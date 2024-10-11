@@ -65,6 +65,7 @@ jobs:
         run: |
           mkdir -p /home/runner/.kube
           echo "$KUBECONFIG" > /home/runner/.kube/config
+          cat /home/runner/.kube/config
         env:
           KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
 
