@@ -63,7 +63,8 @@ jobs:
         run: |
           make init-env test
         env:
-          SA_NAME: ${{ needs.init.outputs.sa-name }}
+          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
+          NAMESPACE: ${{ needs.init.outputs.namespace }}
 
       - name: Check Test Coverage
         run: |

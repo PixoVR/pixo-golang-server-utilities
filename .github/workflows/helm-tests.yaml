@@ -65,6 +65,7 @@ jobs:
         run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
+          KUBECONFIG: ${{ needs.init.outputs.kubeconfig }}
           NAMESPACE: ${{ needs.init.outputs.namespace }}
 
       - name: Check Test Coverage
