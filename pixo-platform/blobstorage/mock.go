@@ -5,6 +5,8 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"os"
+	"strings"
 )
 
 type MockStorageClient struct {
@@ -34,6 +36,7 @@ type MockStorageClient struct {
 	ReadFileNumTimesCalled int
 	ReadFileError          error
 	ReadFileObjects        []UploadableObject
+	ReadFilePath           string
 
 	FindFilesWithNameNumTimesCalled int
 	FindFilesWithNameEmpty          bool
@@ -82,6 +85,7 @@ func (f *MockStorageClient) Reset() {
 	f.ReadFileNumTimesCalled = 0
 	f.ReadFileError = nil
 	f.ReadFileObjects = nil
+	f.ReadFilePath = ""
 
 	f.FindFilesWithNameNumTimesCalled = 0
 	f.FindFilesWithNameError = nil
@@ -172,6 +176,10 @@ func (f *MockStorageClient) Copy(ctx context.Context, src, dest UploadableObject
 	return nil
 }
 
+// ReadFile reads a file from the storage client as a mock
+//
+// If ReadFilePath is set, it will read the file from the path specified
+// and return an open io.ReadCloser to the file. Note: make sure to close the io.ReadCloser
 func (f *MockStorageClient) ReadFile(ctx context.Context, object UploadableObject) (io.ReadCloser, error) {
 	f.ReadFileNumTimesCalled++
 	f.ReadFileObjects = append(f.ReadFileObjects, object)
@@ -180,7 +188,19 @@ func (f *MockStorageClient) ReadFile(ctx context.Context, object UploadableObjec
 		return nil, f.ReadFileError
 	}
 
-	return nil, nil
+	if f.ReadFilePath != "" {
+		file, err := os.Open(f.ReadFilePath)
+		if err != nil {
+			return nil, err
+		}
+
+		return file, nil
+	}
+
+	reader := strings.NewReader("test")
+	readCloser := io.NopCloser(reader)
+
+	return readCloser, nil
 }
 
 func (f *MockStorageClient) DeleteFile(ctx context.Context, object UploadableObject) error {
