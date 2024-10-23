@@ -1,0 +1,13 @@
+
+profile: cover.out
+
+local-prefix: "github.com/PixoVR/pixo-golang-server-utilities/k8s"
+
+threshold:
+  file: 80
+  package: 82
+  total: 82
+
+exclude:
+  paths:
+    - ^client/in_cluster.go

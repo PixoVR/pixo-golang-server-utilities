@@ -10,7 +10,6 @@ import (
 )
 
 func (c Client) UploadFile(ctx context.Context, object blobstorage.UploadableObject, fileReader io.Reader) (string, error) {
-
 	storageClient, err := storage.NewClient(ctx)
 	if err != nil {
 		return "", err

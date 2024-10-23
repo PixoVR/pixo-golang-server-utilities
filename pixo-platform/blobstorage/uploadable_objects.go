@@ -1,9 +1,12 @@
 package blobstorage
 
+import "time"
+
 type BasicUploadable struct {
 	BucketName        string
 	UploadDestination string
 	Filename          string
+	Timestamp         int64
 }
 
 func (b BasicUploadable) GetBucketName() string {
@@ -15,12 +18,16 @@ func (b BasicUploadable) GetFileLocation() string {
 }
 
 func (b BasicUploadable) GetTimestamp() int64 {
-	return 0
+	if b.Timestamp != 0 {
+		return b.Timestamp
+	}
+	return time.Now().Unix()
 }
 
 type PathUploadable struct {
 	BucketName string
 	Filepath   string
+	Timestamp  *time.Time
 }
 
 func (p PathUploadable) GetBucketName() string {
@@ -32,5 +39,8 @@ func (p PathUploadable) GetFileLocation() string {
 }
 
 func (p PathUploadable) GetTimestamp() int64 {
+	if p.Timestamp != nil {
+		return p.Timestamp.Unix()
+	}
 	return 0
 }

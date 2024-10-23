@@ -2,6 +2,7 @@ package gcs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,7 +16,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-var expireDuration = 120 * time.Minute
+var DefaultExpireDuration = 120 * time.Minute
 
 func (c Client) getBucketName(object blobstorage.UploadableObject) string {
 	bucketName := object.GetBucketName()
@@ -23,11 +24,11 @@ func (c Client) getBucketName(object blobstorage.UploadableObject) string {
 		return bucketName
 	}
 
-	if c.bucketName == "" {
-		c.bucketName = os.Getenv("GOOGLE_STORAGE_BUCKET")
+	if c.config.BucketName == "" {
+		c.config.BucketName = os.Getenv("GOOGLE_STORAGE_BUCKET")
 	}
 
-	return c.bucketName
+	return c.config.BucketName
 }
 
 func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
@@ -42,9 +43,13 @@ func (c Client) GetPublicURL(object blobstorage.UploadableObject) string {
 }
 
 func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableObject, options ...blobstorage.Option) (string, error) {
+	if signedURL := c.cacheGet(ctx, object); signedURL != "" {
+		return signedURL, nil
+	}
+
 	data, err := os.ReadFile(os.Getenv("GOOGLE_JSON_KEY"))
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to read google json key")
 	}
 
 	conf, err := google.JWTConfigFromJSON(data, storage.ScopeReadOnly)
@@ -60,27 +65,55 @@ func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableO
 	opts := &storage.SignedURLOptions{
 		Scheme:         storage.SigningSchemeV4,
 		Method:         http.MethodGet,
-		Expires:        time.Now().Add(expireDuration),
+		Expires:        time.Now().Add(DefaultExpireDuration),
 		GoogleAccessID: conf.Email,
 		PrivateKey:     conf.PrivateKey,
 	}
 	if len(options) > 0 {
-		option := options[0]
+		opt := options[0]
 
-		if option.ContentDisposition != "" {
+		if opt.ContentDisposition != "" {
 			opts.QueryParameters = url.Values{
-				"response-content-disposition": {option.ContentDisposition},
+				"response-content-disposition": {opt.ContentDisposition},
 			}
 		}
 
-		if option.Expires != nil {
-			opts.Expires = *option.Expires
+		if opt.Lifetime.String() != "0s" {
+			opts.Expires = time.Now().Add(opt.Lifetime)
 		}
 
-		if option.Method != "" {
-			opts.Method = option.Method
+		if opt.Method != "" {
+			opts.Method = opt.Method
 		}
 	}
 
-	return storageClient.Bucket(c.getBucketName(object)).SignedURL(object.GetFileLocation(), opts)
+	signedURL, err := storageClient.Bucket(c.getBucketName(object)).SignedURL(object.GetFileLocation(), opts)
+	if err != nil {
+		return "", err
+	}
+
+	c.cacheSet(ctx, signedURL, object, options...)
+	return signedURL, nil
+}
+
+func (c Client) cacheSet(ctx context.Context, signedURL string, object blobstorage.UploadableObject, options ...blobstorage.Option) {
+	if c.config.Cache != nil {
+		expiration := DefaultExpireDuration
+		if len(options) > 0 && options[0].Lifetime != 0 {
+			expiration = options[0].Lifetime
+		}
+		c.config.Cache.Set(ctx, c.CacheKey(object), signedURL, expiration/2)
+	}
+}
+
+func (c Client) cacheGet(ctx context.Context, object blobstorage.UploadableObject) string {
+	if c.config.Cache != nil {
+		return c.config.Cache.Get(ctx, c.CacheKey(object)).Val()
+	}
+
+	return ""
+}
+
+func (c Client) CacheKey(object blobstorage.UploadableObject) string {
+	return fmt.Sprintf("signed-url:%s/%s", c.getBucketName(object), object.GetFileLocation())
 }

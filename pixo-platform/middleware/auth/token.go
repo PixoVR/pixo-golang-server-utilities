@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	platform "github.com/PixoVR/pixo-golang-clients/pixo-platform/primary-api"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -14,7 +13,7 @@ import (
 
 type ValidateUserFunc func(UserID int) error
 
-type ValidateAPIKey func(context.Context, string) (*platform.User, error)
+type ValidateAPIKey func(context.Context, string) (*User, error)
 
 func TokenAuthMiddleware(validateUser ValidateUserFunc, validateAPIKey ValidateAPIKey) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -27,30 +26,34 @@ func TokenAuthMiddleware(validateUser ValidateUserFunc, validateAPIKey ValidateA
 				return
 			}
 
-			if err := validateUser(user.ID); err != nil {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-					"error": "unauthorized",
-				})
-				return
+			if validateUser != nil {
+				if err = validateUser(user.ID); err != nil {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+						"error": "unauthorized",
+					})
+					return
+				}
+				c.Set(config.ContextRequestAuthentication.String(), user)
 			}
-			c.Set(config.ContextRequestAuthentication.String(), user)
 		} else {
-			user, err := validateAPIKey(c.Request.Context(), ExtractToken(c.Request, APIKeyHeader))
-			if err != nil {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-					"error": "unauthorized",
-				})
-				return
-			}
+			if validateAPIKey != nil {
+				user, err := validateAPIKey(c.Request.Context(), ExtractToken(c.Request, APIKeyHeader))
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+						"error": "unauthorized",
+					})
+					return
+				}
 
-			c.Set(config.ContextRequestAuthentication.String(), user)
+				c.Set(config.ContextRequestAuthentication.String(), user)
+			}
 		}
 
 		c.Next()
 	}
 }
 
-func validateByToken(c *gin.Context) (*platform.User, error) {
+func validateByToken(c *gin.Context) (*User, error) {
 	if err := TokenValid(c.Request); err != nil {
 		return nil, err
 	}

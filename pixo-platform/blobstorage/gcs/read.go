@@ -55,7 +55,6 @@ func (c Client) FindFilesWithName(ctx context.Context, bucketName, prefix, filen
 }
 
 func (c Client) ReadFile(ctx context.Context, object blobstorage.UploadableObject) (io.ReadCloser, error) {
-
 	storageClient, err := storage.NewClient(ctx)
 	if err != nil {
 		return nil, err

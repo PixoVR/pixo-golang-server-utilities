@@ -21,8 +21,6 @@ func init() {
 	if strings.ToLower(lifecycle) == "prod" {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	} else if strings.ToLower(lifecycle) == "test" {
-		zerolog.SetGlobalLevel(zerolog.Level(0)) // trace level
-	} else {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
@@ -53,11 +51,9 @@ func LoggingMiddleware(logger *zerolog.Logger) gin.HandlerFunc {
 			c.Request.Method == http.MethodPatch {
 
 			body, err := io.ReadAll(c.Request.Body)
-			if err != nil {
-				logger.Error().Err(err).Msg("Error reading request body")
+			if err == nil && len(body) > 0 {
+				logger.Debug().Msgf("Request Body: %s", body)
 			}
-
-			logger.Debug().Msgf("Request Body: %s", body)
 		}
 
 		c.Next()

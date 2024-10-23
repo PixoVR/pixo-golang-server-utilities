@@ -3,7 +3,9 @@ package servicetest
 import (
 	"context"
 	"errors"
-	graphql_api "github.com/PixoVR/pixo-golang-clients/pixo-platform/graphql-api"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/platform"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 	"github.com/gin-gonic/gin"
@@ -34,25 +36,46 @@ type ServerTestSuite struct {
 
 type SuiteConfig struct {
 	Opts          *godog.Options
-	ServiceClient graphql_api.PlatformClient
+	ServiceClient abstract.AbstractClient
 	Engine        *gin.Engine
+	BeforeRequest func(body []byte)
 	Reset         func(sc *godog.Scenario)
 	Steps         []Step
 }
 
 func NewSuite(config *SuiteConfig) *ServerTestSuite {
-	viper.SetDefault("lifecycle", "local")
-	viper.SetDefault("region", "na")
+	if config == nil {
+		config = &SuiteConfig{}
+	}
 
-	pflag.StringVarP(&region, "region", "r", viper.GetString("region"), "region to run tests against (options: na, saudi)")
-	pflag.StringVarP(&lifecycle, "lifecycle", "l", viper.GetString("lifecycle"), "lifecycle to run tests against (options: local, dev, stage, prod)")
-	pflag.Parse()
+	if config.Opts == nil {
+		config.Opts = &godog.Options{
+			Output:    colors.Colored(os.Stdout),
+			Randomize: time.Now().UTC().UnixNano(),
+			Format:    "pretty",
+		}
+	}
+
+	pflag.BoolVarP(&debug, "debug", "v", false, "enable debug logging")
+	pflag.StringVarP(&region, "region", "r", "na", "region to run tests against (options: na, saudi)")
+	pflag.StringVarP(&lifecycle, "lifecycle", "l", "local", "lifecycle to run tests against (options: local, dev, stage, prod)")
+
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		log.Fatal().Err(err).Msg("Failed to bind flags")
 	}
 
+	godog.BindCommandLineFlags("godog.", config.Opts)
+	pflag.Parse()
+
 	viper.Set("region", region)
 	viper.Set("lifecycle", lifecycle)
+
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		log.Debug().Msg("Debug logging enabled")
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	}
 
 	suite := &ServerTestSuite{
 		Feature:   NewServerTestFeature(),
@@ -62,17 +85,19 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		config: config,
 	}
 
-	suite.Feature.Engine = config.Engine
-
-	if suite.config.Opts == nil {
-		suite.config.Opts = &godog.Options{
-			Output:    colors.Colored(os.Stdout),
-			Randomize: time.Now().UTC().UnixNano(),
-			Format:    "pretty",
-		}
+	if lifecycle == "" || lifecycle == "internal" {
+		suite.Feature.PlatformClient = &platform.MockClient{}
+		suite.Feature.Engine = config.Engine
+	} else {
+		suite.Feature.PlatformClient = platform.NewClient(urlfinder.ClientConfig{
+			Lifecycle: suite.Lifecycle,
+			Region:    suite.Region,
+			APIKey:    os.Getenv("PIXO_API_KEY"),
+		})
 	}
 
 	suite.setup()
+
 	return suite
 }
 
@@ -109,15 +134,12 @@ func (s *ServerTestSuite) InitializeScenario(ctx *godog.ScenarioContext) {
 }
 
 func (s *ServerTestSuite) setup() {
-	godog.BindCommandLineFlags("godog.", s.config.Opts)
-	pflag.Parse()
-
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 
 	s.loadEnv()
 
-	viper.SetConfigName("config")
+	viper.SetConfigName("test-config")
 	viper.AddConfigPath(".")
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -125,8 +147,6 @@ func (s *ServerTestSuite) setup() {
 			log.Warn().Msg("Config file not found; ignore error if desired")
 		}
 	}
-
-	initLogger()
 }
 
 func (s *ServerTestSuite) loadEnv() {
@@ -144,14 +164,5 @@ func (s *ServerTestSuite) loadEnv() {
 		} else {
 			_ = godotenv.Load(".env")
 		}
-	}
-}
-
-func initLogger() {
-	pflag.BoolVarP(&debug, "debug", "z", true, "enable debug logging")
-	if debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	} else {
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	}
 }

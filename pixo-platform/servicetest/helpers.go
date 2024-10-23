@@ -17,11 +17,7 @@ func GenerateRandomString(length int) string {
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
-	randomID := string(b)
-
-	log.Info().Msgf("Random ID: %s", randomID)
-
-	return randomID
+	return string(b)
 }
 
 func generateRandomUUID() string {

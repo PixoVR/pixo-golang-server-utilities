@@ -1,7 +1,7 @@
 
 profile: cover.out
 
-local-prefix: "github.com/PixoVR/pixo-golang-server-utilities"
+local-prefix: "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform"
 
 threshold:
 #  file: 70

@@ -2,6 +2,7 @@ package servicetest_test
 
 import (
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/heartbeat"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/platform"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/urlfinder"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/engine"
 	. "github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/servicetest"
@@ -36,23 +37,34 @@ func TestMain(m *testing.M) {
 	config := engine.Config{BasePath: "/heartbeat"}
 	e := engine.NewEngine(config)
 
+	beforeRequest := func(body []byte) {
+		log.Info().Msg("Before request")
+	}
+
 	suiteConfig := &SuiteConfig{
-		Engine: e.Engine(),
-		Reset:  resetFunc,
-		Steps:  []Step{helloStep},
+		Engine:        e.Engine,
+		BeforeRequest: beforeRequest,
+		Reset:         resetFunc,
+		Steps:         []Step{helloStep},
 	}
 
 	suite := NewSuite(suiteConfig)
 
 	suite.AddSteps(goodbyeStep)
 
-	suite.Feature.AddStaticSubstitution("$STATIC_VAL", "ok")
-	suite.Feature.AddDynamicSubstitution("$DYNAMIC_VAL", func(data []byte) []byte { return []byte("ok") })
+	suite.Feature.AddStaticSubstitution("STATIC_VAL", "ok")
+	suite.Feature.AddDynamicSubstitution("DYNAMIC_VAL", func(data []byte) string { return "ok" })
+
+	suite.Feature.BeforeRequest = func(body []byte) {
+		log.Info().Msgf("Before request: %s", string(body))
+	}
 
 	suite.Feature.ServiceClient = heartbeat.NewClient(urlfinder.ClientConfig{
-		Region:    "na",
-		Lifecycle: "dev",
+		Lifecycle: suite.Lifecycle,
+		Region:    suite.Region,
 	})
+
+	suite.Feature.PlatformClient = &platform.MockClient{}
 
 	if suite.Lifecycle == "" {
 		log.Fatal().Msg("Failed to get lifecycle")

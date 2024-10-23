@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	platform "github.com/PixoVR/pixo-golang-clients/pixo-platform/primary-api"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 )
@@ -46,7 +45,7 @@ func GetIPAddress(ctx context.Context) string {
 }
 
 func GetCurrentUserID(ctx context.Context) int {
-	user, ok := ctx.Value(ContextRequestAuthentication).(*platform.User)
+	user, ok := ctx.Value(ContextRequestAuthentication).(*User)
 	if !ok {
 		return 0
 	}
