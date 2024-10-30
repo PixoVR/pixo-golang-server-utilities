@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/antchfx/jsonquery"
 	"github.com/cucumber/godog"
+	"github.com/jinzhu/now"
 	. "github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
 	"io"
@@ -79,6 +80,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
 	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
 	ctx.Step(`^the response should contain a "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
+	ctx.Step(`^the response should contain a "([^"]*)" temporally equal to "([^"]*)"$`, s.TheResponseShouldContainATimeSetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with length (\d+)$`, s.ResponseShouldContainPropertyWithLength)
 	ctx.Step(`^the response should contain a "([^"]*)" with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithPropertySetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetTo)
@@ -475,6 +477,30 @@ func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string
 
 	if !(savedByString || savedByBool || savedByInt || savedByFloat) {
 		return fmt.Errorf("expected response to contain %s set to %s", property, value)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) TheResponseShouldContainATimeSetTo(jsonQueryPath, value string) error {
+	val, err := s.getFirstNodeFromResponse(jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	actualValue := fmt.Sprint(val.Value())
+	actualTime, err := now.Parse(actualValue)
+	if err != nil {
+		return fmt.Errorf("failed to parse actual time: %v", err)
+
+	}
+	expectedTime, err := now.Parse(value)
+	if err != nil {
+		return fmt.Errorf("failed to parse expected time: %v", err)
+	}
+
+	if actualTime != expectedTime {
+		return fmt.Errorf("the json query path %s does not contain %s: %s", jsonQueryPath, value, prettify(s.res))
 	}
 
 	return nil
