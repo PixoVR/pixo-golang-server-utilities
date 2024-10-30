@@ -500,7 +500,7 @@ func (s *ServerTestFeature) TheResponseShouldContainATimeSetTo(jsonQueryPath, va
 	}
 
 	if actualTime != expectedTime {
-		return fmt.Errorf("the json query path %s does not contain %s: %s", jsonQueryPath, value, prettify(s.res))
+		return fmt.Errorf("the json query path %s does not contain %s: %s", jsonQueryPath, value, prettify(s.ResponseString))
 	}
 
 	return nil
