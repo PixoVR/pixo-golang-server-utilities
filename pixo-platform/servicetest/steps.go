@@ -499,7 +499,10 @@ func (s *ServerTestFeature) TheResponseShouldContainATimeSetTo(jsonQueryPath, va
 		return fmt.Errorf("failed to parse expected time: %v", err)
 	}
 
-	if actualTime != expectedTime {
+	actualTimeUTC := actualTime.UTC()
+	expectedTimeUTC := expectedTime.UTC()
+
+	if !actualTimeUTC.Equal(expectedTimeUTC) {
 		return fmt.Errorf("the json query path %s does not contain %s: %s", jsonQueryPath, value, prettify(s.ResponseString))
 	}
 
