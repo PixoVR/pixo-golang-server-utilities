@@ -205,6 +205,12 @@ func (s *ServerTestFeature) SendRequestWithEncodedDataToService(method, tenant, 
 }
 
 func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {
+	graphQLOperationName := gqlMethodName
+
+	splitGraphQLMethodName := strings.Split(gqlMethodName, "/")
+	if len(splitGraphQLMethodName) > 1 {
+		graphQLOperationName = splitGraphQLMethodName[len(splitGraphQLMethodName)-1]
+	}
 	s.GraphQLOperation = gqlMethodName
 	s.DirectoryFilePath = fmt.Sprintf("./gql/%s.gql", gqlMethodName)
 
@@ -247,7 +253,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 		Query         string         `json:"query"`
 		Variables     map[string]any `json:"variables,omitempty"`
 	}{
-		OperationName: gqlMethodName,
+		OperationName: graphQLOperationName,
 		Query:         string(fileContent),
 		Variables:     variables,
 	}
