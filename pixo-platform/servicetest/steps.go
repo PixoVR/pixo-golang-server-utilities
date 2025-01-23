@@ -5,16 +5,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/antchfx/jsonquery"
-	"github.com/cucumber/godog"
-	. "github.com/onsi/gomega"
-	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/antchfx/jsonquery"
+	"github.com/cucumber/godog"
+	"github.com/jinzhu/now"
+	. "github.com/onsi/gomega"
+	"github.com/rs/zerolog/log"
 )
 
 type Step struct {
@@ -79,6 +81,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
 	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
 	ctx.Step(`^the response should contain a "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
+	ctx.Step(`^the response should contain a "([^"]*)" temporally equal to "([^"]*)"$`, s.TheResponseShouldContainATimeSetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with length (\d+)$`, s.ResponseShouldContainPropertyWithLength)
 	ctx.Step(`^the response should contain a "([^"]*)" with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithPropertySetTo)
 	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetTo)
@@ -97,6 +100,54 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the message should contain a "([^"]*)"$`, s.TheMessageShouldContainA)
 	ctx.Step(`^the message should not contain a "([^"]*)"$`, s.TheMessageShouldNotContainA)
 	ctx.Step(`^the message should not be empty$`, s.CheckMessageNotEmpty)
+	ctx.Step(`^the json query "([^"]*)" should not exists in the response$`, s.theJsonQueryShouldNotExistsInTheResponse)
+	ctx.Step(`^the json query "([^"]*)" should exists in the response$`, s.theJsonQueryShouldExistsInTheResponse)
+}
+
+func (s *ServerTestFeature) theJsonQueryShouldNotExistsInTheResponse(jsonQueryPath string) error {
+	if s.ResponseString == "" {
+		return fmt.Errorf("response is empty")
+	}
+
+	jsonQueryPath = string(s.PerformSubstitutions([]byte(jsonQueryPath)))
+
+	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	if err != nil {
+		return err
+	}
+	queryResponse, err := jsonquery.Query(doc, jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	if queryResponse != nil {
+		return fmt.Errorf("json path %s exists in response", jsonQueryPath)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) theJsonQueryShouldExistsInTheResponse(jsonQueryPath string) error {
+	if s.ResponseString == "" {
+		return fmt.Errorf("response is empty")
+	}
+
+	jsonQueryPath = string(s.PerformSubstitutions([]byte(jsonQueryPath)))
+
+	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	if err != nil {
+		return err
+	}
+	queryResult, err := jsonquery.Query(doc, jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	if queryResult == nil {
+		return fmt.Errorf("json query path %s not found in response", jsonQueryPath)
+	}
+
+	return nil
 }
 
 func (s *ServerTestFeature) SendRequest(method, endpoint string) error {
@@ -154,6 +205,12 @@ func (s *ServerTestFeature) SendRequestWithEncodedDataToService(method, tenant, 
 }
 
 func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {
+	graphQLOperationName := gqlMethodName
+
+	splitGraphQLMethodName := strings.Split(gqlMethodName, "/")
+	if len(splitGraphQLMethodName) > 1 {
+		graphQLOperationName = splitGraphQLMethodName[len(splitGraphQLMethodName)-1]
+	}
 	s.GraphQLOperation = gqlMethodName
 	s.DirectoryFilePath = fmt.Sprintf("./gql/%s.gql", gqlMethodName)
 
@@ -196,7 +253,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 		Query         string         `json:"query"`
 		Variables     map[string]any `json:"variables,omitempty"`
 	}{
-		OperationName: gqlMethodName,
+		OperationName: graphQLOperationName,
 		Query:         string(fileContent),
 		Variables:     variables,
 	}
@@ -439,7 +496,6 @@ func (s *ServerTestFeature) TheResponseShouldNotContainA(key string) error {
 	actual := TrimString(s.ResponseString)
 	if strings.Contains(actual, key) {
 		return fmt.Errorf("expected response to not contain %s, but got %s", key, actual)
-
 	}
 	return nil
 }
@@ -475,6 +531,32 @@ func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string
 
 	if !(savedByString || savedByBool || savedByInt || savedByFloat) {
 		return fmt.Errorf("expected response to contain %s set to %s", property, value)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) TheResponseShouldContainATimeSetTo(jsonQueryPath, value string) error {
+	val, err := s.getFirstNodeFromResponse(jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	actualValue := fmt.Sprint(val.Value())
+	actualTime, err := now.Parse(actualValue)
+	if err != nil {
+		return fmt.Errorf("failed to parse actual time: %v", err)
+	}
+	expectedTime, err := now.Parse(value)
+	if err != nil {
+		return fmt.Errorf("failed to parse expected time: %v", err)
+	}
+
+	actualTimeUTC := actualTime.UTC()
+	expectedTimeUTC := expectedTime.UTC()
+
+	if !actualTimeUTC.Equal(expectedTimeUTC) {
+		return fmt.Errorf("the json query path %s does not contain %s: %s", jsonQueryPath, value, prettify(s.ResponseString))
 	}
 
 	return nil
@@ -524,7 +606,6 @@ func (s *ServerTestFeature) DownloadFile(filepath, url string) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
-
 	}
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
