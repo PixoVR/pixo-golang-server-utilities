@@ -12,7 +12,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/go-resty/resty/v2 v2.14.0
-	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jinzhu/now v1.1.5
