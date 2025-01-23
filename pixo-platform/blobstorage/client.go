@@ -11,6 +11,7 @@ type StorageClient interface {
 	FindFilesWithName(ctx context.Context, bucketName, prefix, filename string) ([]string, error)
 	GetPublicURL(object UploadableObject) string
 	GetSignedURL(ctx context.Context, object UploadableObject, options ...Option) (string, error)
+	GetChecksum(ctx context.Context, object UploadableObject) (string, error)
 	FileExists(ctx context.Context, object UploadableObject) (bool, error)
 	UploadFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error)
 	Copy(ctx context.Context, src UploadableObject, dest UploadableObject) error

@@ -5,16 +5,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/antchfx/jsonquery"
-	"github.com/cucumber/godog"
-	. "github.com/onsi/gomega"
-	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/antchfx/jsonquery"
+	"github.com/cucumber/godog"
+	"github.com/jinzhu/now"
+	. "github.com/onsi/gomega"
+	"github.com/rs/zerolog/log"
 )
 
 type Step struct {
@@ -51,14 +53,6 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response code should be (\d+)$`, s.TheResponseCodeShouldBe)
 	ctx.Step(`^the response should match json$`, s.TheResponseShouldMatchJSON)
 	ctx.Step(`^the response should contain$`, s.TheResponseShouldContain)
-	ctx.Step(`^the response should contain a "([^"]*)" header with value "([^"]*)"$`, s.TheResponseHeadersShouldContain)
-	ctx.Step(`^the response should contain a "([^"]*)"$`, s.TheResponseShouldContainA)
-	ctx.Step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
-	ctx.Step(`^the response should contain "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
-	ctx.Step(`^the response should not contain "([^"]*)" at path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
-	ctx.Step(`^the response should contain a "([^"]*)" that is null$`, s.TheResponseShouldContainAThatIsNull)
-	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
-	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
 
 	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
 	ctx.Step(`^I extract the "([^"]*)" from the response as "([^"]*)"$`, s.ExtractValueFromResponseAs)
@@ -77,10 +71,83 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I send the following data to the websocket:$`, s.SendWebsocketMessage)
 	ctx.Step(`^I read a message from the websocket$`, s.GetWebsocketMessage)
 
+	ctx.Step(`^the response should have a length of (\d+)$`, s.ResponseShouldHaveLength)
+
+	ctx.Step(`^the response should contain a "([^"]*)" header with value "([^"]*)"$`, s.TheResponseHeadersShouldContain)
+	ctx.Step(`^the response should contain a "([^"]*)"$`, s.TheResponseShouldContainA)
+	ctx.Step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
+	ctx.Step(`^the response should not contain "([^"]*)" at path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
+	ctx.Step(`^the response should contain a "([^"]*)" that is null$`, s.TheResponseShouldContainAThatIsNull)
+	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
+	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
+	ctx.Step(`^the response should contain a "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
+	ctx.Step(`^the response should contain a "([^"]*)" temporally equal to "([^"]*)"$`, s.TheResponseShouldContainATimeSetTo)
+	ctx.Step(`^the response should contain a "([^"]*)" with length (\d+)$`, s.ResponseShouldContainPropertyWithLength)
+	ctx.Step(`^the response should contain a "([^"]*)" with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithPropertySetTo)
+	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetTo)
+	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyOfLength)
+	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetToNull)
+	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyNotNull)
+
+	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
+	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsItemAtIndexWithPropertySetToNull)
+	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
+	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemAtIndexWithPropertySetTo)
+	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsItemAtIndexWithPropertyOfLength)
+
+	ctx.Step(`^the response should contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemWithPropertySetTo)
+
 	ctx.Step(`^the message should contain a "([^"]*)"$`, s.TheMessageShouldContainA)
 	ctx.Step(`^the message should not contain a "([^"]*)"$`, s.TheMessageShouldNotContainA)
 	ctx.Step(`^the message should not be empty$`, s.CheckMessageNotEmpty)
+	ctx.Step(`^the json query "([^"]*)" should not exists in the response$`, s.theJsonQueryShouldNotExistsInTheResponse)
+	ctx.Step(`^the json query "([^"]*)" should exists in the response$`, s.theJsonQueryShouldExistsInTheResponse)
+}
 
+func (s *ServerTestFeature) theJsonQueryShouldNotExistsInTheResponse(jsonQueryPath string) error {
+	if s.ResponseString == "" {
+		return fmt.Errorf("response is empty")
+	}
+
+	jsonQueryPath = string(s.PerformSubstitutions([]byte(jsonQueryPath)))
+
+	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	if err != nil {
+		return err
+	}
+	queryResponse, err := jsonquery.Query(doc, jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	if queryResponse != nil {
+		return fmt.Errorf("json path %s exists in response", jsonQueryPath)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) theJsonQueryShouldExistsInTheResponse(jsonQueryPath string) error {
+	if s.ResponseString == "" {
+		return fmt.Errorf("response is empty")
+	}
+
+	jsonQueryPath = string(s.PerformSubstitutions([]byte(jsonQueryPath)))
+
+	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	if err != nil {
+		return err
+	}
+	queryResult, err := jsonquery.Query(doc, jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	if queryResult == nil {
+		return fmt.Errorf("json query path %s not found in response", jsonQueryPath)
+	}
+
+	return nil
 }
 
 func (s *ServerTestFeature) SendRequest(method, endpoint string) error {
@@ -138,6 +205,12 @@ func (s *ServerTestFeature) SendRequestWithEncodedDataToService(method, tenant, 
 }
 
 func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, serviceName string, endpoint string, variableBody *godog.DocString) error {
+	graphQLOperationName := gqlMethodName
+
+	splitGraphQLMethodName := strings.Split(gqlMethodName, "/")
+	if len(splitGraphQLMethodName) > 1 {
+		graphQLOperationName = splitGraphQLMethodName[len(splitGraphQLMethodName)-1]
+	}
 	s.GraphQLOperation = gqlMethodName
 	s.DirectoryFilePath = fmt.Sprintf("./gql/%s.gql", gqlMethodName)
 
@@ -180,7 +253,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 		Query         string         `json:"query"`
 		Variables     map[string]any `json:"variables,omitempty"`
 	}{
-		OperationName: gqlMethodName,
+		OperationName: graphQLOperationName,
 		Query:         string(fileContent),
 		Variables:     variables,
 	}
@@ -190,7 +263,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 		return err
 	}
 
-	return s.makeGraphQLRequest(endpoint, serviceName, buf.String())
+	return s.MakeGraphQLRequest(endpoint, serviceName, buf.String())
 }
 
 func (s *ServerTestFeature) ExtractValueFromResponse(keyName string) error {
@@ -423,7 +496,6 @@ func (s *ServerTestFeature) TheResponseShouldNotContainA(key string) error {
 	actual := TrimString(s.ResponseString)
 	if strings.Contains(actual, key) {
 		return fmt.Errorf("expected response to not contain %s, but got %s", key, actual)
-
 	}
 	return nil
 }
@@ -459,6 +531,32 @@ func (s *ServerTestFeature) TheResponseShouldContainSetTo(property, value string
 
 	if !(savedByString || savedByBool || savedByInt || savedByFloat) {
 		return fmt.Errorf("expected response to contain %s set to %s", property, value)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) TheResponseShouldContainATimeSetTo(jsonQueryPath, value string) error {
+	val, err := s.getFirstNodeFromResponse(jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	actualValue := fmt.Sprint(val.Value())
+	actualTime, err := now.Parse(actualValue)
+	if err != nil {
+		return fmt.Errorf("failed to parse actual time: %v", err)
+	}
+	expectedTime, err := now.Parse(value)
+	if err != nil {
+		return fmt.Errorf("failed to parse expected time: %v", err)
+	}
+
+	actualTimeUTC := actualTime.UTC()
+	expectedTimeUTC := expectedTime.UTC()
+
+	if !actualTimeUTC.Equal(expectedTimeUTC) {
+		return fmt.Errorf("the json query path %s does not contain %s: %s", jsonQueryPath, value, prettify(s.ResponseString))
 	}
 
 	return nil
@@ -508,7 +606,6 @@ func (s *ServerTestFeature) DownloadFile(filepath, url string) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
-
 	}
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -533,4 +630,298 @@ func (s *ServerTestFeature) DownloadFile(filepath, url string) error {
 	reader := bytes.NewReader(bodyBytes)
 	_, err = io.Copy(out, reader)
 	return err
+}
+
+func (s *ServerTestFeature) ResponseShouldHaveLength(length int) error {
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if len(items) != length {
+		return fmt.Errorf("the response contains %d items, expected %d: %s", len(items), length, s.ResponseString)
+	}
+
+	return nil
+}
+
+func (a *ServerTestFeature) getFirstNodeFromResponse(queryPath string) (*jsonquery.Node, error) {
+	doc, err := jsonquery.Parse(strings.NewReader(a.ResponseString))
+	if err != nil {
+		return nil, err
+	}
+
+	queryPath = strings.ReplaceAll(queryPath, ".", "/")
+
+	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s", queryPath))
+	if extractedValue == nil {
+		return nil, fmt.Errorf("json query '%s' not found in response", queryPath)
+	}
+
+	return extractedValue, nil
+}
+
+func (a *ServerTestFeature) ResponseShouldContainPropertyWithLength(jsonQueryPath string, length int) error {
+	val, err := a.getFirstNodeFromResponse(jsonQueryPath)
+	if err != nil {
+		return err
+	}
+	log.Debug().Msgf("Val: %v", val.Value())
+	if val.Value() == nil || len(val.ChildNodes()) != length {
+		return fmt.Errorf("the json query path %s does not contain %d items: %s", jsonQueryPath, length, a.ResponseString)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsItemWithPropertySetTo(property, value string) error {
+	value = string(s.PerformSubstitutions([]byte(value)))
+
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	for _, item := range items {
+		itemMap := item.(map[string]interface{})
+		itemValue := fmt.Sprint(itemMap[property])
+		if itemValue == value {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("no item found with %s set to %s", property, value)
+}
+
+func (s *ServerTestFeature) ResponseContainsObjectWithPropertySetTo(objectName, property, value string) error {
+	value = string(s.PerformSubstitutions([]byte(value)))
+
+	response := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+		return fmt.Errorf("failed to unmarshal response into map: %v", err)
+	}
+
+	objectValue, ok := response[objectName]
+	if !ok {
+		return fmt.Errorf("response does not have %s in response", objectName)
+	}
+
+	objectMap, ok := objectValue.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("%s is not an object: got %v", objectName, objectValue)
+	}
+
+	itemValue := fmt.Sprint(objectMap[property])
+	if itemValue != value {
+		return fmt.Errorf("%s does not have %s set to %s, found %s", objectName, property, value, itemValue)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySetTo(objectName string, index int, property, value string) error {
+	value = string(s.PerformSubstitutions([]byte(value)))
+
+	response := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+		return fmt.Errorf("failed to unmarshal response into map: %v", err)
+	}
+
+	objectValue, ok := response[objectName]
+	if !ok {
+		return fmt.Errorf("response does not have %s in response", objectName)
+	}
+
+	itemsList, ok := objectValue.([]interface{})
+	if !ok {
+		return fmt.Errorf("%s is not a list: got %v", objectName, objectValue)
+	}
+
+	if index >= len(itemsList) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(itemsList))
+	}
+
+	itemMap := itemsList[index].(map[string]interface{})
+	itemValue := fmt.Sprint(itemMap[property])
+	if itemValue != value {
+		return fmt.Errorf("item at index %d does not have %s set to %s, found %s", index, property, value, itemValue)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyOfLength(objectName string, index int, property string, length int) error {
+	response := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+		return fmt.Errorf("failed to unmarshal response into map: %v", err)
+	}
+
+	objectValue, ok := response[objectName]
+	if !ok {
+		return fmt.Errorf("response does not have %s in response", objectName)
+	}
+
+	itemsList, ok := objectValue.([]interface{})
+	if !ok {
+		return fmt.Errorf("%s is not a list: got %v", objectName, objectValue)
+	}
+
+	if index >= len(itemsList) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(itemsList))
+	}
+
+	itemMap := itemsList[index].(map[string]interface{})
+
+	itemValue := itemMap[property]
+	if itemValue == nil {
+		if length == 0 {
+			return nil
+		}
+		return fmt.Errorf("item at index %d does not have %s set to a slice. got %v", index, property, itemValue)
+	}
+
+	if len(itemValue.([]interface{})) != length {
+		return fmt.Errorf("item at index %d does not have %s set to a slice of length %d, found %d", index, property, length, len(itemValue.([]interface{})))
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySetToNull(objectName string, index int, property string) error {
+	response := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+		return fmt.Errorf("failed to unmarshal response into map: %v", err)
+	}
+
+	objectValue, ok := response[objectName]
+	if !ok {
+		return fmt.Errorf("response does not have %s in response", objectName)
+	}
+
+	itemsList, ok := objectValue.([]interface{})
+	if !ok {
+		return fmt.Errorf("%s is not a list: got %v", objectName, objectValue)
+	}
+
+	if index >= len(itemsList) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(itemsList))
+	}
+
+	itemMap := itemsList[index].(map[string]interface{})
+	itemValue := itemMap[property]
+	if itemValue != nil {
+		return fmt.Errorf("item at index %d does not have %s set to null, found %v", index, property, itemValue)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyNotNull(objectName string, index int, property string) error {
+	response := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+		return fmt.Errorf("failed to unmarshal response into map: %v", err)
+	}
+
+	objectValue, ok := response[objectName]
+	if !ok {
+		return fmt.Errorf("response does not have %s in response", objectName)
+	}
+
+	itemsList, ok := objectValue.([]interface{})
+	if !ok {
+		return fmt.Errorf("%s is not a list: got %v", objectName, objectValue)
+	}
+
+	if index >= len(itemsList) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(itemsList))
+	}
+
+	itemMap := itemsList[index].(map[string]interface{})
+	itemValue := itemMap[property]
+	if itemValue == nil {
+		return fmt.Errorf("item at index %d does not have %s set to a non-null value, found nil", index, property)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetToNull(index int, property string) error {
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if index >= len(items) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(items))
+	}
+
+	itemMap := items[index].(map[string]interface{})
+	itemValue := itemMap[property]
+	if itemValue != nil {
+		return fmt.Errorf("item at index %d does not have %s set to null, found %v", index, property, itemValue)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertyNotSetToNull(index int, property string) error {
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if index >= len(items) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(items))
+	}
+
+	itemMap := items[index].(map[string]interface{})
+	itemValue := itemMap[property]
+	if itemValue == nil {
+		return fmt.Errorf("item at index %d does not have %s set to a non-null value, found nil", index, property)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetTo(index int, property, value string) error {
+	value = string(s.PerformSubstitutions([]byte(value)))
+
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if index >= len(items) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(items))
+	}
+
+	itemMap := items[index].(map[string]interface{})
+	itemValue := fmt.Sprint(itemMap[property])
+	if itemValue != value {
+		return fmt.Errorf("item at index %d does not have %s set to %s, found %s", index, property, value, itemValue)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertyOfLength(index int, property string, length int) error {
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if index >= len(items) {
+		return fmt.Errorf("not enough items in response to get item at index %d, found %d", index, len(items))
+	}
+
+	itemMap := items[index].(map[string]interface{})
+	itemValue := itemMap[property]
+
+	if itemValue == nil {
+		return fmt.Errorf("item at index %d does not have %s set to a slice", index, property)
+	} else if len(itemValue.([]interface{})) != length {
+		return fmt.Errorf("item at index %d does not have %s set to a slice of length %d, found %d", index, property, length, len(itemValue.([]interface{})))
+	}
+
+	return nil
 }

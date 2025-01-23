@@ -1,7 +1,7 @@
 package servicetest
 
 import (
-	abstract "github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract-client"
+	"github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/platform"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"

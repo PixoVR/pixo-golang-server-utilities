@@ -1,22 +1,32 @@
 
-name: Run Tests
+name: Helm Tests
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - dev
   pull_request:
+    paths:
+      - 'helm/**'
     branches:
       - dev
       - main
+  push:
+    paths:
+      - '.github/workflows/helm-tests.yaml'
+    branches:
+      - pipelines
+
+env:
+  GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
+  CLUSTER_NAME: 'test-cluster'
+  NAMESPACE: 'test'
+  SA_NAME: 'test-sa'
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./pixo-platform
+        working-directory: ./helm
 
     steps:
       - uses: actions/checkout@v4
@@ -32,20 +42,20 @@ jobs:
           version: v1.61.0
           install-mode: "goinstall"
           args: --timeout=30m
-          working-directory: ./pixo-platform
+          working-directory: ./helm
 
   test:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./pixo-platform
-    #    strategy:
-    #      fail-fast: false
-    #      matrix:
-    #        containers: [ 1, 2, 3 ]
+        working-directory: ./helm
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - id: init
+        name: Init Cluster
+        uses: PixoVR/test-cluster-action@0.0.6
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -56,13 +66,9 @@ jobs:
         run: |
           go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
         env:
-          GOOGLE_JSON_KEY: '/home/runner/google-key.json'
-          GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/google-key.json'
-          GCS_BUCKET_NAME: pixo-test-bucket
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          NAMESPACE: ${{ steps.init.outputs.namespace }}
 
       - name: Check Test Coverage
-        uses: vladopajic/go-test-coverage@v2
-        with:
-          config: .coverage.yaml
+        run: |
+          go install github.com/vladopajic/go-test-coverage/v2@latest
+          go-test-coverage -config=./.coverage.yaml

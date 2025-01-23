@@ -2,6 +2,7 @@ package gcs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -48,7 +49,7 @@ func (c Client) GetSignedURL(ctx context.Context, object blobstorage.UploadableO
 
 	data, err := os.ReadFile(os.Getenv("GOOGLE_JSON_KEY"))
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to read google json key")
 	}
 
 	conf, err := google.JWTConfigFromJSON(data, storage.ScopeReadOnly)
@@ -99,9 +100,9 @@ func (c Client) cacheSet(ctx context.Context, signedURL string, object blobstora
 	if c.config.Cache != nil {
 		expiration := DefaultExpireDuration
 		if len(options) > 0 && options[0].Lifetime != 0 {
-			expiration = options[0].Lifetime - 1*time.Second
+			expiration = options[0].Lifetime
 		}
-		c.config.Cache.Set(ctx, c.CacheKey(object), signedURL, expiration)
+		c.config.Cache.Set(ctx, c.CacheKey(object), signedURL, expiration/2)
 	}
 }
 
