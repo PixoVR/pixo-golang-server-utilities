@@ -8,7 +8,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.33.0
 	github.com/antchfx/jsonquery v1.3.5
 	github.com/casbin/casbin/v2 v2.100.0
-	github.com/cucumber/godog v0.14.1
+	github.com/cucumber/godog v0.15.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/go-resty/resty/v2 v2.15.3
