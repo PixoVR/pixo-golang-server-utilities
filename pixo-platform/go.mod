@@ -7,7 +7,7 @@ require (
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240913024249-7b991b93902e
 	github.com/alicebob/miniredis/v2 v2.33.0
 	github.com/antchfx/jsonquery v1.3.5
-	github.com/casbin/casbin/v2 v2.99.0
+	github.com/casbin/casbin/v2 v2.100.0
 	github.com/cucumber/godog v0.14.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-jose/go-jose/v3 v3.0.3
