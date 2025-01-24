@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/storage v1.45.0
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20240913024249-7b991b93902e
 	github.com/alicebob/miniredis/v2 v2.33.0
-	github.com/antchfx/jsonquery v1.3.5
+	github.com/antchfx/jsonquery v1.3.6
 	github.com/casbin/casbin/v2 v2.100.0
 	github.com/cucumber/godog v0.15.0
 	github.com/gin-gonic/gin v1.10.0
@@ -46,7 +46,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.48.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
-	github.com/antchfx/xpath v1.3.1 // indirect
+	github.com/antchfx/xpath v1.3.2 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
 	github.com/bytedance/sonic v1.12.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.0 // indirect
