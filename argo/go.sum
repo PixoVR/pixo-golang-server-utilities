@@ -22,8 +22,8 @@ github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302/go.mod h1:SGn
 github.com/alicebob/miniredis/v2 v2.33.0 h1:uvTF0EDeu9RLnUEG27Db5I68ESoIxTiXbNUiji6lZrA=
 github.com/alicebob/miniredis/v2 v2.33.0/go.mod h1:MhP4a3EU7aENRi9aO+tHfTBZicLqQevyi/DJpoj6mi0=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
-github.com/argoproj/argo-workflows/v3 v3.5.11 h1:omkwJ8hMeboY2vxRbMJVm5oCTbygNupMdYHI4ia9Fyc=
-github.com/argoproj/argo-workflows/v3 v3.5.11/go.mod h1:Y6JcxVhHoJp+1dh3dGIb3uGSbcOuWhyLm+JrXEomR60=
+github.com/argoproj/argo-workflows/v3 v3.5.13 h1:d+t+nTBgfHsTTuw+KL3CmBrjvo9/VlRcMNm+FRf8FBA=
+github.com/argoproj/argo-workflows/v3 v3.5.13/go.mod h1:DecB01a8UXDCjtIh0udY8XfIMIRrWrlbob7hk/uMmg0=
 github.com/bmatcuk/doublestar/v4 v4.6.1 h1:FH9SifrbvJhnlQpztAx++wlkk70QBf0iBWDwNy7PA4I=
 github.com/bmatcuk/doublestar/v4 v4.6.1/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
