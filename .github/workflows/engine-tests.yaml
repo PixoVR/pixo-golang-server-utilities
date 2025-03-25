@@ -1,23 +1,22 @@
-
 name: Engine Tests
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'pixo-platform/**'
+      - "pixo-platform/**"
     branches:
       - dev
       - main
   push:
     paths:
-      - '.github/workflows/engine-tests.yaml'
+      - ".github/workflows/engine-tests.yaml"
     branches:
       - pipelines
 
 env:
-  GOOGLE_JSON_KEY_PATH: '/home/runner/google-key.json'
-  GCS_BUCKET_NAME: 'pixo-test-bucket'
+  GOOGLE_JSON_KEY_PATH: "/home/runner/google-key.json"
+  GCS_BUCKET_NAME: "pixo-test-bucket"
 
 jobs:
   lint:
@@ -32,16 +31,15 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: "1.24"
 
       - name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.61.0
+          version: v1.64.5
           install-mode: "goinstall"
           args: --timeout=30m
           working-directory: ./pixo-platform
-
 
   test:
     runs-on: ubuntu-latest
@@ -64,7 +62,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: "1.23"
 
       - name: Run Tests
         run: |
