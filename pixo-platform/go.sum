@@ -34,8 +34,8 @@ github.com/HdrHistogram/hdrhistogram-go v1.1.2 h1:5IcZpTvzydCQeHzK4Ef/D5rrSqwxob
 github.com/HdrHistogram/hdrhistogram-go v1.1.2/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
-github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20250123151041-a816ad120ac5 h1:sobgcGvIJ/mZj1A1ebDv7qmJEmY9J7S6hwq8y8ZuLwo=
-github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20250123151041-a816ad120ac5/go.mod h1:RV1n9QQ1R7dXID6kqqg5Ce35WFQmC2itdZbLF+/slnM=
+github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20250401212144-f010c2550805 h1:cLaMbs0Fv+/hteGAm7LnlGqVnJtOo11fjKUBMSDQIeg=
+github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20250401212144-f010c2550805/go.mod h1:nRXeVdseK6Xhf7+AgKgHX52tFA03h98iltiTXRFxFDs=
 github.com/ajstarks/svgo v0.0.0-20180226025133-644b8db467af/go.mod h1:K08gAheRH3/J6wwsYMMT4xOr94bZjxIelGM0+d/wbFw=
 github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 h1:uvdUDbHQHO85qeSydJtItA4T55Pw6BtAejd0APRJOCE=
 github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302/go.mod h1:SGnFV6hVsYE877CKEZ6tDNTjaSXYUk6QqoIK6PrAtcc=

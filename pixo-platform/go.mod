@@ -4,12 +4,13 @@ go 1.24.1
 
 require (
 	cloud.google.com/go/storage v1.50.0
-	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20250123151041-a816ad120ac5
+	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20250401212144-f010c2550805
 	github.com/alicebob/miniredis/v2 v2.34.0
 	github.com/antchfx/jsonquery v1.3.6
 	github.com/casbin/casbin/v2 v2.104.0
 	github.com/cucumber/godog v0.15.0
 	github.com/gin-gonic/gin v1.10.0
+	github.com/go-faker/faker/v4 v4.6.0
 	github.com/go-jose/go-jose/v3 v3.0.4
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/golang-jwt/jwt/v4 v4.5.2
@@ -64,7 +65,6 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/gin-contrib/sse v1.0.0 // indirect
-	github.com/go-faker/faker/v4 v4.6.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
