@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-faker/faker/v4"
 	"math/rand"
 	"strings"
 
@@ -24,6 +25,10 @@ func GenerateRandomString(length int) string {
 func generateRandomUUID() string {
 	id := uuid.New()
 	return id.String()
+}
+
+func generateRandomText() string {
+	return faker.Sentence()
 }
 
 func generateRandomID() string {
