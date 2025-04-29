@@ -72,6 +72,9 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I read a message from the websocket$`, s.GetWebsocketMessage)
 
 	ctx.Step(`^the response should have a length of (\d+)$`, s.ResponseShouldHaveLength)
+	// greater and less than steps
+	ctx.Step("^the response should have a length greater than (\\d+)$", s.ResponseShouldHaveLengthGreaterThan)
+	ctx.Step("^the response should have a length less than (\\d+)$", s.ResponseShouldHaveLengthLessThan)
 
 	ctx.Step(`^the response should contain a "([^"]*)" header with value "([^"]*)"$`, s.TheResponseHeadersShouldContain)
 	ctx.Step(`^the response should contain a "([^"]*)"$`, s.TheResponseShouldContainA)
@@ -96,6 +99,7 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsItemAtIndexWithPropertyOfLength)
 
 	ctx.Step(`^the response should contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemWithPropertySetTo)
+	ctx.Step(`^the response should not contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseShouldNotContainItemWithPropertySetTo)
 
 	ctx.Step(`^the message should contain a "([^"]*)"$`, s.TheMessageShouldContainA)
 	ctx.Step(`^the message should not contain a "([^"]*)"$`, s.TheMessageShouldNotContainA)
@@ -645,8 +649,35 @@ func (s *ServerTestFeature) ResponseShouldHaveLength(length int) error {
 	return nil
 }
 
+func (s *ServerTestFeature) ResponseShouldHaveLengthGreaterThan(length int) error {
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if len(items) <= length {
+		return fmt.Errorf("the response contains %d items, expected more than %d: %s", len(items), length, s.ResponseString)
+	}
+
+	return nil
+}
+
+func (s *ServerTestFeature) ResponseShouldHaveLengthLessThan(length int) error {
+	items := make([]interface{}, 0)
+	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+		return fmt.Errorf("failed to unmarshal response into list: %v", err)
+	}
+
+	if len(items) >= length {
+		return fmt.Errorf("the response contains %d items, expected less than %d: %s", len(items), length, s.ResponseString)
+	}
+
+	return nil
+}
+
 func (a *ServerTestFeature) getFirstNodeFromResponse(queryPath string) (*jsonquery.Node, error) {
 	doc, err := jsonquery.Parse(strings.NewReader(a.ResponseString))
+
 	if err != nil {
 		return nil, err
 	}
@@ -675,6 +706,14 @@ func (a *ServerTestFeature) ResponseShouldContainPropertyWithLength(jsonQueryPat
 }
 
 func (s *ServerTestFeature) ResponseContainsItemWithPropertySetTo(property, value string) error {
+	return s.responseCheckItemWithProperty(property, value, true)
+}
+
+func (s *ServerTestFeature) ResponseShouldNotContainItemWithPropertySetTo(property, value string) error {
+	return s.responseCheckItemWithProperty(property, value, false)
+}
+
+func (s *ServerTestFeature) responseCheckItemWithProperty(property, value string, shouldContain bool) error {
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	items := make([]interface{}, 0)
@@ -683,14 +722,23 @@ func (s *ServerTestFeature) ResponseContainsItemWithPropertySetTo(property, valu
 	}
 
 	for _, item := range items {
-		itemMap := item.(map[string]interface{})
+		itemMap, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
 		itemValue := fmt.Sprint(itemMap[property])
 		if itemValue == value {
-			return nil
+			if shouldContain {
+				return nil
+			}
+			return fmt.Errorf("item found with %s set to %s", property, value)
 		}
 	}
 
-	return fmt.Errorf("no item found with %s set to %s", property, value)
+	if shouldContain {
+		return fmt.Errorf("no item found with %s set to %s", property, value)
+	}
+	return nil
 }
 
 func (s *ServerTestFeature) ResponseContainsObjectWithPropertySetTo(objectName, property, value string) error {
