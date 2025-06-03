@@ -14,6 +14,7 @@ func (s *ServerTestFeature) PerformSubstitutions(data []byte) []byte {
 		"RANDOM_INT":  fmt.Sprint(s.RandomInt),
 		"RANDOM_ID":   generateRandomID(),
 		"RANDOM_UUID": generateRandomUUID(),
+		"RANDOM_TEXT": generateRandomText(),
 	}
 
 	for key, value := range substitutions {

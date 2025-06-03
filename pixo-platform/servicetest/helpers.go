@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
+	"github.com/go-faker/faker/v4"
 	"math/rand"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 func GenerateRandomString(length int) string {
@@ -23,6 +25,10 @@ func GenerateRandomString(length int) string {
 func generateRandomUUID() string {
 	id := uuid.New()
 	return id.String()
+}
+
+func generateRandomText() string {
+	return faker.Sentence()
 }
 
 func generateRandomID() string {
@@ -67,4 +73,22 @@ func RandomString(length int, letters []rune) string {
 	}
 
 	return string(stringBytes)
+}
+
+func GenerateRandomPassword() string {
+	uppercaseLetters := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	lowercaseLetters := []rune("abcdefghijklmnopqrstuvwxyz")
+	numbers := []rune("0123456789")
+	specialCharacters := []rune("!@#$%^&*()")
+
+	password := ""
+
+	for i := 0; i <= 3; i++ {
+		password += RandomString(1, uppercaseLetters)
+		password += RandomString(3, lowercaseLetters)
+		password += RandomString(1, numbers)
+		password += RandomString(1, specialCharacters)
+	}
+
+	return password
 }
