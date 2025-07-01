@@ -5,7 +5,7 @@ go 1.23.2
 require (
 	github.com/PixoVR/pixo-golang-server-utilities/pixo-platform v0.0.0-20241010065124-83080f584cef
 	github.com/alicebob/miniredis/v2 v2.33.0
-	github.com/argoproj/argo-workflows/v3 v3.5.11
+	github.com/argoproj/argo-workflows/v3 v3.5.13
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	github.com/redis/go-redis/v9 v9.6.1
