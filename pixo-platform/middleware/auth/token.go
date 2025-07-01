@@ -8,7 +8,7 @@ import (
 
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type ValidateUserFunc func(UserID int) error
