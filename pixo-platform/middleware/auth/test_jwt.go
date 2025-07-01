@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/log"
 )
 
