@@ -26,7 +26,7 @@ jobs:
         working-directory: ./pixo-platform
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -48,7 +48,7 @@ jobs:
         working-directory: ./pixo-platform
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - id: gcloud
         name: Setup Google Cloud SDK
