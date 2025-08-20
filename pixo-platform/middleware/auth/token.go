@@ -83,6 +83,19 @@ func ExtractToken(r *http.Request, headerKeyInput ...string) string {
 		return accessToken
 	}
 
+	return extractBearerToken(r)
+}
+
+func ExtractExternalAPIToken(r *http.Request) string {
+	externalToken := r.Header.Get(ExternalAPIKeyHeader)
+	if externalToken != "" {
+		return externalToken
+	}
+
+	return extractBearerToken(r)
+}
+
+func extractBearerToken(r *http.Request) string {
 	authToken := r.Header.Get(AuthorizationHeader)
 	if len(strings.Split(authToken, " ")) == 2 {
 		return strings.Split(authToken, " ")[1]
