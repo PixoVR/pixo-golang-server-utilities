@@ -89,6 +89,9 @@ func ExtractToken(r *http.Request, headerKeyInput ...string) string {
 func ExtractExternalAPIToken(r *http.Request) string {
 	externalToken := r.Header.Get(ExternalAPIKeyHeader)
 	if externalToken != "" {
+		if strings.HasPrefix(strings.ToLower(externalToken), "bearer ") {
+			return strings.TrimSpace(externalToken[7:])
+		}
 		return externalToken
 	}
 
