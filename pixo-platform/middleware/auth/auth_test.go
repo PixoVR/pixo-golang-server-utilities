@@ -10,7 +10,7 @@ import (
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/config"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/middleware/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
