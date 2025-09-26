@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
+	"sync"
+	"time"
+
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
-	"io"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"sync"
-	"time"
 )
 
 type Log struct {
@@ -279,6 +280,30 @@ func (s *LogsStreamer) GetArchivedLogsForTemplate(ctx context.Context, templateN
 	}
 
 	return readCloser, nil
+}
+
+func (s *LogsStreamer) Close() error {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	// Close all individual streams
+	for name, stream := range s.streams {
+		if stream != nil {
+			close(stream)
+			log.Debug().Msgf("Force closed stream for node %s", name)
+		}
+	}
+
+	// Close combined stream
+	if s.combinedStream != nil {
+		close(s.combinedStream)
+		log.Debug().Msg("Force closed combined stream")
+	}
+
+	// Mark all as done to prevent further operations
+	s.numDone = s.numNodes
+
+	return nil
 }
 
 func hasLogs(template v1alpha1.Template) bool {

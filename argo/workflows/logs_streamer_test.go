@@ -2,6 +2,9 @@ package workflows_test
 
 import (
 	"context"
+	"io"
+	"time"
+
 	"github.com/PixoVR/pixo-golang-server-utilities/argo/workflows"
 	"github.com/PixoVR/pixo-golang-server-utilities/pixo-platform/blobstorage/gcs"
 	"github.com/alicebob/miniredis/v2"
@@ -9,8 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
 	"github.com/redis/go-redis/v9"
-	"io"
-	"time"
 )
 
 var _ = Describe("Stream", func() {
@@ -137,6 +138,21 @@ var _ = Describe("Stream", func() {
 			Expect(streamer.NumDone()).To(Equal(2))
 			Expect(streamer.NumNodes()).To(Equal(2))
 			Expect(streamer.IsDone()).To(BeTrue())
+		})
+
+		It("can close all of the streams", func() {
+			stream, err := streamer.Start(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(stream).NotTo(BeNil())
+
+			readNLogsAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
+			_, ok := <-stream
+			Expect(ok).To(BeTrue())
+
+			Expect(streamer.Close()).To(Succeed())
+			_, ok = <-stream
+			Expect(ok).To(BeFalse())
+
 		})
 
 	})
