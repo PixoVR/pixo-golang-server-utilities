@@ -306,17 +306,6 @@ func (s *LogsStreamer) Close() error {
 
 	s.numDone = s.numNodes
 
-	// Close combined stream if it exists and isn't already closed
-	if s.combinedStream != nil {
-		select {
-		case <-s.combinedStream:
-			// Already closed
-		default:
-			close(s.combinedStream)
-			log.Debug().Msg("Force closed combined stream")
-		}
-	}
-
 	return nil
 }
 
