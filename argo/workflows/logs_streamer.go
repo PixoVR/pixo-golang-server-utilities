@@ -32,6 +32,8 @@ type LogsStreamer struct {
 	combinedStream chan Log
 	numNodes       int
 	numDone        int
+	closed         bool
+	cancelFunc     context.CancelFunc
 	mtx            sync.Mutex
 }
 
@@ -90,9 +92,12 @@ func (s *LogsStreamer) Start(ctx context.Context) (chan Log, error) {
 		return nil, errors.New("workflow not found")
 	}
 
+	cancelCtx, cancelFunc := context.WithCancel(ctx)
+	s.cancelFunc = cancelFunc
+
 	s.addStreams(workflow)
 	s.combineStreams()
-	go s.startStreaming(ctx, workflow)
+	go s.startStreaming(cancelCtx, workflow)
 
 	return s.combinedStream, nil
 }
@@ -279,6 +284,41 @@ func (s *LogsStreamer) GetArchivedLogsForTemplate(ctx context.Context, templateN
 	}
 
 	return readCloser, nil
+}
+
+func (s *LogsStreamer) Close() error {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	s.closed = true
+
+	if s.cancelFunc != nil {
+		s.cancelFunc()
+	}
+
+	for name, stream := range s.streams {
+		if stream != nil {
+			select {
+			case <-stream:
+			default:
+				close(stream)
+				log.Debug().Msgf("Force closed stream for node %s", name)
+			}
+		}
+	}
+
+	s.numDone = s.numNodes
+
+	if s.combinedStream != nil {
+		select {
+		case <-s.combinedStream:
+		default:
+			close(s.combinedStream)
+			log.Debug().Msg("Force closed combined stream")
+		}
+	}
+
+	return nil
 }
 
 func hasLogs(template v1alpha1.Template) bool {
