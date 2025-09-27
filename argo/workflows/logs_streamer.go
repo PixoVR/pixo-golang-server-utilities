@@ -131,7 +131,12 @@ func (s *LogsStreamer) combineStream(stream chan Log) {
 	for newLog := range stream {
 		if newLog.Step != "" && newLog.Lines != "" {
 			log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
-			s.combinedStream <- newLog
+			select {
+			case s.combinedStream <- newLog:
+			case <-time.After(100 * time.Millisecond):
+				log.Debug().Msg("Timeout sending to combined stream, likely closed")
+				return
+			}
 		}
 	}
 
