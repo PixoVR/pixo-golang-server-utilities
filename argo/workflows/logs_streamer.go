@@ -291,6 +291,7 @@ func (s *LogsStreamer) Close() error {
 		if stream != nil {
 			select {
 			case <-stream:
+				// Stream already closed
 			default:
 				close(stream)
 				log.Debug().Msgf("Force closed stream for node %s", name)
@@ -298,17 +299,8 @@ func (s *LogsStreamer) Close() error {
 		}
 	}
 
+	// This will cause combineStream goroutines to call markComplete()
 	s.numDone = s.numNodes
-
-	// Close combined stream if it exists and isn't already closed
-	if s.combinedStream != nil {
-		select {
-		case <-s.combinedStream:
-		default:
-			close(s.combinedStream)
-			log.Debug().Msg("Force closed combined stream")
-		}
-	}
 
 	return nil
 }
