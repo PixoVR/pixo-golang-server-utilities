@@ -33,6 +33,7 @@ type LogsStreamer struct {
 	combinedStream chan Log
 	numNodes       int
 	numDone        int
+	closed         bool
 	mtx            sync.Mutex
 }
 
@@ -129,6 +130,13 @@ func (s *LogsStreamer) startStreaming(ctx context.Context, workflow *v1alpha1.Wo
 
 func (s *LogsStreamer) combineStream(stream chan Log) {
 	for newLog := range stream {
+		s.mtx.Lock()
+		if s.closed {
+			s.mtx.Unlock()
+			return
+		}
+		s.mtx.Unlock()
+
 		if newLog.Step != "" && newLog.Lines != "" {
 			log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
 			select {
@@ -291,6 +299,8 @@ func (s *LogsStreamer) Close() error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
+	s.closed = true
+
 	// Close all individual streams that aren't already closed
 	for name, stream := range s.streams {
 		if stream != nil {
@@ -305,6 +315,16 @@ func (s *LogsStreamer) Close() error {
 	}
 
 	s.numDone = s.numNodes
+
+	if s.combinedStream != nil {
+		select {
+		case <-s.combinedStream:
+			// Already closed
+		default:
+			close(s.combinedStream)
+			log.Debug().Msg("Force closed combined stream")
+		}
+	}
 
 	return nil
 }
