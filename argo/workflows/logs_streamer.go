@@ -286,22 +286,29 @@ func (s *LogsStreamer) Close() error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	// Close all individual streams
+	// Close all individual streams that aren't already closed
 	for name, stream := range s.streams {
 		if stream != nil {
-			close(stream)
-			log.Debug().Msgf("Force closed stream for node %s", name)
+			select {
+			case <-stream:
+			default:
+				close(stream)
+				log.Debug().Msgf("Force closed stream for node %s", name)
+			}
 		}
 	}
 
-	// Close combined stream
-	if s.combinedStream != nil {
-		close(s.combinedStream)
-		log.Debug().Msg("Force closed combined stream")
-	}
-
-	// Mark all as done to prevent further operations
 	s.numDone = s.numNodes
+
+	// Close combined stream if it exists and isn't already closed
+	if s.combinedStream != nil {
+		select {
+		case <-s.combinedStream:
+		default:
+			close(s.combinedStream)
+			log.Debug().Msg("Force closed combined stream")
+		}
+	}
 
 	return nil
 }
