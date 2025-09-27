@@ -34,6 +34,7 @@ type LogsStreamer struct {
 	numNodes       int
 	numDone        int
 	closed         bool
+	cancelFunc     context.CancelFunc
 	mtx            sync.Mutex
 }
 
@@ -92,9 +93,12 @@ func (s *LogsStreamer) Start(ctx context.Context) (chan Log, error) {
 		return nil, errors.New("workflow not found")
 	}
 
+	cancelCtx, cancelFunc := context.WithCancel(ctx)
+	s.cancelFunc = cancelFunc
+
 	s.addStreams(workflow)
 	s.combineStreams()
-	go s.startStreaming(ctx, workflow)
+	go s.startStreaming(cancelCtx, workflow)
 
 	return s.combinedStream, nil
 }
@@ -300,6 +304,10 @@ func (s *LogsStreamer) Close() error {
 	defer s.mtx.Unlock()
 
 	s.closed = true
+
+	if s.cancelFunc != nil {
+		s.cancelFunc()
+	}
 
 	// Close all individual streams that aren't already closed
 	for name, stream := range s.streams {
