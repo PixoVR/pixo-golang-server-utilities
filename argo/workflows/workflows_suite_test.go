@@ -145,6 +145,7 @@ var _ = BeforeSuite(func() {
 						Name:    templateOneName,
 						Image:   "docker/whalesay:latest",
 						Command: []string{"cowsay"},
+						Args:    []string{"hello world from whalesay-1 ~~~"},
 					},
 				},
 				{
@@ -154,6 +155,7 @@ var _ = BeforeSuite(func() {
 						Name:    templateTwoName,
 						Image:   "docker/whalesay:latest",
 						Command: []string{"cowsay"},
+						Args:    []string{"hello world from whalesay-2 ~~~"},
 					},
 				},
 			},
