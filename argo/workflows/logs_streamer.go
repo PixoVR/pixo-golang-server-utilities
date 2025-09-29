@@ -176,8 +176,23 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 	for {
 		time.Sleep(1 * time.Second)
 
+		select {
+		case <-ctx.Done():
+			log.Debug().Msgf("Context cancelled for node %s, stopping tail", templateName)
+			return s.getStream(templateName), ctx.Err()
+		default:
+		}
+
 		node, err = s.argoClient.GetNode(ctx, workflow, node.TemplateName)
-		if err != nil || node == nil || node.Pending() {
+		if err != nil {
+			log.Debug().Err(err).Msgf("Error getting node %s, retrying", templateName)
+			continue
+		}
+		if node == nil {
+			log.Debug().Msgf("Node %s is nil, retrying", templateName)
+			continue
+		}
+		if node.Pending() {
 			continue
 		}
 
