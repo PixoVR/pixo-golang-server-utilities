@@ -173,12 +173,31 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 	containerName := "main"
 	podName := FormatPodName(node)
 
-	for {
-		time.Sleep(1 * time.Second)
+	timeout := time.After(30 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 
-		node, err = s.argoClient.GetNode(ctx, workflow, node.TemplateName)
-		if err != nil || node == nil || node.Pending() {
-			continue
+	for {
+		select {
+		case <-timeout:
+			log.Debug().Msgf("Timeout waiting for node %s to be ready", templateName)
+			return s.getStream(templateName), errors.New("timeout waiting for node")
+		case <-ctx.Done():
+			log.Debug().Msgf("Context cancelled for node %s", templateName)
+			return s.getStream(templateName), ctx.Err()
+		case <-ticker.C:
+			node, err = s.argoClient.GetNode(ctx, workflow, node.TemplateName)
+			if err != nil {
+				log.Debug().Err(err).Msgf("Error getting node %s, retrying", templateName)
+				continue
+			}
+			if node == nil {
+				log.Debug().Msgf("Node %s is nil, retrying", templateName)
+				continue
+			}
+			if node.Pending() {
+				continue
+			}
 		}
 
 		readCloser, err := s.k8sClient.CoreV1().
