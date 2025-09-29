@@ -138,23 +138,31 @@ func (s *LogsStreamer) startStreaming(ctx context.Context, workflow *v1alpha1.Wo
 }
 
 func (s *LogsStreamer) combineStream(stream chan Log) {
-	for newLog := range stream {
-		if newLog.Step != "" && newLog.Lines != "" {
-			log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
-			
-			select {
-			case s.combinedStream <- newLog:
-			case <-s.shutdownCtx.Done():
-				log.Debug().Msg("Shutdown signal received, stopping combineStream")
+	for {
+		select {
+		case newLog, ok := <-stream:
+			if !ok {
+				log.Debug().Msgf("Stream closed. Num total: %d Num closed: %d", s.NumNodes(), s.NumDone())
+				if s.IsDone() {
+					s.markComplete()
+				}
 				return
 			}
+			
+			if newLog.Step != "" && newLog.Lines != "" {
+				log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
+				
+				select {
+				case s.combinedStream <- newLog:
+				case <-s.shutdownCtx.Done():
+					log.Debug().Msg("Shutdown signal received while sending, stopping combineStream")
+					return
+				}
+			}
+		case <-s.shutdownCtx.Done():
+			log.Debug().Msg("Shutdown signal received, stopping combineStream")
+			return
 		}
-	}
-
-	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumNodes(), s.NumDone())
-
-	if s.IsDone() {
-		s.markComplete()
 	}
 }
 
