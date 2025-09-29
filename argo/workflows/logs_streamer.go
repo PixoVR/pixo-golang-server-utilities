@@ -34,6 +34,8 @@ type LogsStreamer struct {
 	numDone        int
 	closed         bool
 	cancelFunc     context.CancelFunc
+	shutdownCtx    context.Context
+	shutdownCancel context.CancelFunc
 	mtx            sync.Mutex
 }
 
@@ -75,14 +77,18 @@ func NewLogsStreamer(config StreamerConfig) (*LogsStreamer, error) {
 		return nil, err
 	}
 
+	shutdownCtx, shutdownCancel := context.WithCancel(context.Background())
+
 	return &LogsStreamer{
-		k8sClient:     config.K8sClient,
-		argoClient:    config.ArgoClient,
-		logsCache:     config.LogsCache,
-		storageClient: config.StorageClient,
-		workflowName:  config.WorkflowName,
-		namespace:     config.Namespace,
-		streams:       make(map[string]chan Log),
+		k8sClient:      config.K8sClient,
+		argoClient:     config.ArgoClient,
+		logsCache:      config.LogsCache,
+		storageClient:  config.StorageClient,
+		workflowName:   config.WorkflowName,
+		namespace:      config.Namespace,
+		streams:        make(map[string]chan Log),
+		shutdownCtx:    shutdownCtx,
+		shutdownCancel: shutdownCancel,
 	}, nil
 }
 
@@ -135,7 +141,13 @@ func (s *LogsStreamer) combineStream(stream chan Log) {
 	for newLog := range stream {
 		if newLog.Step != "" && newLog.Lines != "" {
 			log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
-			s.combinedStream <- newLog
+			
+			select {
+			case s.combinedStream <- newLog:
+			case <-s.shutdownCtx.Done():
+				log.Debug().Msg("Shutdown signal received, stopping combineStream")
+				return
+			}
 		}
 	}
 
@@ -259,12 +271,17 @@ func (s *LogsStreamer) readLogsForNode(ctx context.Context, nodeName string, rea
 		}
 
 		if buf.String() != "" {
-			stream <- Log{
+			select {
+			case stream <- Log{
 				Step:  nodeName,
 				Lines: buf.String(),
+			}:
+				log.Debug().Msgf("streamed log for %s", nodeName)
+			case <-s.shutdownCtx.Done():
+				log.Debug().Msgf("Shutdown signal received, stopping readLogsForNode for %s", nodeName)
+				s.markStreamDone(nodeName)
+				return
 			}
-
-			log.Debug().Msgf("streamed log for %s", nodeName)
 		}
 
 	}
@@ -305,16 +322,26 @@ func (s *LogsStreamer) Close() error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
+	if s.closed {
+		return nil
+	}
 	s.closed = true
+
+	if s.shutdownCancel != nil {
+		s.shutdownCancel()
+	}
 
 	if s.cancelFunc != nil {
 		s.cancelFunc()
 	}
 
+	time.Sleep(100 * time.Millisecond)
+
 	for name, stream := range s.streams {
 		if stream != nil {
 			select {
 			case <-stream:
+				// Already closed
 			default:
 				close(stream)
 				log.Debug().Msgf("Force closed stream for node %s", name)
@@ -322,17 +349,18 @@ func (s *LogsStreamer) Close() error {
 		}
 	}
 
-	s.numDone = s.numNodes
-
+	// Close combined stream
 	if s.combinedStream != nil {
 		select {
 		case <-s.combinedStream:
+			// Already closed
 		default:
 			close(s.combinedStream)
 			log.Debug().Msg("Force closed combined stream")
 		}
 	}
 
+	s.numDone = s.numNodes
 	return nil
 }
 
