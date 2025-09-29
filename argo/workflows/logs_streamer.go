@@ -347,25 +347,15 @@ func (s *LogsStreamer) Close() error {
 
 	for name, stream := range s.streams {
 		if stream != nil {
-			select {
-			case <-stream:
-				// Already closed
-			default:
-				close(stream)
-				log.Debug().Msgf("Force closed stream for node %s", name)
-			}
+			close(stream)
+			log.Debug().Msgf("Force closed stream for node %s", name)
 		}
 	}
 
 	// Close combined stream
 	if s.combinedStream != nil {
-		select {
-		case <-s.combinedStream:
-			// Already closed
-		default:
-			close(s.combinedStream)
-			log.Debug().Msg("Force closed combined stream")
-		}
+		close(s.combinedStream)
+		log.Debug().Msg("Force closed combined stream")
 	}
 
 	s.numDone = s.numNodes
