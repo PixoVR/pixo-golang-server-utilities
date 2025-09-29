@@ -173,7 +173,7 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 	containerName := "main"
 	podName := FormatPodName(node)
 
-	timeout := time.After(5 * time.Minute)
+	timeout := time.After(30 * time.Second)
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
