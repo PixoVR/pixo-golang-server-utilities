@@ -55,7 +55,7 @@ func (s *LogsStreamer) makeCombinedStream() {
 
 	if s.combinedStream == nil {
 		log.Debug().Msg("making combined stream")
-		s.combinedStream = make(chan Log)
+		s.combinedStream = make(chan Log, 100)
 	}
 }
 
