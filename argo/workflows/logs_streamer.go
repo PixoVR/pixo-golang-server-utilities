@@ -21,20 +21,21 @@ type Log struct {
 }
 
 type LogsStreamer struct {
-	workflowName   string
-	argoClient     *Client
-	k8sClient      kubernetes.Interface
-	storageClient  blobstorage.StorageClient
-	logsCache      *redis.Client
-	bucketName     string
-	namespace      string
-	streams        map[string]chan Log
-	combinedStream chan Log
-	numNodes       int
-	numDone        int
-	closed         bool
-	cancelFunc     context.CancelFunc
-	mtx            sync.Mutex
+	workflowName     string
+	argoClient       *Client
+	k8sClient        kubernetes.Interface
+	storageClient    blobstorage.StorageClient
+	logsCache        *redis.Client
+	bucketName       string
+	namespace        string
+	streams          map[string]chan Log
+	combinedStream   chan Log
+	numNodes         int
+	numDone          int
+	closed           bool
+	cancelFunc       context.CancelFunc
+	mtx              sync.Mutex
+	markCompleteOnce sync.Once
 }
 
 type StreamerConfig struct {
@@ -142,7 +143,9 @@ func (s *LogsStreamer) combineStream(stream chan Log) {
 	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumNodes(), s.NumDone())
 
 	if s.IsDone() {
-		s.markComplete()
+		s.markCompleteOnce.Do(func() {
+			s.markComplete()
+		})
 	}
 }
 

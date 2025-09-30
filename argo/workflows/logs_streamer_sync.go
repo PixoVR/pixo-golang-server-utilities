@@ -73,10 +73,8 @@ func (s *LogsStreamer) markComplete() {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	if !s.closed && s.combinedStream != nil {
+	if s.combinedStream != nil {
 		close(s.combinedStream)
 		log.Debug().Msg("All streams are closed. Closing combined stream")
-	} else {
-		log.Debug().Msg("Combined stream already closed, skipping")
 	}
 }
