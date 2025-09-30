@@ -223,15 +223,14 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 			readCloser.Close()
 			return s.getStream(templateName), errors.New("node is nil after select loop")
 		}
-		go s.readLogsForNode(ctx, node.TemplateName, readCloser)
-		break
+		
+		nodeTemplateName := node.TemplateName
+		go s.readLogsForNode(ctx, nodeTemplateName, readCloser)
+		
+		return s.getStream(nodeTemplateName), nil
 	}
 
-	if node == nil {
-		log.Debug().Msgf("Node %s is nil at end of tail method", templateName)
-		return s.getStream(templateName), errors.New("node is nil at end of tail method")
-	}
-	return s.getStream(node.TemplateName), nil
+	return s.getStream(templateName), errors.New("unexpected exit from tail method")
 }
 
 func (s *LogsStreamer) streamArchive(ctx context.Context, nodeName string) {
