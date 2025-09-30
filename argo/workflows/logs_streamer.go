@@ -151,11 +151,27 @@ func (s *LogsStreamer) combineStream(stream chan Log) {
 }
 
 func (s *LogsStreamer) waitForTail(c context.Context, template v1alpha1.Template, workflow *v1alpha1.Workflow) {
-	for {
-		time.Sleep(1 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 
-		if _, err := s.tail(c, template.Name, workflow); err == nil {
-			break
+	for {
+		select {
+		case <-c.Done():
+			log.Debug().Msgf("Context cancelled, stopping waitForTail for template %s", template.Name)
+			return
+		case <-ticker.C:
+			s.mtx.Lock()
+			closed := s.closed
+			s.mtx.Unlock()
+			
+			if closed {
+				log.Debug().Msgf("LogsStreamer closed, stopping waitForTail for template %s", template.Name)
+				return
+			}
+
+			if _, err := s.tail(c, template.Name, workflow); err == nil {
+				return
+			}
 		}
 	}
 }
@@ -193,6 +209,15 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 			log.Debug().Msgf("Context cancelled for node %s", templateName)
 			return s.getStream(templateName), ctx.Err()
 		case <-ticker.C:
+			s.mtx.Lock()
+			closed := s.closed
+			s.mtx.Unlock()
+			
+			if closed {
+				log.Debug().Msgf("LogsStreamer closed, stopping tail for node %s", templateName)
+				return s.getStream(templateName), errors.New("streamer closed")
+			}
+
 			if node == nil {
 				log.Debug().Msgf("Node %s is nil before GetNode call, retrying", templateName)
 				continue
@@ -258,6 +283,24 @@ func (s *LogsStreamer) readLogsForNode(ctx context.Context, nodeName string, rea
 
 	log.Debug().Msgf("started streaming logs for %s", nodeName)
 	for {
+		s.mtx.Lock()
+		closed := s.closed
+		s.mtx.Unlock()
+		
+		if closed {
+			log.Debug().Msgf("LogsStreamer closed, stopping log reading for node %s", nodeName)
+			s.markStreamDone(nodeName)
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			log.Debug().Msgf("Context cancelled, stopping log reading for node %s", nodeName)
+			s.markStreamDone(nodeName)
+			return
+		default:
+		}
+
 		buf := new(bytes.Buffer)
 		if written, err := io.Copy(buf, readCloser); err != nil {
 			log.Debug().Err(err).Msgf("unable to copy logs for %s", nodeName)
