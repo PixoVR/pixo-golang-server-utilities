@@ -21,20 +21,22 @@ type Log struct {
 }
 
 type LogsStreamer struct {
-	workflowName   string
-	argoClient     *Client
-	k8sClient      kubernetes.Interface
-	storageClient  blobstorage.StorageClient
-	logsCache      *redis.Client
-	bucketName     string
-	namespace      string
-	streams        map[string]chan Log
-	combinedStream chan Log
-	numNodes       int
-	numDone        int
-	closed         bool
-	cancelFunc     context.CancelFunc
-	mtx            sync.Mutex
+	workflowName        string
+	argoClient          *Client
+	k8sClient           kubernetes.Interface
+	storageClient       blobstorage.StorageClient
+	logsCache           *redis.Client
+	bucketName          string
+	namespace           string
+	streams             map[string]chan Log
+	combinedStream      chan Log
+	numNodes            int
+	numDone             int
+	closed              bool
+	combinedStreamClosed bool
+	cancelFunc          context.CancelFunc
+	mtx                 sync.Mutex
+	markCompleteOnce    sync.Once
 }
 
 type StreamerConfig struct {
@@ -142,7 +144,9 @@ func (s *LogsStreamer) combineStream(stream chan Log) {
 	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumNodes(), s.NumDone())
 
 	if s.IsDone() {
-		s.markComplete()
+		s.markCompleteOnce.Do(func() {
+			s.markComplete()
+		})
 	}
 }
 
@@ -168,6 +172,9 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 	node, err := s.argoClient.GetNode(ctx, workflow, templateName)
 	if err != nil {
 		return nil, errors.Join(err, errors.New("unable to find node from template name"))
+	}
+	if node == nil {
+		return nil, errors.New("node is nil after initial GetNode call")
 	}
 
 	containerName := "main"
@@ -215,11 +222,17 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 			continue
 		}
 
-		go s.readLogsForNode(ctx, node.TemplateName, readCloser)
-		break
+		if node == nil {
+			log.Debug().Msgf("Node %s is nil after select loop, cannot start log reading", templateName)
+			readCloser.Close()
+			return s.getStream(templateName), errors.New("node is nil after select loop")
+		}
+		
+		nodeTemplateName := node.TemplateName
+		go s.readLogsForNode(ctx, nodeTemplateName, readCloser)
+		
+		return s.getStream(nodeTemplateName), nil
 	}
-
-	return s.getStream(node.TemplateName), nil
 }
 
 func (s *LogsStreamer) streamArchive(ctx context.Context, nodeName string) {
@@ -332,13 +345,10 @@ func (s *LogsStreamer) Close() error {
 
 	s.numDone = s.numNodes
 
-	if s.combinedStream != nil {
-		select {
-		case <-s.combinedStream:
-		default:
-			close(s.combinedStream)
-			log.Debug().Msg("Force closed combined stream")
-		}
+	if s.combinedStream != nil && !s.combinedStreamClosed {
+		close(s.combinedStream)
+		s.combinedStreamClosed = true
+		log.Debug().Msg("Force closed combined stream")
 	}
 
 	return nil
