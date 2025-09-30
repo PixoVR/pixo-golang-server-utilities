@@ -148,6 +148,7 @@ var _ = Describe("Stream", func() {
 		// 	readNLogsAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
 		// 	
 		// 	Expect(streamer.Close()).To(Succeed())
+		// 	_, ok := <-stream
 		// 	Expect(ok).To(BeFalse())
 		// })
 
