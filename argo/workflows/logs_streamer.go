@@ -229,8 +229,6 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 		
 		return s.getStream(nodeTemplateName), nil
 	}
-
-	return s.getStream(templateName), errors.New("unexpected exit from tail method")
 }
 
 func (s *LogsStreamer) streamArchive(ctx context.Context, nodeName string) {
