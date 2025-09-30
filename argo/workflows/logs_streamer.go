@@ -186,6 +186,10 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 			log.Debug().Msgf("Context cancelled for node %s", templateName)
 			return s.getStream(templateName), ctx.Err()
 		case <-ticker.C:
+			if node == nil {
+				log.Debug().Msgf("Node %s is nil before GetNode call, retrying", templateName)
+				continue
+			}
 			node, err = s.argoClient.GetNode(ctx, workflow, node.TemplateName)
 			if err != nil {
 				log.Debug().Err(err).Msgf("Error getting node %s, retrying", templateName)
