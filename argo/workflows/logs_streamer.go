@@ -169,6 +169,9 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 	if err != nil {
 		return nil, errors.Join(err, errors.New("unable to find node from template name"))
 	}
+	if node == nil {
+		return nil, errors.New("node is nil after initial GetNode call")
+	}
 
 	containerName := "main"
 	podName := FormatPodName(node)
@@ -215,10 +218,19 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 			continue
 		}
 
+		if node == nil {
+			log.Debug().Msgf("Node %s is nil after select loop, cannot start log reading", templateName)
+			readCloser.Close()
+			return s.getStream(templateName), errors.New("node is nil after select loop")
+		}
 		go s.readLogsForNode(ctx, node.TemplateName, readCloser)
 		break
 	}
 
+	if node == nil {
+		log.Debug().Msgf("Node %s is nil at end of tail method", templateName)
+		return s.getStream(templateName), errors.New("node is nil at end of tail method")
+	}
 	return s.getStream(node.TemplateName), nil
 }
 
