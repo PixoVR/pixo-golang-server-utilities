@@ -159,6 +159,7 @@ func (s *ServerTestFeature) SendRequest(method, endpoint string) error {
 }
 
 func (s *ServerTestFeature) SendRequestToService(method, tenant, service, endpoint string) error {
+	endpoint = string(s.PerformSubstitutions([]byte(endpoint)))
 	return s.MakeRequest(method, tenant, service, endpoint, nil, nil)
 }
 
