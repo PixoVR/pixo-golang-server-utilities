@@ -21,7 +21,7 @@ func (b BasicUploadable) GetTimestamp() int64 {
 	if b.Timestamp != 0 {
 		return b.Timestamp
 	}
-	return time.Now().Unix()
+	return time.Now().UnixMilli()
 }
 
 type PathUploadable struct {
@@ -40,7 +40,7 @@ func (p PathUploadable) GetFileLocation() string {
 
 func (p PathUploadable) GetTimestamp() int64 {
 	if p.Timestamp != nil {
-		return p.Timestamp.Unix()
+		return p.Timestamp.UnixMilli()
 	}
 	return 0
 }
