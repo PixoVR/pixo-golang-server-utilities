@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	cloud.google.com/go/storage v1.50.0
-	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20250401212144-f010c2550805
+	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.0.0-20250905142050-1ac8d8dcefb4
 	github.com/alicebob/miniredis/v2 v2.34.0
 	github.com/antchfx/jsonquery v1.3.6
 	github.com/casbin/casbin/v2 v2.104.0
@@ -78,7 +78,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
