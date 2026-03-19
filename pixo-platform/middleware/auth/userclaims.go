@@ -43,16 +43,24 @@ func (c UserClaims) GenerateAccessToken() (string, error) {
 	if err := c.Validate(); err != nil {
 		return "", err
 	}
+	key := os.Getenv("SECRET_KEY")
+	if strings.TrimSpace(key) == "" {
+		return "", errors.New("valid key is required")
+	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	return accessToken.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	return accessToken.SignedString([]byte(key))
 }
 
 func (c UserClaims) GenerateExternalAPIAccessToken() (string, error) {
 	if err := c.Validate(); err != nil {
 		return "", err
 	}
+	key := os.Getenv("EXTERNAL_SECRET_KEY")
+	if strings.TrimSpace(key) == "" {
+		return "", errors.New("valid key is required")
+	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	return accessToken.SignedString([]byte(os.Getenv("EXTERNAL_SECRET_KEY")))
+	return accessToken.SignedString([]byte(key))
 }
 
 func ParseAccessTokenWithExpiration(accessToken string) (*UserClaims, error) {

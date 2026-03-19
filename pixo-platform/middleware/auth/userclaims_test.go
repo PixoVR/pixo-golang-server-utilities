@@ -81,6 +81,20 @@ var _ = Describe("UserClaims", func() {
 			_, err := claims.GenerateAccessToken()
 			Expect(err).To(HaveOccurred())
 		})
+
+		It("returns error if SECRET_KEY is empty", func() {
+			Expect(os.Setenv("SECRET_KEY", "")).NotTo(HaveOccurred())
+			claims := validUserClaims()
+			_, err := claims.GenerateAccessToken()
+			Expect(err).To(MatchError("valid key is required"))
+		})
+
+		It("returns error if SECRET_KEY is unset", func() {
+			Expect(os.Unsetenv("SECRET_KEY")).NotTo(HaveOccurred())
+			claims := validUserClaims()
+			_, err := claims.GenerateAccessToken()
+			Expect(err).To(MatchError("valid key is required"))
+		})
 	})
 
 	Describe("GenerateExternalAPIAccessToken", func() {
@@ -104,6 +118,20 @@ var _ = Describe("UserClaims", func() {
 			claims.Role = ""
 			_, err := claims.GenerateExternalAPIAccessToken()
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("returns error if EXTERNAL_SECRET_KEY is empty", func() {
+			Expect(os.Setenv("EXTERNAL_SECRET_KEY", "")).NotTo(HaveOccurred())
+			claims := validUserClaims()
+			_, err := claims.GenerateExternalAPIAccessToken()
+			Expect(err).To(MatchError("valid key is required"))
+		})
+
+		It("returns error if EXTERNAL_SECRET_KEY is unset", func() {
+			Expect(os.Unsetenv("EXTERNAL_SECRET_KEY")).NotTo(HaveOccurred())
+			claims := validUserClaims()
+			_, err := claims.GenerateExternalAPIAccessToken()
+			Expect(err).To(MatchError("valid key is required"))
 		})
 	})
 
