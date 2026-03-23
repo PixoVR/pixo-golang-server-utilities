@@ -400,12 +400,25 @@ func (s *LogsStreamer) Close() error {
 	}
 
 	close(s.done)
+
+	// Force-close all individual stream channels to unblock combineStream
+	// goroutines stuck on `range stream`. This is necessary for streams
+	// where no producer goroutine was started (e.g., workflow in Pending
+	// phase). The nil-guard prevents double-close if markStreamDone already
+	// closed a stream. The done channel was closed first, so any active
+	// producer will see it and exit before attempting to send.
+	for name, stream := range s.streams {
+		if stream != nil {
+			close(stream)
+			s.streams[name] = nil
+		}
+	}
+	s.numDone = s.numNodes
+
 	s.mtx.Unlock()
 
-	// Individual streams are closed by markStreamDone when their
-	// readLogsForNode/waitForTail goroutines exit (triggered by context
-	// cancellation and the done channel above). combinedStream is closed
-	// by the combineWg goroutine after all combineStream goroutines finish.
+	// combinedStream is closed by the combineWg goroutine after all
+	// combineStream goroutines finish their range loops.
 
 	return nil
 }
