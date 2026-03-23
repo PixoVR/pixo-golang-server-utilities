@@ -159,6 +159,7 @@ func (s *ServerTestFeature) SendRequest(method, endpoint string) error {
 }
 
 func (s *ServerTestFeature) SendRequestToService(method, tenant, service, endpoint string) error {
+	endpoint = string(s.PerformSubstitutions([]byte(endpoint)))
 	return s.MakeRequest(method, tenant, service, endpoint, nil, nil)
 }
 
@@ -291,7 +292,7 @@ func (s *ServerTestFeature) ExtractValueFromResponseAs(keyName, identifier strin
 	}
 
 	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("/%s", keyName))
-	if extractedValue == nil {
+	if extractedValue == nil || extractedValue.FirstChild == nil {
 		return fmt.Errorf("key %s not found in response", keyName)
 	}
 
