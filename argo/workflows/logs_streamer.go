@@ -21,22 +21,24 @@ type Log struct {
 }
 
 type LogsStreamer struct {
-	workflowName        string
-	argoClient          *Client
-	k8sClient           kubernetes.Interface
-	storageClient       blobstorage.StorageClient
-	logsCache           *redis.Client
-	bucketName          string
-	namespace           string
-	streams             map[string]chan Log
-	combinedStream      chan Log
-	numNodes            int
-	numDone             int
-	closed              bool
+	workflowName         string
+	argoClient           *Client
+	k8sClient            kubernetes.Interface
+	storageClient        blobstorage.StorageClient
+	logsCache            *redis.Client
+	bucketName           string
+	namespace            string
+	streams              map[string]chan Log
+	combinedStream       chan Log
+	numNodes             int
+	numDone              int
+	closed               bool
 	combinedStreamClosed bool
-	cancelFunc          context.CancelFunc
-	mtx                 sync.Mutex
-	markCompleteOnce    sync.Once
+	cancelFunc           context.CancelFunc
+	mtx                  sync.Mutex
+	markCompleteOnce     sync.Once
+	combineWg            sync.WaitGroup
+	done                 chan struct{}
 }
 
 type StreamerConfig struct {
@@ -85,6 +87,7 @@ func NewLogsStreamer(config StreamerConfig) (*LogsStreamer, error) {
 		workflowName:  config.WorkflowName,
 		namespace:     config.Namespace,
 		streams:       make(map[string]chan Log),
+		done:          make(chan struct{}),
 	}, nil
 }
 
@@ -118,8 +121,16 @@ func (s *LogsStreamer) combineStreams() {
 	s.makeCombinedStream()
 
 	for _, stream := range s.streams {
+		s.combineWg.Add(1)
 		go s.combineStream(stream)
 	}
+
+	go func() {
+		s.combineWg.Wait()
+		s.markCompleteOnce.Do(func() {
+			s.markComplete()
+		})
+	}()
 }
 
 func (s *LogsStreamer) startStreaming(ctx context.Context, workflow *v1alpha1.Workflow) {
@@ -134,20 +145,19 @@ func (s *LogsStreamer) startStreaming(ctx context.Context, workflow *v1alpha1.Wo
 }
 
 func (s *LogsStreamer) combineStream(stream chan Log) {
+	defer s.combineWg.Done()
 	for newLog := range stream {
 		if newLog.Step != "" && newLog.Lines != "" {
 			log.Debug().Msgf("New log: %s %s", newLog.Step, newLog.Lines)
-			s.combinedStream <- newLog
+			select {
+			case s.combinedStream <- newLog:
+			case <-s.done:
+				return
+			}
 		}
 	}
 
 	log.Debug().Msgf("Closed stream. Num total: %d Num closed: %d", s.NumNodes(), s.NumDone())
-
-	if s.IsDone() {
-		s.markCompleteOnce.Do(func() {
-			s.markComplete()
-		})
-	}
 }
 
 func (s *LogsStreamer) waitForTail(c context.Context, template v1alpha1.Template, workflow *v1alpha1.Workflow) {
@@ -158,14 +168,20 @@ func (s *LogsStreamer) waitForTail(c context.Context, template v1alpha1.Template
 		select {
 		case <-c.Done():
 			log.Debug().Msgf("Context cancelled, stopping waitForTail for template %s", template.Name)
+			s.markStreamDone(template.Name)
+			return
+		case <-s.done:
+			log.Debug().Msgf("LogsStreamer closed, stopping waitForTail for template %s", template.Name)
+			s.markStreamDone(template.Name)
 			return
 		case <-ticker.C:
 			s.mtx.Lock()
 			closed := s.closed
 			s.mtx.Unlock()
-			
+
 			if closed {
 				log.Debug().Msgf("LogsStreamer closed, stopping waitForTail for template %s", template.Name)
+				s.markStreamDone(template.Name)
 				return
 			}
 
@@ -263,6 +279,7 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 func (s *LogsStreamer) streamArchive(ctx context.Context, nodeName string) {
 	archiveReadCloser, err := s.GetArchivedLogsForTemplate(ctx, nodeName)
 	if err != nil {
+		s.markStreamDone(nodeName)
 		return
 	}
 
@@ -322,14 +339,19 @@ func (s *LogsStreamer) readLogsForNode(ctx context.Context, nodeName string, rea
 
 		}
 
-		if buf.String() != "" {
-			stream <- Log{
-				Step:  nodeName,
-				Lines: buf.String(),
+			if buf.String() != "" {
+				select {
+				case stream <- Log{
+					Step:  nodeName,
+					Lines: buf.String(),
+				}:
+					log.Debug().Msgf("streamed log for %s", nodeName)
+				case <-s.done:
+					log.Debug().Msgf("LogsStreamer done, stopping send for %s", nodeName)
+					s.markStreamDone(nodeName)
+					return
+				}
 			}
-
-			log.Debug().Msgf("streamed log for %s", nodeName)
-		}
 
 	}
 }
@@ -367,32 +389,36 @@ func (s *LogsStreamer) GetArchivedLogsForTemplate(ctx context.Context, templateN
 
 func (s *LogsStreamer) Close() error {
 	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
+	if s.closed {
+		s.mtx.Unlock()
+		return nil
+	}
 	s.closed = true
 
 	if s.cancelFunc != nil {
 		s.cancelFunc()
 	}
 
+	close(s.done)
+
+	// Force-close all individual stream channels to unblock combineStream
+	// goroutines stuck on `range stream`. This is necessary for streams
+	// where no producer goroutine was started (e.g., workflow in Pending
+	// phase). The nil-guard prevents double-close if markStreamDone already
+	// closed a stream. The done channel was closed first, so any active
+	// producer will see it and exit before attempting to send.
 	for name, stream := range s.streams {
 		if stream != nil {
-			select {
-			case <-stream:
-			default:
-				close(stream)
-				log.Debug().Msgf("Force closed stream for node %s", name)
-			}
+			close(stream)
+			s.streams[name] = nil
 		}
 	}
-
 	s.numDone = s.numNodes
 
-	if s.combinedStream != nil && !s.combinedStreamClosed {
-		close(s.combinedStream)
-		s.combinedStreamClosed = true
-		log.Debug().Msg("Force closed combined stream")
-	}
+	s.mtx.Unlock()
+
+	// combinedStream is closed by the combineWg goroutine after all
+	// combineStream goroutines finish their range loops.
 
 	return nil
 }
