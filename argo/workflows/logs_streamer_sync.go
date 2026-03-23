@@ -63,10 +63,12 @@ func (s *LogsStreamer) markStreamDone(name string) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	s.numDone++
-	close(s.streams[name])
-
-	log.Debug().Msgf("marked stream done for node %s", name)
+	if stream, ok := s.streams[name]; ok && stream != nil {
+		close(stream)
+		s.streams[name] = nil
+		s.numDone++
+		log.Debug().Msgf("marked stream done for node %s", name)
+	}
 }
 
 func (s *LogsStreamer) markComplete() {
