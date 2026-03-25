@@ -12,15 +12,14 @@ import (
 const Issuer = "PIXO VR"
 
 type UserClaims struct {
-	UserId             int               `json:"userId"`
-	Email              string            `json:"email"`
-	Role               string            `json:"role"`
-	Platform           string            `json:"platform"`
-	OrgID              int               `json:"orgId"`
-	OrgType            string            `json:"orgType"`
-	DeviceSerialNumber string            `json:"deviceSerialNumber,omitempty"`
-	FingerPrintHash    string         `json:"data"`
-	Licences           []TokenLicense `json:"licenses,omitempty"`
+	UserId             int    `json:"userId"`
+	Email              string `json:"email"`
+	Role               string `json:"role"`
+	Platform           string `json:"platform"`
+	OrgID              int    `json:"orgId"`
+	OrgType            string `json:"orgType"`
+	DeviceSerialNumber string `json:"deviceSerialNumber,omitempty"`
+	FingerPrintHash    string `json:"data"`
 	jwt.RegisteredClaims
 }
 
