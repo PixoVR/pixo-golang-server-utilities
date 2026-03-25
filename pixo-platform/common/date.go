@@ -43,8 +43,7 @@ func SetDefaultDateRange(startDate, endDate *time.Time) (time.Time, time.Time) {
 // components (hour, minute, second, nanosecond) of the returned date are set to
 // zero, and the timezone/location matches that of the input date.
 func GetDateThirteenMonthsFromNextMonth(startDate time.Time) time.Time {
-	nextMonth := startDate.AddDate(0, 1, 0)
-	firstDayOfNextMonth := time.Date(nextMonth.Year(), nextMonth.Month(), 1, 0, 0, 0, 0, nextMonth.Location())
+	firstDayOfNextMonth := time.Date(startDate.Year(), startDate.Month()+1, 1, 0, 0, 0, 0, startDate.Location())
 	return firstDayOfNextMonth.AddDate(1, 1, 0)
 }
 
