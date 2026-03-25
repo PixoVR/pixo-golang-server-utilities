@@ -58,7 +58,7 @@ func (s *ServerTestFeature) PerformRequest(method, tenant, service, endpoint str
 
 	currentLifecycle := strings.ToLower(viper.GetString("lifecycle"))
 
-	if service == "" && (currentLifecycle == "" || currentLifecycle == "internal") {
+	if service == "" && (currentLifecycle == "" || currentLifecycle == "internal" || currentLifecycle == "local") {
 		url := fmt.Sprintf("/%s%s", s.ServiceClient.Path(), endpoint)
 		log.Debug().Msgf("URL: %s: - Method %s", url, method)
 
