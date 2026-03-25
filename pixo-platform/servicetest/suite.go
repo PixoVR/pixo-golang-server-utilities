@@ -85,13 +85,9 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		config: config,
 	}
 
-	if lifecycle == "" || lifecycle == "internal" || lifecycle == "local" {
+	if lifecycle == "" || lifecycle == "internal" {
 		suite.Feature.PlatformClient = &platform.MockClient{}
 		suite.Feature.Engine = config.Engine
-
-		if config.Opts.Tags == "" {
-			config.Opts.Tags = "~@external"
-		}
 	} else {
 		suite.Feature.PlatformClient = platform.NewClient(urlfinder.ClientConfig{
 			Lifecycle: suite.Lifecycle,

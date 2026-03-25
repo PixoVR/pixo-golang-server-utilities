@@ -11,7 +11,6 @@ Feature: Acceptance Tests
     And the response should contain a "$CUSTOM_VAL"
 
 
-  @external
   Scenario: External health check
     When I send "GET" request to the "multiplayer" "allocator" service at "/health"
     Then the response code should be "200"
