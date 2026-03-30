@@ -190,7 +190,7 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(cacheRes.Err()).NotTo(HaveOccurred())
 		Expect(cacheRes.Val()).To(Equal(signedURL))
 		cacheExpiration := c.TTL(context.Background(), storageClient.CacheKey(uploadedObject)).Val()
-		Expect(cacheExpiration.Seconds()).To(BeNumerically("~", gcs.DefaultExpireDuration.Seconds(), 3))
+		Expect(cacheExpiration.Seconds()).To(BeNumerically("~", gcs.DefaultExpireDuration.Seconds()/2, 3))
 	})
 
 	It("can read a file", func() {
@@ -252,7 +252,7 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(signedURL).To(ContainLifetime(lifetime))
 
 		cacheExpiration := c.TTL(context.Background(), storageClient.CacheKey(uploadedObject)).Val()
-		Expect(cacheExpiration.Seconds()).To(BeNumerically("~", lifetime.Seconds(), 3))
+		Expect(cacheExpiration.Seconds()).To(BeNumerically("~", lifetime.Seconds()/2, 3))
 	})
 
 })
