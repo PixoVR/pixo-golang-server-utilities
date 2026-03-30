@@ -160,7 +160,13 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 	})
 
 	It("can get the signed url", func() {
-		locationInBucket, err := storageClient.UploadFile(ctx, object, bytes.NewReader([]byte("Go Blue")))
+		signedURLObject := storage.BasicUploadable{
+			BucketName:        bucketName,
+			UploadDestination: bucketFilepath,
+			Filename:          filename,
+			Timestamp:         time.Now().Unix(),
+		}
+		locationInBucket, err := storageClient.UploadFile(ctx, signedURLObject, bytes.NewReader([]byte("Go Blue")))
 		Expect(err).NotTo(HaveOccurred())
 		uploadedObject = storage.PathUploadable{
 			BucketName: bucketName,
