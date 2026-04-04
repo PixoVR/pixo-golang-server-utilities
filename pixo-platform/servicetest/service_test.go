@@ -42,6 +42,7 @@ func TestMain(m *testing.M) {
 	}
 
 	suiteConfig := &SuiteConfig{
+		Lifecycle:     "internal",
 		Engine:        e.Engine,
 		BeforeRequest: beforeRequest,
 		Reset:         resetFunc,
