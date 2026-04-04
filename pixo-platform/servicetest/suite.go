@@ -35,6 +35,7 @@ type ServerTestSuite struct {
 }
 
 type SuiteConfig struct {
+	Lifecycle     string
 	Opts          *godog.Options
 	ServiceClient abstract.AbstractClient
 	Engine        *gin.Engine
@@ -67,6 +68,10 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 	godog.BindCommandLineFlags("godog.", config.Opts)
 	pflag.Parse()
 
+	if config.Lifecycle != "" {
+		lifecycle = config.Lifecycle
+	}
+
 	viper.Set("region", region)
 	viper.Set("lifecycle", lifecycle)
 
@@ -85,7 +90,7 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		config: config,
 	}
 
-	if lifecycle == "" || lifecycle == "internal" || lifecycle == "local" {
+	if lifecycle == "" || lifecycle == "internal" {
 		suite.Feature.PlatformClient = &platform.MockClient{}
 		suite.Feature.Engine = config.Engine
 
