@@ -15,6 +15,7 @@ func (s *ServerTestFeature) PerformSubstitutions(data []byte) []byte {
 		"RANDOM_ID":   generateRandomID(),
 		"RANDOM_UUID": generateRandomUUID(),
 		"RANDOM_TEXT": generateRandomText(),
+		"AUTH_TOKEN":  s.Token,
 	}
 
 	for key, value := range substitutions {
