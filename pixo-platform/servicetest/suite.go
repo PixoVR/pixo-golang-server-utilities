@@ -85,7 +85,7 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 		config: config,
 	}
 
-	if lifecycle == "" || lifecycle == "internal" || lifecycle == "local" {
+	if lifecycle == "" || lifecycle == "internal" {
 		suite.Feature.PlatformClient = &platform.MockClient{}
 		suite.Feature.Engine = config.Engine
 
