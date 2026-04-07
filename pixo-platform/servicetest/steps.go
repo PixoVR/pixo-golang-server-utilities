@@ -216,7 +216,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 	if len(splitGraphQLMethodName) > 1 {
 		graphQLOperationName = splitGraphQLMethodName[len(splitGraphQLMethodName)-1]
 	}
-	s.GraphQLOperation = gqlMethodName
+	s.GraphQLOperation = graphQLOperationName
 	s.DirectoryFilePath = fmt.Sprintf("./gql/%s.gql", gqlMethodName)
 
 	fileContent, err := os.ReadFile(s.DirectoryFilePath)
