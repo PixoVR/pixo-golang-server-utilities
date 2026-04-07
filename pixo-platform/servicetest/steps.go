@@ -291,7 +291,7 @@ func (s *ServerTestFeature) ExtractValueFromResponseAs(keyName, identifier strin
 		return err
 	}
 
-	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("/%s", keyName))
+	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s", keyName))
 	if extractedValue == nil || extractedValue.FirstChild == nil {
 		return fmt.Errorf("key %s not found in response", keyName)
 	}
