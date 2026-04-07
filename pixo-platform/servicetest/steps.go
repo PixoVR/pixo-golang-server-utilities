@@ -291,7 +291,20 @@ func (s *ServerTestFeature) ExtractValueFromResponseAs(keyName, identifier strin
 		return err
 	}
 
-	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//%s", keyName))
+	var extractedValue *jsonquery.Node
+
+	// If we have a GraphQL operation name, try to find the key as a direct child
+	// of the operation first. This avoids ambiguity when nested objects also contain
+	// fields with the same name (e.g., affiliate.id vs createOrg.id).
+	if s.GraphQLOperation != "" {
+		extractedValue = jsonquery.FindOne(doc, fmt.Sprintf("//%s/%s", s.GraphQLOperation, keyName))
+	}
+
+	// Fall back to recursive descent if scoped query didn't find it
+	if extractedValue == nil || extractedValue.FirstChild == nil {
+		extractedValue = jsonquery.FindOne(doc, fmt.Sprintf("//%s", keyName))
+	}
+
 	if extractedValue == nil || extractedValue.FirstChild == nil {
 		return fmt.Errorf("key %s not found in response", keyName)
 	}
