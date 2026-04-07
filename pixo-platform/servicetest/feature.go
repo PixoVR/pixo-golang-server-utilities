@@ -111,6 +111,7 @@ func (s *ServerTestFeature) Reset(interface{}) {
 	s.UserID = 0
 	s.Err = nil
 
+	s.GraphQLOperation = ""
 	s.GraphQLResponse = make(map[string]interface{})
 	s.DirectoryFilePath = ""
 	s.FilesToSend = nil
