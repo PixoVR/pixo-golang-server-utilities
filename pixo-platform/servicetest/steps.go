@@ -639,7 +639,7 @@ func (s *ServerTestFeature) DownloadFile(filepath, url string) error {
 
 func (s *ServerTestFeature) ResponseShouldHaveLength(length int) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -652,7 +652,7 @@ func (s *ServerTestFeature) ResponseShouldHaveLength(length int) error {
 
 func (s *ServerTestFeature) ResponseShouldHaveLengthGreaterThan(length int) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -665,7 +665,7 @@ func (s *ServerTestFeature) ResponseShouldHaveLengthGreaterThan(length int) erro
 
 func (s *ServerTestFeature) ResponseShouldHaveLengthLessThan(length int) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -718,7 +718,7 @@ func (s *ServerTestFeature) responseCheckItemWithProperty(property, value string
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -746,7 +746,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithPropertySetTo(objectName, 
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -772,7 +772,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySet
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -801,7 +801,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySet
 
 func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyOfLength(objectName string, index int, property string, length int) error {
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -838,7 +838,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyOfL
 
 func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySetToNull(objectName string, index int, property string) error {
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -867,7 +867,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySet
 
 func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyNotNull(objectName string, index int, property string) error {
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -896,7 +896,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyNot
 
 func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetToNull(index int, property string) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -915,7 +915,7 @@ func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetToNull(ind
 
 func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertyNotSetToNull(index int, property string) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -936,7 +936,7 @@ func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetTo(index i
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -955,7 +955,7 @@ func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetTo(index i
 
 func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertyOfLength(index int, property string, length int) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
