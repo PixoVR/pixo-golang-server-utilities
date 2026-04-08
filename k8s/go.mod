@@ -1,6 +1,6 @@
 module github.com/PixoVR/pixo-golang-server-utilities/k8s
 
-go 1.23.2
+go 1.25.8
 
 require (
 	github.com/onsi/ginkgo/v2 v2.20.2
