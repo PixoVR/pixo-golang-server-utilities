@@ -341,7 +341,10 @@ func (s *ServerTestFeature) MakeGraphQLRequest(endpoint, serviceName, body strin
 		extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("//data/%s", s.GraphQLOperation))
 		if extractedValue != nil {
 			responseBytes, _ := json.Marshal(extractedValue.Value())
-			s.ResponseString = string(responseBytes)
+			// Re-wrap extracted data with the operation name to maintain backward compatibility
+			// with existing json query paths (e.g. //sessions/*[1]/moduleId) in feature files.
+			wrappedJSON, _ := json.Marshal(map[string]json.RawMessage{s.GraphQLOperation: responseBytes})
+			s.ResponseString = string(wrappedJSON)
 		}
 	}
 

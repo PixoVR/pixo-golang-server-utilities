@@ -1,6 +1,7 @@
 package servicetest
 
 import (
+	"encoding/json"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/abstract"
 	"github.com/PixoVR/pixo-golang-clients/pixo-platform/platform"
 	"github.com/gin-gonic/gin"
@@ -72,6 +73,24 @@ func (s *ServerTestFeature) AddDynamicSubstitution(key string, value Substitutio
 	s.dynamicSubstitutions[key] = value
 }
 
+// UnwrapResponseString returns the inner data from a re-wrapped GraphQL response.
+// After MakeGraphQLRequest, ResponseString is formatted as {"operationName": <data>}
+// for XPath query compatibility. This method strips the operation wrapper and returns
+// the raw inner data for use in functions that do direct JSON unmarshalling.
+func (s *ServerTestFeature) UnwrapResponseString() string {
+	if s.GraphQLOperation == "" {
+		return s.ResponseString
+	}
+	var obj map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(s.ResponseString), &obj); err != nil {
+		return s.ResponseString
+	}
+	if inner, ok := obj[s.GraphQLOperation]; ok && len(obj) == 1 {
+		return string(inner)
+	}
+	return s.ResponseString
+}
+
 func (s *ServerTestFeature) Reset(interface{}) {
 	s.Recorder = httptest.NewRecorder()
 
@@ -92,6 +111,7 @@ func (s *ServerTestFeature) Reset(interface{}) {
 	s.UserID = 0
 	s.Err = nil
 
+	s.GraphQLOperation = ""
 	s.GraphQLResponse = make(map[string]interface{})
 	s.DirectoryFilePath = ""
 	s.FilesToSend = nil

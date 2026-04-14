@@ -216,7 +216,7 @@ func (s *ServerTestFeature) SendGQLRequestWithVariables(gqlMethodName string, se
 	if len(splitGraphQLMethodName) > 1 {
 		graphQLOperationName = splitGraphQLMethodName[len(splitGraphQLMethodName)-1]
 	}
-	s.GraphQLOperation = gqlMethodName
+	s.GraphQLOperation = graphQLOperationName
 	s.DirectoryFilePath = fmt.Sprintf("./gql/%s.gql", gqlMethodName)
 
 	fileContent, err := os.ReadFile(s.DirectoryFilePath)
@@ -291,7 +291,20 @@ func (s *ServerTestFeature) ExtractValueFromResponseAs(keyName, identifier strin
 		return err
 	}
 
-	extractedValue := jsonquery.FindOne(doc, fmt.Sprintf("/%s", keyName))
+	var extractedValue *jsonquery.Node
+
+	// If we have a GraphQL operation name, try to find the key as a direct child
+	// of the operation first. This avoids ambiguity when nested objects also contain
+	// fields with the same name (e.g., affiliate.id vs createOrg.id).
+	if s.GraphQLOperation != "" {
+		extractedValue = jsonquery.FindOne(doc, fmt.Sprintf("//%s/%s", s.GraphQLOperation, keyName))
+	}
+
+	// Fall back to recursive descent if scoped query didn't find it
+	if extractedValue == nil || extractedValue.FirstChild == nil {
+		extractedValue = jsonquery.FindOne(doc, fmt.Sprintf("//%s", keyName))
+	}
+
 	if extractedValue == nil || extractedValue.FirstChild == nil {
 		return fmt.Errorf("key %s not found in response", keyName)
 	}
@@ -639,7 +652,7 @@ func (s *ServerTestFeature) DownloadFile(filepath, url string) error {
 
 func (s *ServerTestFeature) ResponseShouldHaveLength(length int) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -652,7 +665,7 @@ func (s *ServerTestFeature) ResponseShouldHaveLength(length int) error {
 
 func (s *ServerTestFeature) ResponseShouldHaveLengthGreaterThan(length int) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -665,7 +678,7 @@ func (s *ServerTestFeature) ResponseShouldHaveLengthGreaterThan(length int) erro
 
 func (s *ServerTestFeature) ResponseShouldHaveLengthLessThan(length int) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -718,7 +731,7 @@ func (s *ServerTestFeature) responseCheckItemWithProperty(property, value string
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -746,7 +759,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithPropertySetTo(objectName, 
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -772,7 +785,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySet
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -801,7 +814,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySet
 
 func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyOfLength(objectName string, index int, property string, length int) error {
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -838,7 +851,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyOfL
 
 func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySetToNull(objectName string, index int, property string) error {
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -867,7 +880,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertySet
 
 func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyNotNull(objectName string, index int, property string) error {
 	response := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s.ResponseString), &response); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &response); err != nil {
 		return fmt.Errorf("failed to unmarshal response into map: %v", err)
 	}
 
@@ -896,7 +909,7 @@ func (s *ServerTestFeature) ResponseContainsObjectWithItemAtIndexWithPropertyNot
 
 func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetToNull(index int, property string) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -915,7 +928,7 @@ func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetToNull(ind
 
 func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertyNotSetToNull(index int, property string) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -936,7 +949,7 @@ func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetTo(index i
 	value = string(s.PerformSubstitutions([]byte(value)))
 
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 
@@ -955,7 +968,7 @@ func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertySetTo(index i
 
 func (s *ServerTestFeature) ResponseContainsItemAtIndexWithPropertyOfLength(index int, property string, length int) error {
 	items := make([]interface{}, 0)
-	if err := json.Unmarshal([]byte(s.ResponseString), &items); err != nil {
+	if err := json.Unmarshal([]byte(s.UnwrapResponseString()), &items); err != nil {
 		return fmt.Errorf("failed to unmarshal response into list: %v", err)
 	}
 

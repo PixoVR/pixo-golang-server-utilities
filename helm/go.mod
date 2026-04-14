@@ -1,8 +1,6 @@
 module github.com/PixoVR/pixo-golang-server-utilities/helm
 
-go 1.24.0
-
-toolchain go1.24.4
+go 1.25.8
 
 require (
 	github.com/onsi/ginkgo/v2 v2.20.2
