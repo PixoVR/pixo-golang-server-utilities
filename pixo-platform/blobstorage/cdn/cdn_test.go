@@ -71,6 +71,10 @@ var _ = Describe("CDN Signed Prefix", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(c).NotTo(BeNil())
+
+			result, err := c.GenerateSignedPrefix("42")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.Expiration).To(BeTemporally("~", time.Now().Add(cdn.DefaultSignedPrefixTTL), 5*time.Second))
 		})
 
 		It("should strip trailing slash from domain", func() {
