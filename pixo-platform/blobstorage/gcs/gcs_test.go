@@ -240,12 +240,6 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(exists).To(BeTrue())
-
-		err = storageClient.DeleteFile(ctx, storage.PathUploadable{
-			BucketName: bucketName,
-			Filepath:   locationInBucket,
-		})
-		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("can initiate a multipart upload", func() {
