@@ -23,6 +23,10 @@ type MockStorageClient struct {
 	UploadFileError          error
 	UploadFileObjects        []UploadableObject
 
+	UploadRawFileNumTimesCalled int
+	UploadRawFileError          error
+	UploadRawFileObjects        []UploadableObject
+
 	FileExistsNumTimesCalled int
 	FileShouldExist          bool
 	FileExistsError          error
@@ -71,6 +75,10 @@ func (f *MockStorageClient) Reset() {
 	f.UploadFileNumTimesCalled = 0
 	f.UploadFileError = nil
 	f.UploadFileObjects = nil
+
+	f.UploadRawFileNumTimesCalled = 0
+	f.UploadRawFileError = nil
+	f.UploadRawFileObjects = nil
 
 	f.FileExistsNumTimesCalled = 0
 	f.FileShouldExist = true
@@ -133,6 +141,17 @@ func (f *MockStorageClient) UploadFile(ctx context.Context, object UploadableObj
 
 	if f.UploadFileError != nil {
 		return "", f.UploadFileError
+	}
+
+	return object.GetFileLocation(), nil
+}
+
+func (f *MockStorageClient) UploadRawFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error) {
+	f.UploadRawFileNumTimesCalled++
+	f.UploadRawFileObjects = append(f.UploadRawFileObjects, object)
+
+	if f.UploadRawFileError != nil {
+		return "", f.UploadRawFileError
 	}
 
 	return object.GetFileLocation(), nil

@@ -14,6 +14,7 @@ type StorageClient interface {
 	GetChecksum(ctx context.Context, object UploadableObject) (string, error)
 	FileExists(ctx context.Context, object UploadableObject) (bool, error)
 	UploadFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error)
+	UploadRawFile(ctx context.Context, object UploadableObject, fileReader io.Reader) (string, error)
 	Copy(ctx context.Context, src UploadableObject, dest UploadableObject) error
 	ReadFile(ctx context.Context, object UploadableObject) (io.ReadCloser, error)
 	DeleteFile(ctx context.Context, object UploadableObject) error
