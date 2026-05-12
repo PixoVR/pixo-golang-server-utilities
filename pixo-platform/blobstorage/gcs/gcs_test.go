@@ -223,6 +223,31 @@ var _ = Describe("Google Cloud Storage", Ordered, func() {
 		Expect(fileReader).To(BeNil())
 	})
 
+	It("can upload a raw file without sanitizing the filename", func() {
+		rawObject := storage.PathUploadable{
+			BucketName: bucketName,
+			Filepath:   "testdata/nested/path/raw-test-file.txt",
+		}
+
+		locationInBucket, err := storageClient.UploadRawFile(ctx, rawObject, bytes.NewReader([]byte("raw upload")))
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(locationInBucket).To(Equal("testdata/nested/path/raw-test-file.txt"))
+
+		exists, err := storageClient.FileExists(ctx, storage.PathUploadable{
+			BucketName: bucketName,
+			Filepath:   locationInBucket,
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(exists).To(BeTrue())
+
+		err = storageClient.DeleteFile(ctx, storage.PathUploadable{
+			BucketName: bucketName,
+			Filepath:   locationInBucket,
+		})
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	It("can initiate a multipart upload", func() {
 		res, err := storageClient.InitResumableUpload(ctx, object)
 
