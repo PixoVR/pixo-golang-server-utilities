@@ -36,6 +36,31 @@ func (c Client) UploadFile(ctx context.Context, object blobstorage.UploadableObj
 	return sanitizedFileLocation, nil
 }
 
+func (c Client) UploadRawFile(ctx context.Context, object blobstorage.UploadableObject, fileReader io.Reader) (string, error) {
+	storageClient, err := storage.NewClient(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	bucketName := c.getBucketName(object)
+	fileLocation := object.GetFileLocation()
+
+	sw := storageClient.
+		Bucket(bucketName).
+		Object(fileLocation).
+		NewWriter(ctx)
+
+	if _, err = io.Copy(sw, fileReader); err != nil {
+		return "", err
+	}
+
+	if err = sw.Close(); err != nil {
+		return "", err
+	}
+
+	return fileLocation, nil
+}
+
 func (c Client) InitResumableUpload(ctx context.Context, object blobstorage.UploadableObject) (*blobstorage.ResumableUploadResponse, error) {
 	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.getBucketName(object), object.GetFileLocation())
 
