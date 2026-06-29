@@ -1,6 +1,6 @@
 module github.com/PixoVR/pixo-golang-server-utilities/argo
 
-go 1.25.10
+go 1.25.11
 
 require (
 	github.com/PixoVR/pixo-golang-server-utilities/pixo-platform v0.0.0-20241010065124-83080f584cef
