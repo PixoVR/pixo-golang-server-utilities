@@ -8,7 +8,7 @@ require (
 	github.com/argoproj/argo-workflows/v3 v3.5.11
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
-	github.com/redis/go-redis/v9 v9.6.1
+	github.com/redis/go-redis/v9 v9.6.3
 	github.com/rs/zerolog v1.33.0
 	k8s.io/api v0.31.1
 	k8s.io/apimachinery v0.31.1
