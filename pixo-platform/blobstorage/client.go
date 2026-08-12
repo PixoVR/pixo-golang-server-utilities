@@ -18,13 +18,20 @@ type StorageClient interface {
 	Copy(ctx context.Context, src UploadableObject, dest UploadableObject) error
 	ReadFile(ctx context.Context, object UploadableObject) (io.ReadCloser, error)
 	DeleteFile(ctx context.Context, object UploadableObject) error
-	InitResumableUpload(ctx context.Context, object UploadableObject) (*ResumableUploadResponse, error)
+	InitResumableUpload(ctx context.Context, object UploadableObject, options ...Option) (*ResumableUploadResponse, error)
 }
 
 type Option struct {
 	ContentDisposition string
 	Lifetime           time.Duration
 	Method             string
+
+	// Origin is the browser origin that performs the uploads for a resumable
+	// upload session. Cloud Storage decides the Access-Control-Allow-Origin
+	// header of every request in the session from the origin of the request
+	// that starts it, so sessions started on behalf of a browser must pass the
+	// origin of that browser.
+	Origin string
 }
 
 type UploadableObject interface {

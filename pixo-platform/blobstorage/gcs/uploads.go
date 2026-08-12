@@ -61,7 +61,7 @@ func (c Client) UploadRawFile(ctx context.Context, object blobstorage.Uploadable
 	return fileLocation, nil
 }
 
-func (c Client) InitResumableUpload(ctx context.Context, object blobstorage.UploadableObject) (*blobstorage.ResumableUploadResponse, error) {
+func (c Client) InitResumableUpload(ctx context.Context, object blobstorage.UploadableObject, options ...blobstorage.Option) (*blobstorage.ResumableUploadResponse, error) {
 	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", c.getBucketName(object), object.GetFileLocation())
 
 	request, err := http.NewRequestWithContext(ctx, "POST", url, nil)
@@ -77,6 +77,10 @@ func (c Client) InitResumableUpload(ctx context.Context, object blobstorage.Uplo
 	request.Header.Add("Authorization", "Bearer "+accessToken)
 	request.Header.Add("Content-Length", "0")
 	request.Header.Add("x-goog-resumable", "start")
+
+	if len(options) > 0 && options[0].Origin != "" {
+		request.Header.Add("Origin", options[0].Origin)
+	}
 
 	httpClient := &http.Client{}
 	response, err := httpClient.Do(request)
