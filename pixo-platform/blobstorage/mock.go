@@ -54,6 +54,7 @@ type MockStorageClient struct {
 	InitResumableUploadNumTimesCalled int
 	InitResumableUploadError          error
 	InitResumableUploadObjects        []UploadableObject
+	InitResumableUploadOptions        [][]Option
 }
 
 var _ StorageClient = (*MockStorageClient)(nil)
@@ -105,6 +106,7 @@ func (f *MockStorageClient) Reset() {
 	f.InitResumableUploadNumTimesCalled = 0
 	f.InitResumableUploadError = nil
 	f.InitResumableUploadObjects = nil
+	f.InitResumableUploadOptions = nil
 }
 
 func (f *MockStorageClient) GetPublicURL(object UploadableObject) string {
@@ -233,9 +235,10 @@ func (f *MockStorageClient) DeleteFile(ctx context.Context, object UploadableObj
 	return nil
 }
 
-func (f *MockStorageClient) InitResumableUpload(ctx context.Context, object UploadableObject) (*ResumableUploadResponse, error) {
+func (f *MockStorageClient) InitResumableUpload(ctx context.Context, object UploadableObject, options ...Option) (*ResumableUploadResponse, error) {
 	f.InitResumableUploadNumTimesCalled++
 	f.InitResumableUploadObjects = append(f.InitResumableUploadObjects, object)
+	f.InitResumableUploadOptions = append(f.InitResumableUploadOptions, options)
 
 	if f.InitResumableUploadError != nil {
 		return nil, f.InitResumableUploadError
