@@ -54,7 +54,7 @@ jobs:
 
       - id: init
         name: Init Cluster
-        uses: PixoVR/test-cluster-action@devin/1787070888-fix-artifact-repo-condition # TEMP: revert to 0.0.11 once released
+        uses: PixoVR/test-cluster-action@0.0.11
         with:
           argo-events: true
           argo-workflows: true
