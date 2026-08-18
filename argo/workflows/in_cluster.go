@@ -19,5 +19,5 @@ func NewInClusterArgoClient() (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{Clientset: clientset}, nil
+	return &Client{Interface: clientset}, nil
 }
