@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"context"
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 )
 
 func (s *LogsStreamer) nodeIsDone(ctx context.Context, nodeName string) bool {
@@ -20,5 +19,14 @@ func (s *LogsStreamer) nodeIsDone(ctx context.Context, nodeName string) bool {
 		return false
 	}
 
-	return newNode.Phase == v1alpha1.NodeSucceeded || newNode.Phase == v1alpha1.NodeFailed
+	return newNode.Fulfilled()
+}
+
+func (s *LogsStreamer) workflowIsDone(ctx context.Context) bool {
+	workflow, err := s.argoClient.GetWorkflow(ctx, s.namespace, s.workflowName)
+	if err != nil || workflow == nil {
+		return false
+	}
+
+	return workflow.Status.Phase.Completed()
 }

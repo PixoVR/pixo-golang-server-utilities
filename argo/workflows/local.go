@@ -21,7 +21,7 @@ func NewLocalClient() (*Client, error) {
 		log.Error().Err(err).Msg("Failed to create argo client")
 		return nil, err
 	}
-	return &Client{Clientset: clientset}, nil
+	return &Client{Interface: clientset}, nil
 }
 
 func NewLocalBaseClient() (kubernetes.Interface, error) {

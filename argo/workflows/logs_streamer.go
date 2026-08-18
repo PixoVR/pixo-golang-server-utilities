@@ -15,6 +15,10 @@ import (
 	"time"
 )
 
+// workflowStartTimeout is how long a stream waits for the workflow controller to
+// move the workflow out of the pending phase before giving up on its logs.
+const workflowStartTimeout = 5 * time.Minute
+
 type Log struct {
 	Step  string `json:"step"`
 	Lines string `json:"lines"`
@@ -135,11 +139,58 @@ func (s *LogsStreamer) combineStreams() {
 
 func (s *LogsStreamer) startStreaming(ctx context.Context, workflow *v1alpha1.Workflow) {
 	for _, template := range workflow.Spec.Templates {
-		if workflow.Status.Phase == v1alpha1.WorkflowSucceeded || workflow.Status.Phase == v1alpha1.WorkflowFailed {
-			go s.streamArchive(ctx, template.Name)
+		if !hasLogs(template) {
+			continue
+		}
 
-		} else if workflow.Status.Phase == v1alpha1.WorkflowRunning {
-			go s.waitForTail(ctx, template, workflow)
+		go s.streamTemplate(ctx, template, workflow)
+	}
+}
+
+// streamTemplate waits for the workflow to leave the pending phase before deciding
+// whether logs can be tailed from the pod or have to be read from the archive.
+func (s *LogsStreamer) streamTemplate(ctx context.Context, template v1alpha1.Template, workflow *v1alpha1.Workflow) {
+	started, err := s.waitForWorkflowToStart(ctx, workflow)
+	if err != nil {
+		log.Debug().Err(err).Msgf("not streaming logs for template %s", template.Name)
+		s.markStreamDone(template.Name)
+		return
+	}
+
+	if started.Status.Phase.Completed() {
+		s.streamArchive(ctx, template.Name)
+		return
+	}
+
+	s.waitForTail(ctx, template, started)
+}
+
+func (s *LogsStreamer) waitForWorkflowToStart(ctx context.Context, workflow *v1alpha1.Workflow) (*v1alpha1.Workflow, error) {
+	if hasStarted(workflow) {
+		return workflow, nil
+	}
+
+	timeout := time.After(workflowStartTimeout)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-s.done:
+			return nil, errors.New("streamer closed")
+		case <-timeout:
+			return nil, errors.New("timeout waiting for workflow to start")
+		case <-ticker.C:
+			updated, err := s.argoClient.GetWorkflow(ctx, s.namespace, s.workflowName)
+			if err != nil || updated == nil {
+				continue
+			}
+
+			if hasStarted(updated) {
+				return updated, nil
+			}
 		}
 	}
 }
@@ -188,6 +239,12 @@ func (s *LogsStreamer) waitForTail(c context.Context, template v1alpha1.Template
 			if _, err := s.tail(c, template.Name, workflow); err == nil {
 				return
 			}
+
+			if s.nodeIsDone(c, template.Name) || s.workflowIsDone(c) {
+				log.Debug().Msgf("template %s finished without tailable logs, falling back to the archive", template.Name)
+				s.streamArchive(c, template.Name)
+				return
+			}
 		}
 	}
 }
@@ -228,7 +285,7 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 			s.mtx.Lock()
 			closed := s.closed
 			s.mtx.Unlock()
-			
+
 			if closed {
 				log.Debug().Msgf("LogsStreamer closed, stopping tail for node %s", templateName)
 				return s.getStream(templateName), errors.New("streamer closed")
@@ -268,17 +325,17 @@ func (s *LogsStreamer) tail(ctx context.Context, templateName string, workflow *
 			readCloser.Close()
 			return s.getStream(templateName), errors.New("node is nil after select loop")
 		}
-		
+
 		nodeTemplateName := node.TemplateName
 		go s.readLogsForNode(ctx, nodeTemplateName, readCloser)
-		
+
 		return s.getStream(nodeTemplateName), nil
 	}
 }
 
 func (s *LogsStreamer) streamArchive(ctx context.Context, nodeName string) {
 	archiveReadCloser, err := s.GetArchivedLogsForTemplate(ctx, nodeName)
-	if err != nil {
+	if err != nil || archiveReadCloser == nil {
 		s.markStreamDone(nodeName)
 		return
 	}
@@ -303,7 +360,7 @@ func (s *LogsStreamer) readLogsForNode(ctx context.Context, nodeName string, rea
 		s.mtx.Lock()
 		closed := s.closed
 		s.mtx.Unlock()
-		
+
 		if closed {
 			log.Debug().Msgf("LogsStreamer closed, stopping log reading for node %s", nodeName)
 			s.markStreamDone(nodeName)
@@ -339,19 +396,19 @@ func (s *LogsStreamer) readLogsForNode(ctx context.Context, nodeName string, rea
 
 		}
 
-			if buf.String() != "" {
-				select {
-				case stream <- Log{
-					Step:  nodeName,
-					Lines: buf.String(),
-				}:
-					log.Debug().Msgf("streamed log for %s", nodeName)
-				case <-s.done:
-					log.Debug().Msgf("LogsStreamer done, stopping send for %s", nodeName)
-					s.markStreamDone(nodeName)
-					return
-				}
+		if buf.String() != "" {
+			select {
+			case stream <- Log{
+				Step:  nodeName,
+				Lines: buf.String(),
+			}:
+				log.Debug().Msgf("streamed log for %s", nodeName)
+			case <-s.done:
+				log.Debug().Msgf("LogsStreamer done, stopping send for %s", nodeName)
+				s.markStreamDone(nodeName)
+				return
 			}
+		}
 
 	}
 }
@@ -374,7 +431,7 @@ func (s *LogsStreamer) GetArchivedLogsForTemplate(ctx context.Context, templateN
 		PodName:      FormatPodName(node),
 	}
 
-	if node.Phase != v1alpha1.NodeSucceeded && node.Phase != v1alpha1.NodeFailed {
+	if !node.Fulfilled() {
 		log.Debug().Msgf("unable to get archives, node %s is not done", node.TemplateName)
 		return nil, errors.New("node is not done")
 	}
@@ -425,4 +482,12 @@ func (s *LogsStreamer) Close() error {
 
 func hasLogs(template v1alpha1.Template) bool {
 	return template.GetNodeType() == v1alpha1.NodeTypePod
+}
+
+func hasStarted(workflow *v1alpha1.Workflow) bool {
+	if workflow == nil {
+		return false
+	}
+
+	return workflow.Status.Phase != "" && workflow.Status.Phase != v1alpha1.WorkflowPending
 }

@@ -5,5 +5,5 @@ import (
 )
 
 type Client struct {
-	*versioned.Clientset
+	versioned.Interface
 }

@@ -139,27 +139,48 @@ var _ = Describe("Stream", func() {
 			Expect(streamer.IsDone()).To(BeTrue())
 		})
 
-		// TODO: uncomment after unit tests are fixed to verify that it works? was added but the workflow setup is not valid for the unit tests.
-		// It("can close all of the streams", func() {
-		// 	stream, err := streamer.Start(ctx)
-		// 	Expect(err).NotTo(HaveOccurred())
-		// 	Expect(stream).NotTo(BeNil())
+		It("can close all of the streams", func() {
+			stream, err := streamer.Start(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(stream).NotTo(BeNil())
 
-		// 	readNLogsAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
-		// 	
-		// 	Expect(streamer.Close()).To(Succeed())
-		// 	_, ok := <-stream
-		// 	Expect(ok).To(BeFalse())
-		// })
+			readNLogsAndExpectLinesTo(ContainSubstring("~~~"), 2, stream)
 
+			Expect(streamer.Close()).To(Succeed())
+			Eventually(stream, streamTimeout).Should(BeClosed())
+		})
 
 	})
 
 })
 
+// streamTimeout bounds how long a spec waits for the next log so a stalled
+// stream fails with a useful message instead of the go test timeout panic.
+const streamTimeout = 3 * time.Minute
+
+func receiveLog(ch <-chan workflows.Log) (workflows.Log, bool) {
+	var (
+		streamLog workflows.Log
+		open      bool
+		received  bool
+	)
+
+	Eventually(func() bool {
+		select {
+		case streamLog, open = <-ch:
+			received = true
+		default:
+		}
+
+		return received
+	}, streamTimeout, time.Second).Should(BeTrue(), "timed out waiting for a log on the stream")
+
+	return streamLog, open
+}
+
 func readNLogsAndExpectLinesTo(matcher types.GomegaMatcher, n int, ch <-chan workflows.Log) {
 	for i := 0; i < n; i++ {
-		streamLog, ok := <-ch
+		streamLog, ok := receiveLog(ch)
 		if !ok {
 			break
 		}
@@ -170,7 +191,7 @@ func readNLogsAndExpectLinesTo(matcher types.GomegaMatcher, n int, ch <-chan wor
 
 func readLogsUntilDoneAndExpectLinesTo(matcher types.GomegaMatcher, ch <-chan workflows.Log) {
 	for {
-		streamLog, ok := <-ch
+		streamLog, ok := receiveLog(ch)
 		if !ok {
 			break
 		}
