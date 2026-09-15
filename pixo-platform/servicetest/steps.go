@@ -106,6 +106,40 @@ func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the message should not be empty$`, s.CheckMessageNotEmpty)
 	ctx.Step(`^the json query "([^"]*)" should not exists in the response$`, s.theJsonQueryShouldNotExistsInTheResponse)
 	ctx.Step(`^the json query "([^"]*)" should exists in the response$`, s.theJsonQueryShouldExistsInTheResponse)
+	ctx.Step(`^the json query "([^"]*)" should be equal to "([^"]*)"$`, s.theJsonQueryShouldBeEqualTo)
+}
+
+func (s *ServerTestFeature) theJsonQueryShouldBeEqualTo(jsonQueryPath, expected string) error {
+	if s.ResponseString == "" {
+		return fmt.Errorf("response is empty")
+	}
+
+	jsonQueryPath = string(s.PerformSubstitutions([]byte(jsonQueryPath)))
+	expected = string(s.PerformSubstitutions([]byte(expected)))
+
+	doc, err := jsonquery.Parse(strings.NewReader(s.ResponseString))
+	if err != nil {
+		return err
+	}
+	node, err := jsonquery.Query(doc, jsonQueryPath)
+	if err != nil {
+		return err
+	}
+
+	if node == nil {
+		return fmt.Errorf("json query path %s not found in response", jsonQueryPath)
+	}
+
+	actual := "null"
+	if node.Value() != nil {
+		actual = fmt.Sprint(node.Value())
+	}
+
+	if actual != expected {
+		return fmt.Errorf("expected json query path %s to equal %s, but got %s: %s", jsonQueryPath, expected, actual, prettify(s.ResponseString))
+	}
+
+	return nil
 }
 
 func (s *ServerTestFeature) theJsonQueryShouldNotExistsInTheResponse(jsonQueryPath string) error {
