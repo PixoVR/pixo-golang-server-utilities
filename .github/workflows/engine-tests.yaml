@@ -18,6 +18,9 @@ env:
   GOOGLE_JSON_KEY_PATH: "/home/runner/google-key.json"
   GCS_BUCKET_NAME: "pixo-test-bucket"
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: "1.26.8"
 
       - name: Lint
         uses: golangci/golangci-lint-action@v6
@@ -62,7 +65,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: "1.26.8"
 
       - name: Run Tests
         run: |
