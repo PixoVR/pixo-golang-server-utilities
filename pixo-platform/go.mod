@@ -3,7 +3,7 @@ module github.com/PixoVR/pixo-golang-server-utilities/pixo-platform
 go 1.26.8
 
 require (
-	cloud.google.com/go/storage v1.68.0
+	cloud.google.com/go/storage v1.69.0
 	github.com/99designs/gqlgen v0.17.95
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.1.118
 	github.com/alicebob/miniredis/v2 v2.39.0
@@ -19,7 +19,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/jinzhu/now v1.1.5
 	github.com/joho/godotenv v1.5.1
-	github.com/onsi/ginkgo/v2 v2.23.3
+	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
 	github.com/opentracing-contrib/go-gin v0.0.0-20241203023905-a5650667207a
 	github.com/redis/go-redis/v9 v9.22.0
@@ -48,6 +48,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.62.0 // indirect
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/antchfx/xpath v1.3.8 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
@@ -83,13 +84,13 @@ require (
 	github.com/go-playground/validator/v10 v10.30.5 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
-	github.com/goccy/go-json v0.11.1 // indirect
+	github.com/goccy/go-json v0.11.2 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e // indirect
+	github.com/google/pprof v0.0.0-20261001064331-60bf690a9302 // indirect
 	github.com/google/s2a-go v0.1.10 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.22 // indirect
 	github.com/googleapis/gax-go/v2 v2.26.2 // indirect
@@ -143,8 +144,8 @@ require (
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 	golang.org/x/tools v0.50.0 // indirect
-	google.golang.org/genproto v0.0.0-20260921155816-b14227669459 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260921155816-b14227669459 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260921155816-b14227669459 // indirect
+	google.golang.org/genproto v0.0.0-20260928230214-8a89bd6388cc // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc // indirect
 	google.golang.org/grpc v1.84.0 // indirect
 )

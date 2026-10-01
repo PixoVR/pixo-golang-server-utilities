@@ -3,8 +3,8 @@ module github.com/PixoVR/pixo-golang-server-utilities/helm
 go 1.26.8
 
 require (
-	github.com/onsi/ginkgo/v2 v2.32.0
-	github.com/onsi/gomega v1.40.0
+	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/gomega v1.44.0
 	github.com/rs/zerolog v1.35.1
 	helm.sh/helm/v3 v3.22.0
 	k8s.io/cli-runtime v0.37.1
@@ -55,12 +55,12 @@ require (
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260402051712-545e8a4df936 // indirect
+	github.com/google/pprof v0.0.0-20261001064331-60bf690a9302 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/huandu/xstrings v1.6.1 // indirect
+	github.com/huandu/xstrings v1.6.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmoiron/sqlx v1.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -106,7 +106,7 @@ require (
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260921155816-b14227669459 // indirect
 	google.golang.org/grpc v1.84.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
@@ -125,8 +125,8 @@ require (
 	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3 // indirect
 	oras.land/oras-go/v2 v2.6.2 // indirect
 	sigs.k8s.io/json v0.0.0-20260909141634-11ed52e25bc5 // indirect
-	sigs.k8s.io/kustomize/api v0.21.1 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.21.1 // indirect
+	sigs.k8s.io/kustomize/api v0.21.2 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.21.2 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
