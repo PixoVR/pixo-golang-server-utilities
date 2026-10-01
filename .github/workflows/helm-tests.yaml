@@ -21,6 +21,9 @@ env:
   NAMESPACE: 'test'
   SA_NAME: 'test-sa'
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -34,7 +37,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26.8'
 
       - name: Lint
         uses: golangci/golangci-lint-action@v6
@@ -60,7 +63,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26.8'
 
       - name: Run Tests
         run: |
