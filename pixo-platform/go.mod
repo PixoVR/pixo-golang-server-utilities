@@ -5,7 +5,7 @@ go 1.26.8
 require (
 	cloud.google.com/go/storage v1.69.0
 	github.com/99designs/gqlgen v0.17.95
-	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.1.118
+	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.1.119
 	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/antchfx/jsonquery v1.3.7
 	github.com/casbin/casbin/v2 v2.135.0
