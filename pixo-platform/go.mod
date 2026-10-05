@@ -30,7 +30,7 @@ require (
 	github.com/swaggo/gin-swagger v1.6.1
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	golang.org/x/oauth2 v0.37.0
-	google.golang.org/api v0.299.0
+	google.golang.org/api v0.300.0
 	google.golang.org/protobuf v1.36.12
 	open-match.dev/open-match v1.8.1
 )
