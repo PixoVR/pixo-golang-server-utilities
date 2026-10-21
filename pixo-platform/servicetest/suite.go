@@ -37,6 +37,7 @@ type ServerTestSuite struct {
 type SuiteConfig struct {
 	Lifecycle     string
 	Opts          *godog.Options
+	Strict        bool
 	ServiceClient abstract.AbstractClient
 	Engine        *gin.Engine
 	BeforeRequest func(body []byte)
@@ -63,6 +64,10 @@ func NewSuite(config *SuiteConfig) *ServerTestSuite {
 
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		log.Fatal().Err(err).Msg("Failed to bind flags")
+	}
+
+	if config.Strict {
+		config.Opts.Strict = true
 	}
 
 	godog.BindCommandLineFlags("godog.", config.Opts)
@@ -135,11 +140,13 @@ func (s *ServerTestSuite) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 
+	overridden := make(map[string]bool, len(s.config.Steps))
 	for _, step := range s.config.Steps {
 		ctx.Step(step.Expression, step.Handler)
+		overridden[step.Expression] = true
 	}
 
-	s.Feature.InitializeScenario(ctx)
+	s.Feature.initializeScenario(ctx, overridden)
 }
 
 func (s *ServerTestSuite) setup() {

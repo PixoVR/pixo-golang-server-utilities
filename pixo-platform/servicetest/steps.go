@@ -25,88 +25,97 @@ type Step struct {
 }
 
 func (s *ServerTestFeature) InitializeScenario(ctx *godog.ScenarioContext) {
+	s.initializeScenario(ctx, nil)
+}
+
+func (s *ServerTestFeature) initializeScenario(ctx *godog.ScenarioContext, overridden map[string]bool) {
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		s.Reset(sc)
 		return ctx, nil
 	})
 
-	ctx.Step(`^I create a random integer$`, s.CreateRandomInt)
-	ctx.Step(`^I create a uuid$`, s.CreateRandomUUID)
+	step := func(expression string, handler interface{}) {
+		if !overridden[expression] {
+			ctx.Step(expression, handler)
+		}
+	}
 
-	ctx.Step(`^I am signed in as a "([^"]*)"$`, s.SignedInAsA)
-	ctx.Step(`^I use the secret key for authentication$`, s.UseSecretKey)
+	step(`^I create a random integer$`, s.CreateRandomInt)
+	step(`^I create a uuid$`, s.CreateRandomUUID)
 
-	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)"$`, s.SendRequest)
-	ctx.Step(`^I send "(GET|POST|DELETE)" request to "([^"]*)" with params$`, s.SendRequestWithParams)
-	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data$`, s.SendRequestWithData)
-	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedData)
+	step(`^I am signed in as a "([^"]*)"$`, s.SignedInAsA)
+	step(`^I use the secret key for authentication$`, s.UseSecretKey)
 
-	ctx.Step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)"$`, s.SendRequestToService)
-	ctx.Step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with params$`, s.SendRequestWithParamsToService)
-	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with data$`, s.SendRequestWithDataToService)
-	ctx.Step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedDataToService)
+	step(`^I send "(GET|POST|DELETE)" request to "([^"]*)"$`, s.SendRequest)
+	step(`^I send "(GET|POST|DELETE)" request to "([^"]*)" with params$`, s.SendRequestWithParams)
+	step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data$`, s.SendRequestWithData)
+	step(`^I send "(PATCH|POST|PUT|DELETE)" request to "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedData)
 
-	ctx.Step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
-	ctx.Step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGQLRequestWithVariables)
+	step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)"$`, s.SendRequestToService)
+	step(`^I send "(GET|POST|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with params$`, s.SendRequestWithParamsToService)
+	step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with data$`, s.SendRequestWithDataToService)
+	step(`^I send "(PATCH|POST|PUT|DELETE)" request to the "([^"]*)" "([^"]*)" service at "([^"]*)" with data and "([^"]*)" encoded$`, s.SendRequestWithEncodedDataToService)
 
-	ctx.Step(`^the response code should be "([^"]*)"$`, s.TheResponseCodeShouldBe)
-	ctx.Step(`^the response code should be (\d+)$`, s.TheResponseCodeShouldBe)
-	ctx.Step(`^the response should match json$`, s.TheResponseShouldMatchJSON)
-	ctx.Step(`^the response should contain$`, s.TheResponseShouldContain)
+	step(`^I have a file named "([^"]*)" in the "([^"]*)" directory that should be sent in the request with key "([^"]*)"$`, s.FileToSendInRequest)
+	step(`^I send "([^"]*)" gql request to the "([^"]*)" endpoint "([^"]*)" with the variables$`, s.SendGQLRequestWithVariables)
 
-	ctx.Step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
-	ctx.Step(`^I extract the "([^"]*)" from the response as "([^"]*)"$`, s.ExtractValueFromResponseAs)
+	step(`^the response code should be "([^"]*)"$`, s.TheResponseCodeShouldBe)
+	step(`^the response code should be (\d+)$`, s.TheResponseCodeShouldBe)
+	step(`^the response should match json$`, s.TheResponseShouldMatchJSON)
+	step(`^the response should contain$`, s.TheResponseShouldContain)
 
-	ctx.Step(`^I download the "([^"]*)" link to the "([^"]*)" directory as "([^"]*)"$`, s.DownloadFileViaLink)
-	ctx.Step(`^the file "([^"]*)" in the "([^"]*)" directory should exist$`, s.FileShouldExist)
-	ctx.Step(`^the files "([^"]*)" and "([^"]*)" in the "([^"]*)" directory should be the same$`, s.CompareFiles)
-	ctx.Step(`^the files "([^"]*)" and "([^"]*)" in the "([^"]*)" directory should not be the same$`, s.CompareFilesForInequality)
+	step(`^I extract the "([^"]*)" from the response$`, s.ExtractValueFromResponse)
+	step(`^I extract the "([^"]*)" from the response as "([^"]*)"$`, s.ExtractValueFromResponseAs)
 
-	ctx.Step(`^I wait for "([^"]*)" seconds$`, s.WaitForSeconds)
+	step(`^I download the "([^"]*)" link to the "([^"]*)" directory as "([^"]*)"$`, s.DownloadFileViaLink)
+	step(`^the file "([^"]*)" in the "([^"]*)" directory should exist$`, s.FileShouldExist)
+	step(`^the files "([^"]*)" and "([^"]*)" in the "([^"]*)" directory should be the same$`, s.CompareFiles)
+	step(`^the files "([^"]*)" and "([^"]*)" in the "([^"]*)" directory should not be the same$`, s.CompareFilesForInequality)
 
-	ctx.Step(`^the websocket is connected$`, s.WebsocketIsConnected)
-	ctx.Step(`^the websocket is not connected$`, s.WebsocketIsNotConnected)
-	ctx.Step(`^I open a websocket at "([^"]*)"$`, s.OpenWebsocket)
-	ctx.Step(`^I set the websocket read timeout to "([^"]*)" seconds$`, s.SetWebsocketReadTimeout)
-	ctx.Step(`^I send the following data to the websocket:$`, s.SendWebsocketMessage)
-	ctx.Step(`^I read a message from the websocket$`, s.GetWebsocketMessage)
+	step(`^I wait for "([^"]*)" seconds$`, s.WaitForSeconds)
 
-	ctx.Step(`^the response should have a length of (\d+)$`, s.ResponseShouldHaveLength)
+	step(`^the websocket is connected$`, s.WebsocketIsConnected)
+	step(`^the websocket is not connected$`, s.WebsocketIsNotConnected)
+	step(`^I open a websocket at "([^"]*)"$`, s.OpenWebsocket)
+	step(`^I set the websocket read timeout to "([^"]*)" seconds$`, s.SetWebsocketReadTimeout)
+	step(`^I send the following data to the websocket:$`, s.SendWebsocketMessage)
+	step(`^I read a message from the websocket$`, s.GetWebsocketMessage)
+
+	step(`^the response should have a length of (\d+)$`, s.ResponseShouldHaveLength)
 	// greater and less than steps
-	ctx.Step("^the response should have a length greater than (\\d+)$", s.ResponseShouldHaveLengthGreaterThan)
-	ctx.Step("^the response should have a length less than (\\d+)$", s.ResponseShouldHaveLengthLessThan)
+	step("^the response should have a length greater than (\\d+)$", s.ResponseShouldHaveLengthGreaterThan)
+	step("^the response should have a length less than (\\d+)$", s.ResponseShouldHaveLengthLessThan)
 
-	ctx.Step(`^the response should contain a "([^"]*)" header with value "([^"]*)"$`, s.TheResponseHeadersShouldContain)
-	ctx.Step(`^the response should contain a "([^"]*)"$`, s.TheResponseShouldContainA)
-	ctx.Step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
-	ctx.Step(`^the response should not contain "([^"]*)" at path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
-	ctx.Step(`^the response should contain a "([^"]*)" that is null$`, s.TheResponseShouldContainAThatIsNull)
-	ctx.Step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
-	ctx.Step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
-	ctx.Step(`^the response should contain a "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
-	ctx.Step(`^the response should contain a "([^"]*)" temporally equal to "([^"]*)"$`, s.TheResponseShouldContainATimeSetTo)
-	ctx.Step(`^the response should contain a "([^"]*)" with length (\d+)$`, s.ResponseShouldContainPropertyWithLength)
-	ctx.Step(`^the response should contain a "([^"]*)" with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithPropertySetTo)
-	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetTo)
-	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyOfLength)
-	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetToNull)
-	ctx.Step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyNotNull)
+	step(`^the response should contain a "([^"]*)" header with value "([^"]*)"$`, s.TheResponseHeadersShouldContain)
+	step(`^the response should contain a "([^"]*)"$`, s.TheResponseShouldContainA)
+	step(`^the response should not contain a "([^"]*)"$`, s.TheResponseShouldNotContainA)
+	step(`^the response should not contain "([^"]*)" at path "([^"]*)"$`, s.ShouldNotContainForJsonQueryPath)
+	step(`^the response should contain a "([^"]*)" that is null$`, s.TheResponseShouldContainAThatIsNull)
+	step(`^the response should contain a "([^"]*)" that is not null$`, s.TheResponseShouldContainAThatIsNotNull)
+	step(`^the response should contain a "([^"]*)" that is not empty$`, s.TheResponseShouldContainAThatIsNotEmpty)
+	step(`^the response should contain a "([^"]*)" set to "([^"]*)"$`, s.TheResponseShouldContainSetTo)
+	step(`^the response should contain a "([^"]*)" temporally equal to "([^"]*)"$`, s.TheResponseShouldContainATimeSetTo)
+	step(`^the response should contain a "([^"]*)" with length (\d+)$`, s.ResponseShouldContainPropertyWithLength)
+	step(`^the response should contain a "([^"]*)" with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithPropertySetTo)
+	step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetTo)
+	step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyOfLength)
+	step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertySetToNull)
+	step(`^the response should contain a "([^"]*)" with item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsObjectWithItemAtIndexWithPropertyNotNull)
 
-	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
-	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsItemAtIndexWithPropertySetToNull)
-	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
-	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemAtIndexWithPropertySetTo)
-	ctx.Step(`^the response should contain an item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsItemAtIndexWithPropertyOfLength)
+	step(`^the response should contain an item at index (\d+) with "([^"]*)" that is not null$`, s.ResponseContainsItemAtIndexWithPropertyNotSetToNull)
+	step(`^the response should contain an item at index (\d+) with "([^"]*)" that is null$`, s.ResponseContainsItemAtIndexWithPropertySetToNull)
+	step(`^the response should contain an item at index (\d+) with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemAtIndexWithPropertySetTo)
+	step(`^the response should contain an item at index (\d+) with "([^"]*)" of length (\d+)$`, s.ResponseContainsItemAtIndexWithPropertyOfLength)
 
-	ctx.Step(`^the response should contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemWithPropertySetTo)
-	ctx.Step(`^the response should not contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseShouldNotContainItemWithPropertySetTo)
+	step(`^the response should contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseContainsItemWithPropertySetTo)
+	step(`^the response should not contain an item with "([^"]*)" set to "([^"]*)"$`, s.ResponseShouldNotContainItemWithPropertySetTo)
 
-	ctx.Step(`^the message should contain a "([^"]*)"$`, s.TheMessageShouldContainA)
-	ctx.Step(`^the message should not contain a "([^"]*)"$`, s.TheMessageShouldNotContainA)
-	ctx.Step(`^the message should not be empty$`, s.CheckMessageNotEmpty)
-	ctx.Step(`^the json query "([^"]*)" should not exists in the response$`, s.theJsonQueryShouldNotExistsInTheResponse)
-	ctx.Step(`^the json query "([^"]*)" should exists in the response$`, s.theJsonQueryShouldExistsInTheResponse)
-	ctx.Step(`^the json query "([^"]*)" should be equal to "([^"]*)"$`, s.theJsonQueryShouldBeEqualTo)
+	step(`^the message should contain a "([^"]*)"$`, s.TheMessageShouldContainA)
+	step(`^the message should not contain a "([^"]*)"$`, s.TheMessageShouldNotContainA)
+	step(`^the message should not be empty$`, s.CheckMessageNotEmpty)
+	step(`^the json query "([^"]*)" should not exists in the response$`, s.theJsonQueryShouldNotExistsInTheResponse)
+	step(`^the json query "([^"]*)" should exists in the response$`, s.theJsonQueryShouldExistsInTheResponse)
+	step(`^the json query "([^"]*)" should be equal to "([^"]*)"$`, s.theJsonQueryShouldBeEqualTo)
 }
 
 func (s *ServerTestFeature) theJsonQueryShouldBeEqualTo(jsonQueryPath, expected string) error {
