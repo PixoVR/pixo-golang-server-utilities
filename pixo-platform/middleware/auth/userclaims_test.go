@@ -158,6 +158,18 @@ var _ = Describe("UserClaims", func() {
 			Expect(parsed.OrgType).To(Equal(claims.OrgType))
 		})
 
+		It("keeps the id and type of each license", func() {
+			claims := validUserClaims()
+			pixoBuilder := auth.TokenLicense{ID: 7, Type: auth.LicenseTypePixoBuilder}
+			claims.Licences = []auth.TokenLicense{pixoBuilder}
+			token, err := claims.GenerateAccessToken()
+			Expect(err).NotTo(HaveOccurred())
+
+			parsed, err := auth.ParseAccessTokenWithExpiration(token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(parsed.Licences).To(ConsistOf(pixoBuilder))
+		})
+
 		It("returns error for empty token", func() {
 			_, err := auth.ParseAccessTokenWithExpiration("")
 			Expect(err).To(HaveOccurred())

@@ -1,17 +1,8 @@
 package auth
 
-type LicenceTypeEnum int
-
-const (
-	LicenceTypePixoBuilder LicenceTypeEnum = iota
-)
-
-func (e LicenceTypeEnum) String() string {
-	return []string{
-		"pixo-builder",
-	}[e]
-}
+const LicenseTypePixoBuilder = "pixo-builder"
 
 type TokenLicense struct {
-	ID LicenceTypeEnum `json:"id"`
+	ID   int    `json:"id"`
+	Type string `json:"type"`
 }
