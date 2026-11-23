@@ -1,9 +1,14 @@
 package auth
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"strings"
+	"unicode"
 
-	jwt2 "github.com/go-jose/go-jose/v3/jwt"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type RawToken struct {
@@ -27,15 +32,10 @@ type RawToken struct {
 }
 
 func ParseJWT(tokenString string) (RawToken, error) {
-	var claims map[string]interface{}
-
-	var token *jwt2.JSONWebToken
-	token, err := jwt2.ParseSigned(tokenString)
+	claims, err := parseLegacyJWTClaims(tokenString)
 	if err != nil {
 		return RawToken{}, errors.New("no token found")
 	}
-
-	_ = token.UnsafeClaimsWithoutVerification(&claims)
 
 	var rawToken RawToken
 
@@ -108,6 +108,84 @@ func ParseJWT(tokenString string) (RawToken, error) {
 	}
 
 	return rawToken, nil
+}
+
+func parseLegacyJWTClaims(tokenString string) (jwt.MapClaims, error) {
+	tokenString = strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, tokenString)
+	parser := jwt.NewParser()
+	if strings.HasPrefix(tokenString, "{") {
+		return parseLegacyJSONJWS(tokenString)
+	}
+
+	return parseLegacyCompactJWT(tokenString, parser)
+}
+
+func parseLegacyCompactJWT(tokenString string, parser *jwt.Parser) (jwt.MapClaims, error) {
+	segments := strings.SplitN(tokenString, ".", 4)
+	if len(segments) != 3 {
+		return nil, jwt.ErrTokenMalformed
+	}
+	for i := range segments {
+		segments[i] = strings.TrimRight(segments[i], "=")
+	}
+	emptyObject := base64.RawURLEncoding.EncodeToString([]byte("{}"))
+	if segments[0] == "" {
+		segments[0] = emptyObject
+	}
+	tokenString = strings.Join(segments, ".")
+	claims := jwt.MapClaims{}
+	token, parts, err := parser.ParseUnverified(tokenString, claims)
+	if errors.Is(err, jwt.ErrTokenMalformed) && len(parts) == 3 {
+		payload, decodeErr := parser.DecodeSegment(parts[1])
+		if decodeErr == nil && json.Unmarshal(payload, &claims) != nil {
+			claims = jwt.MapClaims{}
+			parts[1] = emptyObject
+			token, parts, err = parser.ParseUnverified(strings.Join(parts, "."), claims)
+		}
+	}
+	if errors.Is(err, jwt.ErrTokenUnverifiable) {
+		if alg := token.Header["alg"]; alg != nil {
+			if _, ok := alg.(string); !ok {
+				return nil, err
+			}
+		}
+		_, err = parser.DecodeSegment(parts[2])
+	}
+	if err != nil {
+		return nil, err
+	}
+	for _, field := range []string{"jwk", "kid", "nonce", "x5c"} {
+		if token.Header[field] != nil {
+			alg, _ := token.Header["alg"].(string)
+			if _, err := jose.ParseSignedCompact(tokenString, []jose.SignatureAlgorithm{jose.SignatureAlgorithm(alg)}); err != nil {
+				return nil, err
+			}
+			break
+		}
+	}
+	return claims, nil
+}
+
+func parseLegacyJSONJWS(tokenString string) (jwt.MapClaims, error) {
+	algorithms := []jose.SignatureAlgorithm{
+		"", "none", jose.EdDSA,
+		jose.HS256, jose.HS384, jose.HS512,
+		jose.RS256, jose.RS384, jose.RS512,
+		jose.ES256, jose.ES384, jose.ES512,
+		jose.PS256, jose.PS384, jose.PS512,
+	}
+	token, err := jose.ParseSignedJSON(tokenString, algorithms)
+	if err != nil {
+		return nil, err
+	}
+	var claims jwt.MapClaims
+	_ = json.Unmarshal(token.UnsafePayloadWithoutVerification(), &claims)
+	return claims, nil
 }
 
 func extractClaim(claims map[string]interface{}, key string) interface{} {
