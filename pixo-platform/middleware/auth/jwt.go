@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	"github.com/go-jose/go-jose/v4"
+	josejson "github.com/go-jose/go-jose/v4/json"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -194,7 +195,7 @@ func parseLegacyJSONJWS(tokenString string) (jwt.MapClaims, error) {
 		Payload    *legacyJWSBase64URL  `json:"payload,omitempty"`
 		Signatures []legacyJWSSignature `json:"signatures,omitempty"`
 	}
-	if err := json.Unmarshal([]byte(tokenString), &envelope); err != nil {
+	if err := josejson.Unmarshal([]byte(tokenString), &envelope); err != nil {
 		return nil, err
 	}
 	normalized, err := json.Marshal(envelope)
