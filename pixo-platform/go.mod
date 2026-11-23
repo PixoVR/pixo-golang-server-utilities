@@ -7,7 +7,7 @@ require (
 	github.com/99designs/gqlgen v0.17.95
 	github.com/PixoVR/pixo-golang-clients/pixo-platform v0.1.118
 	github.com/alicebob/miniredis/v2 v2.39.0
-	github.com/antchfx/jsonquery v1.3.7
+	github.com/antchfx/jsonquery v1.3.8
 	github.com/casbin/casbin/v2 v2.135.0
 	github.com/cucumber/godog v0.16.0
 	github.com/gin-gonic/gin v1.12.0
@@ -49,7 +49,7 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/antchfx/xpath v1.3.8 // indirect
+	github.com/antchfx/xpath v1.3.9 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/bytedance/sonic v1.15.4 // indirect
