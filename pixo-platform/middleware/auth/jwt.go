@@ -171,7 +171,36 @@ func parseLegacyCompactJWT(tokenString string, parser *jwt.Parser) (jwt.MapClaim
 	return claims, nil
 }
 
+type legacyJWSBase64URL string
+
+func (field *legacyJWSBase64URL) UnmarshalJSON(data []byte) error {
+	var encoded string
+	if err := json.Unmarshal(data, &encoded); err != nil {
+		return err
+	}
+	*field = legacyJWSBase64URL(strings.TrimRight(encoded, "="))
+	return nil
+}
+
+type legacyJWSSignature struct {
+	Protected *legacyJWSBase64URL `json:"protected,omitempty"`
+	Header    json.RawMessage     `json:"header,omitempty"`
+	Signature *legacyJWSBase64URL `json:"signature,omitempty"`
+}
+
 func parseLegacyJSONJWS(tokenString string) (jwt.MapClaims, error) {
+	var envelope struct {
+		legacyJWSSignature
+		Payload    *legacyJWSBase64URL  `json:"payload,omitempty"`
+		Signatures []legacyJWSSignature `json:"signatures,omitempty"`
+	}
+	if err := json.Unmarshal([]byte(tokenString), &envelope); err != nil {
+		return nil, err
+	}
+	normalized, err := json.Marshal(envelope)
+	if err != nil {
+		return nil, err
+	}
 	algorithms := []jose.SignatureAlgorithm{
 		"", "none", jose.EdDSA,
 		jose.HS256, jose.HS384, jose.HS512,
@@ -179,7 +208,7 @@ func parseLegacyJSONJWS(tokenString string) (jwt.MapClaims, error) {
 		jose.ES256, jose.ES384, jose.ES512,
 		jose.PS256, jose.PS384, jose.PS512,
 	}
-	token, err := jose.ParseSignedJSON(tokenString, algorithms)
+	token, err := jose.ParseSignedJSON(string(normalized), algorithms)
 	if err != nil {
 		return nil, err
 	}
